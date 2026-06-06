@@ -39,6 +39,13 @@ label{font-weight:bold;color:#295fdb}
 <label>Matrícula *</label>
 <input id="matricula" placeholder="0000ABC">
 <button onclick="buscarMatricula()" type="button">BUSCAR MATRÍCULA</button>
+
+<label>Importar clientes/vehículos desde CSV</label>
+<input type="file" id="importFile" accept=".csv">
+<button class="secondary" onclick="importarCSV()" type="button">
+IMPORTAR CSV
+</button>
+
 <div id="aviso" class="notice hidden"></div>
 
 <label>Cliente *</label>
@@ -223,6 +230,83 @@ box.innerHTML+=`
 function elegirModelo(modelo){
 document.getElementById("modelo").value=modelo;
 document.getElementById("modeloResultados").innerHTML="";
+}
+function importarCSV(){
+
+const file=document.getElementById("importFile").files[0];
+
+if(!file){
+alert("SELECCIONA UN ARCHIVO CSV");
+return;
+}
+
+const reader=new FileReader();
+
+reader.onload=function(e){
+
+const texto=e.target.result;
+const lineas=texto.split(/\r?\n/).filter(l=>l.trim()!=="");
+
+if(lineas.length<2){
+alert("EL CSV ESTÁ VACÍO O NO TIENE DATOS");
+return;
+}
+
+const cabeceras=lineas[0]
+.split(";")
+.map(h=>h.trim().toLowerCase());
+
+let importados=0;
+
+for(let i=1;i<lineas.length;i++){
+
+const valores=lineas[i]
+.split(";")
+.map(v=>v.trim());
+
+const registro={};
+
+cabeceras.forEach((cabecera,index)=>{
+registro[cabecera]=valores[index]||"";
+});
+
+if(registro.matricula){
+
+const existente=ots.find(x=>
+x.matricula===registro.matricula.toUpperCase()
+);
+
+const nuevo={
+id:Date.now()+i,
+matricula:registro.matricula.toUpperCase(),
+cliente:(registro.cliente||"").toUpperCase(),
+telefono:registro.telefono||"",
+marca:(registro.marca||"").toUpperCase(),
+modelo:(registro.modelo||"").toUpperCase(),
+km:"",
+fecha:"",
+estado:"PENDIENTE",
+trabajos:"IMPORTADO DESDE CSV",
+observaciones:""
+};
+
+if(existente){
+Object.assign(existente,nuevo,{id:existente.id});
+}else{
+ots.push(nuevo);
+}
+
+importados++;
+}
+}
+
+guardar();
+
+alert("IMPORTACIÓN COMPLETADA: "+importados+" REGISTROS");
+
+};
+
+reader.readAsText(file,"UTF-8");
 }
 function buscarMatricula(){
 
