@@ -142,6 +142,22 @@ const MARCAS=[
 "VOLVO":["C30","S40","S60","S80","V40","V50","V60","V70","XC40","XC60","XC90"]
 };
 
+function formatearFecha(fecha){
+
+if(!fecha) return "SIN CITA";
+
+const d=new Date(fecha);
+
+const dia=String(d.getDate()).padStart(2,"0");
+const mes=String(d.getMonth()+1).padStart(2,"0");
+const año=d.getFullYear();
+
+const hora=d.getHours();
+const min=String(d.getMinutes()).padStart(2,"0");
+
+return `${dia}/${mes}/${año} - ${hora}:${min}h`;
+
+}
 function guardar(){
 localStorage.setItem(STORAGE,JSON.stringify(ots));
 }
@@ -299,7 +315,7 @@ ${ot.telefono}<br>
 ${ot.marca} ${ot.modelo}<br>
 KM: ${ot.km}<br>
 Estado: ${ot.estado}<br>
-Fecha: ${ot.fecha || "SIN CITA"}<br>
+Fecha: ${formatearFecha(ot.fecha)}<br>
 <br>
 <b>TRABAJOS:</b><br>
 ${ot.trabajos || "SIN TRABAJOS"}<br>
@@ -330,7 +346,7 @@ return;
 conFecha.forEach(ot=>{
 agenda.innerHTML+=`
 <div class="item">
-<b>${ot.fecha}</b><br>
+<b>${formatearFecha(ot.fecha)}</b><br>
 ${ot.matricula}<br>
 ${ot.cliente}<br>
 ${ot.estado}<br>
