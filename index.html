@@ -102,7 +102,13 @@ GUARDAR OT
 
 const STORAGE="RECEPCION_TALLER_PRO";
 
-let ots=JSON.parse(localStorage.getItem(STORAGE)||"[]");
+let ots=[];
+
+try{
+ots=JSON.parse(localStorage.getItem(STORAGE)||"[]");
+}catch(e){
+ots=[];
+}
 let editandoId=null;
 
 const MARCAS=[
