@@ -331,6 +331,9 @@ ${ot.trabajos || "SIN TRABAJOS"}<br>
 <b>OBSERVACIONES:</b><br>
 ${ot.observaciones || "SIN OBSERVACIONES"}
 <br><br>
+<button onclick="editarOT(${ot.id})">
+EDITAR
+</button>
 <button class="secondary" onclick="imprimir(${ot.id})">
 IMPRIMIR
 </button>
@@ -369,6 +372,29 @@ ${ot.observaciones || "SIN OBSERVACIONES"}<br><br>
 });
 }
 
+function editarOT(id){
+
+const ot=ots.find(x=>x.id===id);
+
+if(!ot)return;
+
+editandoId=id;
+
+document.getElementById("matricula").value=ot.matricula||"";
+document.getElementById("cliente").value=ot.cliente||"";
+document.getElementById("telefono").value=ot.telefono||"";
+document.getElementById("marca").value=ot.marca||"";
+document.getElementById("modelo").value=ot.modelo||"";
+document.getElementById("km").value=ot.km||"";
+document.getElementById("fecha").value=ot.fecha||"";
+document.getElementById("estado").value=ot.estado||"";
+document.getElementById("trabajos").value=ot.trabajos||"";
+document.getElementById("observaciones").value=ot.observaciones||"";
+
+showTab("nueva");
+
+alert("EDITANDO OT");
+}
 function imprimir(id){
 
 const ot=ots.find(x=>x.id===id);
