@@ -324,11 +324,7 @@ ot.modelo.includes(texto) ||
 ot.trabajos.includes(texto) ||
 ot.observaciones.includes(texto)
 )
-.sort((a,b)=>{
-const fa=a.fecha ? new Date(a.fecha).getTime() : a.id;
-const fb=b.fecha ? new Date(b.fecha).getTime() : b.id;
-return fb-fa;
-});
+.sort((a,b)=>b.id-a.id);
 
 if(filtradas.length===0){
 lista.innerHTML="<p>No hay órdenes.</p>";
