@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RecepcionTallerPro</title>
+
+<style>
+body{
+font-family:Arial,sans-serif;
+background:#eef2f5;
+margin:0;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:12px;
+max-width:700px;
+margin:auto;
+}
+
+h1{
+text-align:center;
+color:#123;
+}
+
+input,textarea,button{
+width:100%;
+box-sizing:border-box;
+padding:12px;
+margin-top:6px;
+margin-bottom:14px;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:16px;
+}
+
+button{
+background:#295fdb;
+color:white;
+font-weight:bold;
+border:none;
+}
+
+.item{
+background:#f7f7f7;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h1>RecepcionTallerPro</h1>
+
+<label>MATRÍCULA</label>
+<input id="matricula">
+
+<button type="button" onclick="buscarMatricula()">
+BUSCAR MATRÍCULA
+</button>
+
+<label>CLIENTE</label>
+<input id="cliente">
+
+<label>TELÉFONO</label>
+<input id="telefono">
+
+<label>MARCA</label>
+<input id="marca">
+
+<label>MODELO</label>
+<input id="modelo">
+
+<label>KM</label>
+<input id="km">
+
+<label>TRABAJOS</label>
+<textarea id="trabajos"></textarea>
+
+<button onclick="guardarOT()">
+GUARDAR OT
+</button>
+
+<hr>
+
+<h2>Historial</h2>
+
+<div id="historial"></div>
+
+</div>
+
+<script>
+
+let ots =
+JSON.parse(
+localStorage.getItem("recepcion_taller_pro")
+|| "[]"
+);
+
+function guardar(){
+
+localStorage.setItem(
+"recepcion_taller_pro",
+JSON.stringify(ots)
+);
+
+}
+
+function buscarMatricula(){
+
+const m =
+document.getElementById("matricula")
+.value
+.trim()
+.toUpperCase();
+
+if(!m) return;
+
+const encontrados =
+ots.filter(
+o=>o.matricula===m
+);
+
+if(encontrados.length===0){
+
+alert("NO EXISTE ESA MATRÍCULA");
+
+return;
+
+}
+
+const ot =
+encontrados[encontrados.length-1];
+
+document.getElementById("cliente").value=
+ot.cliente||"";
+
+document.getElementById("telefono").value=
+ot.telefono||"";
+
+document.getElementById("marca").value=
+ot.marca||"";
+
+document.getElementById("modelo").value=
+ot.modelo||"";
+
+document.getElementById("km").value=
+ot.km||"";
+
+}
+
+function guardarOT(){
+
+const ot={
+
+matricula:
+document.getElementById("matricula")
+.value
+.trim()
+.toUpperCase(),
+
+cliente:
+document.getElementById("cliente")
+.value
+.trim()
+.toUpperCase(),
+
+telefono:
+document.getElementById("telefono")
+.value
+.trim(),
+
+marca:
+document.getElementById("marca")
+.value
+.trim()
+.toUpperCase(),
+
+modelo:
+document.getElementById("modelo")
+.value
+.trim()
+.toUpperCase(),
+
+km:
+document.getElementById("km")
+.value
+.trim(),
+
+trabajos:
+document.getElementById("trabajos")
+.value
+.trim()
+
+};
+
+if(!ot.matricula || !ot.cliente){
+
+alert("FALTAN DATOS");
+
+return;
+}
+
+ots.push(ot);
+
+guardar();
+
+render();
+
+alert("OT GUARDADA");
+
+}
+
+function render(){
+
+const box=
+document.getElementById("historial");
+
+box.innerHTML="";
+
+ots.slice().reverse().forEach(ot=>{
+
+box.innerHTML+=`
+<div class="item">
+<b>${ot.matricula}</b><br>
+${ot.cliente}<br>
+${ot.marca} ${ot.modelo}<br>
+KM ${ot.km}
+</div>
+`;
+
+});
+
+}
+
+render();
+
+</script>
+
+</body>
+</html>
