@@ -333,7 +333,13 @@ agenda.innerHTML+=`
 <b>${ot.fecha}</b><br>
 ${ot.matricula}<br>
 ${ot.cliente}<br>
-${ot.estado}
+${ot.estado}<br>
+<br>
+<b>TRABAJOS:</b><br>
+${ot.trabajos || "SIN TRABAJOS"}<br>
+<br>
+<b>OBSERVACIONES:</b><br>
+${ot.observaciones || "SIN OBSERVACIONES"}<br><br>
 </div>
 `;
 });
