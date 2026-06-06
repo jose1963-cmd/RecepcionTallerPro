@@ -274,10 +274,17 @@ alert("FALTAN DATOS OBLIGATORIOS");
 return;
 }
 
-ots.push(ot);
+if(editandoId){
+  ot.id=editandoId;
+  ots=ots.map(x=>x.id===editandoId ? ot : x);
+  editandoId=null;
+  alert("OT ACTUALIZADA");
+}else{
+  ots.push(ot);
+  alert("OT GUARDADA");
+}
 guardar();
 
-alert("OT GUARDADA");
 
 location.reload();
 }
