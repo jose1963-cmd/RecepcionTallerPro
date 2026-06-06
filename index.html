@@ -286,8 +286,24 @@ if(editandoId){
 guardar();
 
 
-window.scrollTo(0,0);
-location.reload();
+document.getElementById("matricula").value="";
+document.getElementById("cliente").value="";
+document.getElementById("telefono").value="";
+document.getElementById("marca").value="";
+document.getElementById("modelo").value="";
+document.getElementById("km").value="";
+document.getElementById("fecha").value="";
+document.getElementById("estado").value="PENDIENTE";
+document.getElementById("trabajos").value="";
+document.getElementById("observaciones").value="";
+
+showTab("nueva");
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+}
 }
 function renderHistorial(){
 
