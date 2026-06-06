@@ -315,13 +315,13 @@ lista.innerHTML="";
 const filtradas=ots
 .filter(ot=>
 !texto ||
-ot.matricula.includes(texto) ||
-ot.cliente.includes(texto) ||
-ot.telefono.includes(texto) ||
-ot.marca.includes(texto) ||
-ot.modelo.includes(texto) ||
-ot.trabajos.includes(texto) ||
-ot.observaciones.includes(texto)
+normalizar(ot.matricula).includes(texto) ||
+normalizar(ot.cliente).includes(texto) ||
+normalizar(ot.telefono).includes(texto) ||
+normalizar(ot.marca).includes(texto) ||
+normalizar(ot.modelo).includes(texto) ||
+normalizar(ot.trabajos).includes(texto) ||
+normalizar(ot.observaciones).includes(texto)
 )
 .sort((a,b)=>b.id-a.id);
 
