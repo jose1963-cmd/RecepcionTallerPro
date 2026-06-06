@@ -4,140 +4,143 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>RecepcionTallerPro</title>
-
 <style>
-body{
-font-family:Arial,sans-serif;
-background:#eef2f5;
-margin:0;
-padding:20px;
-}
-
-.card{
-background:white;
-padding:20px;
-border-radius:12px;
-max-width:700px;
-margin:auto;
-}
-
-h1{
-text-align:center;
-color:#123;
-}
-
-input,textarea,button{
-width:100%;
-box-sizing:border-box;
-padding:12px;
-margin-top:6px;
-margin-bottom:14px;
-border-radius:8px;
-border:1px solid #ccc;
-font-size:16px;
-}
-
-button{
-background:#295fdb;
-color:white;
-font-weight:bold;
-border:none;
-}
-
-.item{
-background:#f7f7f7;
-padding:10px;
-margin-top:10px;
-border-radius:8px;
-}
+body{font-family:Arial,sans-serif;background:#eef2f5;margin:0;padding:16px;color:#102033}
+.card{background:white;padding:18px;border-radius:18px;max-width:700px;margin:0 auto 18px;box-shadow:0 2px 10px #0001}
+h1{text-align:center;color:#ff7a1a;background:#0b1638;margin:-16px -16px 16px;padding:22px 10px;font-size:26px}
+h2{margin:8px 0 14px}
+.tabs{display:flex;gap:8px;max-width:700px;margin:0 auto 14px}
+.tabs button{flex:1}
+input,textarea,select,button{width:100%;box-sizing:border-box;padding:13px;margin:6px 0 12px;border-radius:12px;border:1px solid #ccc;font-size:16px;text-transform:uppercase}
+button{background:#295fdb;color:white;font-weight:bold;border:none}
+button.secondary{background:#344d7a}
+button.green{background:#28a745}
+label{font-weight:bold;color:#295fdb}
+.hidden{display:none}
+.item{background:#f7f7f7;padding:12px;margin-top:10px;border-radius:12px;border-left:5px solid #295fdb}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.results button{background:#f1f4f8;color:#102033;text-align:left;border-radius:0;margin:0;border-bottom:1px solid #ddd}
+.notice{background:#e8f5ee;border-left:5px solid #28a745;padding:10px;border-radius:10px;margin-bottom:12px;font-weight:bold}
 </style>
 </head>
-
 <body>
 
-<div class="card">
+<h1>RECEPCIÓN TALLER PRO</h1>
 
-<h1>RecepcionTallerPro</h1>
+<div class="tabs">
+<button onclick="showTab('nueva')">NUEVA OT</button>
+<button onclick="showTab('historial')">HISTORIAL</button>
+<button onclick="showTab('agenda')">AGENDA</button>
+</div>
 
-<label>MATRÍCULA</label>
-<input id="matricula">
+<div id="nueva" class="card">
+<h2>Nueva Orden</h2>
 
-<button type="button" onclick="buscarMatricula()">
-BUSCAR MATRÍCULA
-</button>
+<label>Matrícula *</label>
+<input id="matricula" placeholder="0000ABC">
+<button onclick="buscarMatricula()" type="button">BUSCAR MATRÍCULA</button>
+<div id="aviso" class="notice hidden"></div>
 
-<label>CLIENTE</label>
-<input id="cliente">
+<label>Cliente *</label>
+<input id="cliente" placeholder="Nombre y apellidos">
 
-<label>TELÉFONO</label>
-<input id="telefono">
+<label>Teléfono</label>
+<input id="telefono" placeholder="Teléfono">
 
-<label>MARCA</label>
-<input id="marca">
+<label>Marca</label>
+<input id="marca" placeholder="Escribe marca">
+<div id="marcaResultados" class="results"></div>
 
-<label>MODELO</label>
-<input id="modelo">
+<label>Modelo</label>
+<input id="modelo" placeholder="Escribe modelo">
+<div id="modeloResultados" class="results"></div>
 
+<div class="row">
+<div>
 <label>KM</label>
-<input id="km">
+<input id="km" placeholder="KM">
+</div>
+<div>
+<label>Fecha / cita</label>
+<input id="fecha" type="datetime-local">
+</div>
+</div>
 
-<label>TRABAJOS</label>
-<textarea id="trabajos"></textarea>
+<label>Estado</label>
+<select id="estado">
+<option>PENDIENTE</option>
+<option>CITADO</option>
+<option>EN TALLER</option>
+<option>ESPERANDO PIEZAS</option>
+<option>FINALIZADO</option>
+<option>ENTREGADO</option>
+</select>
+<label>Trabajos *</label>
+<textarea id="trabajos" rows="5"></textarea>
 
-<button onclick="guardarOT()">
+<label>Observaciones</label>
+<textarea id="observaciones" rows="4"></textarea>
+
+<button class="green" onclick="guardarOT()" type="button">
 GUARDAR OT
 </button>
 
-<hr>
+</div>
 
+<div id="historial" class="card hidden">
 <h2>Historial</h2>
+<input id="buscar" placeholder="Buscar matrícula o cliente" oninput="renderHistorial()">
+<div id="lista"></div>
+</div>
 
-<div id="historial"></div>
-
+<div id="agenda" class="card hidden">
+<h2>Agenda</h2>
+<div id="agendaLista"></div>
 </div>
 
 <script>
 
-let ots =
-JSON.parse(
-localStorage.getItem("recepcion_taller_pro")
-|| "[]"
-);
+const STORAGE="RECEPCION_TALLER_PRO";
+
+let ots=JSON.parse(localStorage.getItem(STORAGE)||"[]");
+
+const MARCAS=[
+"SEAT","VOLKSWAGEN","AUDI","SKODA","BMW","MERCEDES",
+"PEUGEOT","RENAULT","CITROEN","OPEL","FORD","TOYOTA",
+"NISSAN","KIA","HYUNDAI","DACIA","FIAT","MAZDA"
+];
 
 function guardar(){
+localStorage.setItem(STORAGE,JSON.stringify(ots));
+}
 
-localStorage.setItem(
-"recepcion_taller_pro",
-JSON.stringify(ots)
-);
+function showTab(id){
+document.getElementById("nueva").classList.add("hidden");
+document.getElementById("historial").classList.add("hidden");
+document.getElementById("agenda").classList.add("hidden");
+document.getElementById(id).classList.remove("hidden");
 
+if(id==="historial") renderHistorial();
+if(id==="agenda") renderAgenda();
 }
 
 function buscarMatricula(){
 
-const m =
-document.getElementById("matricula")
-.value
-.trim()
-.toUpperCase();
+const mat=document.getElementById("matricula")
+.value.trim().toUpperCase();
 
-if(!m) return;
+if(!mat)return;
 
-const encontrados =
-ots.filter(
-o=>o.matricula===m
-);
+const ot=[...ots]
+.reverse()
+.find(x=>x.matricula===mat);
 
-if(encontrados.length===0){
-
-alert("NO EXISTE ESA MATRÍCULA");
-
+if(!ot){
+document.getElementById("aviso").classList.remove("hidden");
+document.getElementById("aviso").innerText=
+"MATRÍCULA NO ENCONTRADA";
 return;
-
 }
-
-const ot =
-encontrados[encontrados.length-1];
 
 document.getElementById("cliente").value=
 ot.cliente||"";
@@ -151,98 +154,170 @@ ot.marca||"";
 document.getElementById("modelo").value=
 ot.modelo||"";
 
-document.getElementById("km").value=
-ot.km||"";
-
+document.getElementById("aviso").classList.remove("hidden");
+document.getElementById("aviso").innerText=
+"DATOS RECUPERADOS";
 }
 
 function guardarOT(){
 
 const ot={
-
-matricula:
-document.getElementById("matricula")
-.value
-.trim()
-.toUpperCase(),
-
-cliente:
-document.getElementById("cliente")
-.value
-.trim()
-.toUpperCase(),
-
-telefono:
-document.getElementById("telefono")
-.value
-.trim(),
-
-marca:
-document.getElementById("marca")
-.value
-.trim()
-.toUpperCase(),
-
-modelo:
-document.getElementById("modelo")
-.value
-.trim()
-.toUpperCase(),
-
-km:
-document.getElementById("km")
-.value
-.trim(),
-
-trabajos:
-document.getElementById("trabajos")
-.value
-.trim()
-
+id:Date.now(),
+matricula:document.getElementById("matricula").value.trim().toUpperCase(),
+cliente:document.getElementById("cliente").value.trim().toUpperCase(),
+telefono:document.getElementById("telefono").value.trim(),
+marca:document.getElementById("marca").value.trim().toUpperCase(),
+modelo:document.getElementById("modelo").value.trim().toUpperCase(),
+km:document.getElementById("km").value.trim(),
+fecha:document.getElementById("fecha").value,
+estado:document.getElementById("estado").value,
+trabajos:document.getElementById("trabajos").value.trim().toUpperCase(),
+observaciones:document.getElementById("observaciones").value.trim().toUpperCase()
 };
 
-if(!ot.matricula || !ot.cliente){
-
-alert("FALTAN DATOS");
-
+if(!ot.matricula||!ot.cliente||!ot.trabajos){
+alert("FALTAN DATOS OBLIGATORIOS");
 return;
 }
 
 ots.push(ot);
-
 guardar();
-
-render();
 
 alert("OT GUARDADA");
 
+location.reload();
+}
+function renderHistorial(){
+
+const texto=document.getElementById("buscar")
+.value.trim().toUpperCase();
+
+const lista=document.getElementById("lista");
+lista.innerHTML="";
+
+const filtradas=ots
+.filter(ot=>
+!texto ||
+ot.matricula.includes(texto) ||
+ot.cliente.includes(texto) ||
+ot.marca.includes(texto) ||
+ot.modelo.includes(texto)
+)
+.reverse();
+
+if(filtradas.length===0){
+lista.innerHTML="<p>No hay órdenes.</p>";
+return;
 }
 
-function render(){
-
-const box=
-document.getElementById("historial");
-
-box.innerHTML="";
-
-ots.slice().reverse().forEach(ot=>{
-
-box.innerHTML+=`
+filtradas.forEach(ot=>{
+lista.innerHTML+=`
 <div class="item">
 <b>${ot.matricula}</b><br>
 ${ot.cliente}<br>
+${ot.telefono}<br>
 ${ot.marca} ${ot.modelo}<br>
-KM ${ot.km}
+KM: ${ot.km}<br>
+Estado: ${ot.estado}<br>
+Fecha: ${ot.fecha || ""}
+<br><br>
+<button class="secondary" onclick="imprimir(${ot.id})">
+IMPRIMIR
+</button>
 </div>
 `;
-
 });
-
 }
 
-render();
+function renderAgenda(){
+
+const agenda=document.getElementById("agendaLista");
+agenda.innerHTML="";
+
+const conFecha=ots
+.filter(ot=>ot.fecha)
+.sort((a,b)=>a.fecha.localeCompare(b.fecha));
+
+if(conFecha.length===0){
+agenda.innerHTML="<p>No hay citas.</p>";
+return;
+}
+
+conFecha.forEach(ot=>{
+agenda.innerHTML+=`
+<div class="item">
+<b>${ot.fecha}</b><br>
+${ot.matricula}<br>
+${ot.cliente}<br>
+${ot.estado}
+</div>
+`;
+});
+}
+
+function imprimir(id){
+
+const ot=ots.find(x=>x.id===id);
+
+if(!ot)return;
+
+const w=window.open("","_blank");
+
+w.document.write(`
+<html>
+<head>
+<title>OT ${ot.matricula}</title>
+<style>
+body{font-family:Arial;padding:20px}
+h1{text-align:center}
+.box{border:1px solid #333;padding:10px;margin:10px 0}
+</style>
+</head>
+<body>
+<h1>ORDEN DE TRABAJO</h1>
+<p><b>Matrícula:</b> ${ot.matricula}</p>
+<p><b>Cliente:</b> ${ot.cliente}</p>
+<p><b>Teléfono:</b> ${ot.telefono}</p>
+<p><b>Vehículo:</b> ${ot.marca} ${ot.modelo}</p>
+<p><b>KM:</b> ${ot.km}</p>
+<p><b>Fecha:</b> ${ot.fecha}</p>
+<p><b>Estado:</b> ${ot.estado}</p>
+<h3>Trabajos</h3>
+<div class="box">${ot.trabajos}</div>
+<h3>Observaciones</h3>
+<div class="box">${ot.observaciones}</div>
+<p>Firma cliente: __________________________</p>
+<script>window.print();<\/script>
+</body>
+</html>
+`);
+
+w.document.close();
+}
+
+function inicializarPrueba(){
+
+if(ots.length>0)return;
+
+ots.push({
+id:Date.now(),
+matricula:"0000ASD",
+cliente:"JOSE AGOIZ DUARTE",
+telefono:"600000000",
+marca:"OPEL",
+modelo:"ZAFIRA",
+km:"350000",
+fecha:"",
+estado:"PENDIENTE",
+trabajos:"PRUEBA INICIAL",
+observaciones:"REGISTRO DE PRUEBA"
+});
+
+guardar();
+}
+
+inicializarPrueba();
 
 </script>
-
 </body>
 </html>
