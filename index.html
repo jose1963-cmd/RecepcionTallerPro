@@ -155,7 +155,52 @@ document.getElementById(id).classList.remove("hidden");
 if(id==="historial") renderHistorial();
 if(id==="agenda") renderAgenda();
 }
+function normalizar(t){
+return (t||"").toUpperCase();
+}
 
+function mostrarMarcas(){
+const texto=normalizar(document.getElementById("marca").value);
+const box=document.getElementById("marcaResultados");
+box.innerHTML="";
+
+MARCAS
+.filter(m=>m.includes(texto))
+.forEach(m=>{
+box.innerHTML+=`
+<button type="button" onclick="elegirMarca('${m}')">${m}</button>
+`;
+});
+}
+
+function elegirMarca(marca){
+document.getElementById("marca").value=marca;
+document.getElementById("marcaResultados").innerHTML="";
+document.getElementById("modelo").value="";
+mostrarModelos();
+}
+
+function mostrarModelos(){
+const marca=document.getElementById("marca").value.toUpperCase();
+const texto=normalizar(document.getElementById("modelo").value);
+const box=document.getElementById("modeloResultados");
+box.innerHTML="";
+
+const lista=MODELOS[marca]||[];
+
+lista
+.filter(m=>m.includes(texto))
+.forEach(m=>{
+box.innerHTML+=`
+<button type="button" onclick="elegirModelo('${m}')">${m}</button>
+`;
+});
+}
+
+function elegirModelo(modelo){
+document.getElementById("modelo").value=modelo;
+document.getElementById("modeloResultados").innerHTML="";
+}
 function buscarMatricula(){
 
 const mat=document.getElementById("matricula")
@@ -347,7 +392,10 @@ observaciones:"REGISTRO DE PRUEBA"
 
 guardar();
 }
-
+document.getElementById("marca").addEventListener("input",mostrarMarcas);
+document.getElementById("marca").addEventListener("focus",mostrarMarcas);
+document.getElementById("modelo").addEventListener("input",mostrarModelos);
+document.getElementById("modelo").addEventListener("focus",mostrarModelos);
 inicializarPrueba();
 
 </script>
