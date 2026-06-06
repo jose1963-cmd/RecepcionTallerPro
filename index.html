@@ -277,8 +277,11 @@ const filtradas=ots
 !texto ||
 ot.matricula.includes(texto) ||
 ot.cliente.includes(texto) ||
+ot.telefono.includes(texto) ||
 ot.marca.includes(texto) ||
-ot.modelo.includes(texto)
+ot.modelo.includes(texto) ||
+ot.trabajos.includes(texto) ||
+ot.observaciones.includes(texto)
 )
 .reverse();
 
@@ -296,7 +299,13 @@ ${ot.telefono}<br>
 ${ot.marca} ${ot.modelo}<br>
 KM: ${ot.km}<br>
 Estado: ${ot.estado}<br>
-Fecha: ${ot.fecha || ""}
+Fecha: ${ot.fecha || "SIN CITA"}<br>
+<br>
+<b>TRABAJOS:</b><br>
+${ot.trabajos || "SIN TRABAJOS"}<br>
+<br>
+<b>OBSERVACIONES:</b><br>
+${ot.observaciones || "SIN OBSERVACIONES"}
 <br><br>
 <button class="secondary" onclick="imprimir(${ot.id})">
 IMPRIMIR
@@ -305,9 +314,7 @@ IMPRIMIR
 `;
 });
 }
-
 function renderAgenda(){
-
 const agenda=document.getElementById("agendaLista");
 agenda.innerHTML="";
 
