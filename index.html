@@ -503,7 +503,7 @@ return;
 
 conFecha.forEach(ot=>{
 agenda.innerHTML+=`
-<div class="item">
+<div class="item" style="border-left-color:${colorEstado(ot.estado)}">
 <b>${formatearFecha(ot.fecha)}</b><br>
 ${ot.matricula}<br>
 ${ot.cliente}<br>
