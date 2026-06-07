@@ -63,7 +63,7 @@ color:white;
 </head>
 <body>
 
-<h1>RECEPCIÓN TALLERES AUTOBORJA</h1>
+<h1 id="tituloApp">RECEPCIÓN TALLERES AUTOBORJA</h1>
 
 <div class="tabs">
 <button onclick="showTab('nueva')">NUEVA OT</button>
@@ -217,6 +217,22 @@ document.getElementById("historial").classList.add("hidden");
 document.getElementById("agenda").classList.add("hidden");
 document.getElementById(id).classList.remove("hidden");
 
+const titulo=document.getElementById("tituloApp");
+
+if(id==="nueva"){
+titulo.style.background="#ff7a1a";
+titulo.style.color="#0f1728";
+}
+
+if(id==="agenda"){
+titulo.style.background="#2196f3";
+titulo.style.color="white";
+}
+
+if(id==="historial"){
+titulo.style.background="#28a745";
+titulo.style.color="white";
+}
 if(id==="historial") renderHistorial();
 if(id==="agenda") renderAgenda();
 }
