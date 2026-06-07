@@ -36,6 +36,28 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 @media(max-width:520px){
 .row{grid-template-columns:1fr}
 }
+#estado{
+font-weight:bold;
+}
+
+#estado option{
+font-weight:bold;
+}
+
+.estado-citado{
+background:#2196f3;
+color:white;
+}
+
+.estado-entaller{
+background:#ff7a1a;
+color:white;
+}
+
+.estado-finalizado{
+background:#28a745;
+color:white;
+}
 </style>
 </head>
 <body>
@@ -577,7 +599,30 @@ document.getElementById("marca").addEventListener("input",mostrarMarcas);
 document.getElementById("marca").addEventListener("focus",mostrarMarcas);
 document.getElementById("modelo").addEventListener("input",mostrarModelos);
 document.getElementById("modelo").addEventListener("focus",mostrarModelos);
+function actualizarColorEstado(){
+
+const estado=document.getElementById("estado");
+
+if(estado.value==="CITADO"){
+estado.style.background="#2196f3";
+estado.style.color="white";
+}
+
+if(estado.value==="EN TALLER"){
+estado.style.background="#ff7a1a";
+estado.style.color="white";
+}
+
+if(estado.value==="FINALIZADO"){
+estado.style.background="#28a745";
+estado.style.color="white";
+}
+}
+document.getElementById("estado")
+.addEventListener("change",actualizarColorEstado);
+
 inicializarPrueba();
+actualizarColorEstado();
 
 </script>
 </body>
