@@ -429,6 +429,12 @@ top:0,
 behavior:"smooth"
 });
 }
+function colorEstado(estado){
+if(estado==="CITADO") return "#2196f3";
+if(estado==="EN TALLER") return "#ff7a1a";
+if(estado==="FINALIZADO") return "#28a745";
+return "#ff7a1a";
+}
 function renderHistorial(){
 
 const texto=document.getElementById("buscar")
@@ -457,7 +463,7 @@ return;
 
 filtradas.forEach(ot=>{
 lista.innerHTML+=`
-<div class="item">
+<div class="item" style="border-left-color:${colorEstado(ot.estado)}">
 <b>${ot.matricula}</b><br>
 ${ot.cliente}<br>
 ${ot.telefono}<br>
