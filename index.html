@@ -587,7 +587,7 @@ const ot=ots.find(x=>x.id===id);
 
 if(!ot)return;
 
-const w=window.open("","_blank");
+const w=window.open();
 
 w.document.write(`
 <html>
@@ -613,7 +613,11 @@ h1{text-align:center}
 <h3>Observaciones</h3>
 <div class="box">${ot.observaciones}</div>
 <p>Firma cliente: __________________________</p>
-<script>window.print();window.close();<\/script>
+<script>
+window.onload=function(){
+  window.print();
+}
+<\/script>
 </body>
 </html>
 `);
