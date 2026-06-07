@@ -389,16 +389,16 @@ modelo:document.getElementById("modelo").value.trim().toUpperCase(),
 km:document.getElementById("km").value.trim(),
 fecha:document.getElementById("fecha").value,
 estado:document.getElementById("estado").value,
-trabajos:limpiarDictado(document.getElementById("trabajos").value.trim().toUpperCase()),
-observaciones:limpiarDictado(document.getElementById("observaciones").value.trim().toUpperCase())
+trabajos:document.getElementById("trabajos").value.trim().toUpperCase(),
+observaciones:document.getElementById("observaciones").value.trim().toUpperCase()
 };
 
 if(!ot.matricula||!ot.cliente||!ot.trabajos){
 alert("FALTAN DATOS OBLIGATORIOS");
 return;
 }
-
-trabajos:document.getElementById("trabajos").value.trim().toUpperCase(),
+if(editandoId){
+  
   ot.id=editandoId;
   ots=ots.map(x=>x.id===editandoId ? ot : x);
   editandoId=null;
