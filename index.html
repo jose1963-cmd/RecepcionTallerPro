@@ -112,7 +112,7 @@ IMPORTAR CSV
 </div>
 
 <label>Estado</label>
-<select id="estado">
+<select id="estado" onchange="irGuardar()">
 <option>CITADO</option>
 <option>EN TALLER</option>
 <option>FINALIZADO</option>
@@ -210,6 +210,16 @@ return `${dia}/${mes}/${año} - ${hora}:${min}h`;
 function guardar(){
 localStorage.setItem(STORAGE,JSON.stringify(ots));
 }
+
+function irGuardar(){
+setTimeout(()=>{
+document.getElementById("btnGuardar").scrollIntoView({
+behavior:"smooth",
+block:"center"
+});
+},150);
+}
+
 
 function showTab(id){
 document.getElementById("nueva").classList.add("hidden");
