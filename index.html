@@ -543,7 +543,9 @@ document.getElementById("observaciones").value=ot.observaciones||"";
 
 showTab("nueva");
 
-alert("EDITANDO OT");
+document.getElementById("aviso").classList.remove("hidden");
+document.getElementById("aviso").innerText=
+"✏️ EDITANDO OT: " + ot.matricula;
 }
 function imprimir(id){
 
