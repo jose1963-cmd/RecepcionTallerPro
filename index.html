@@ -398,8 +398,8 @@ modelo:document.getElementById("modelo").value.trim().toUpperCase(),
 km:document.getElementById("km").value.trim(),
 fecha:document.getElementById("fecha").value,
 estado:document.getElementById("estado").value,
-trabajos:document.getElementById("trabajos").value.trim().toUpperCase(),
-observaciones:document.getElementById("observaciones").value.trim().toUpperCase()
+trabajos:limpiarDictado(document.getElementById("trabajos").value.trim().toUpperCase()),
+observaciones:limpiarDictado(document.getElementById("observaciones").value.trim().toUpperCase())
 };
 
 if(!ot.matricula||!ot.cliente||!ot.trabajos){
