@@ -584,6 +584,42 @@ document.getElementById("aviso").innerText=
 function imprimir(id){
 
 const ot=ots.find(x=>x.id===id);
+if(!ot)return;
+
+document.body.innerHTML=`
+<div style="font-family:Arial;padding:20px;color:#000;background:#fff">
+<h1 style="text-align:center">ORDEN DE TRABAJO</h1>
+
+<p><b>Matrícula:</b> ${ot.matricula}</p>
+<p><b>Cliente:</b> ${ot.cliente}</p>
+<p><b>Teléfono:</b> ${ot.telefono}</p>
+<p><b>Vehículo:</b> ${ot.marca} ${ot.modelo}</p>
+<p><b>KM:</b> ${ot.km}</p>
+<p><b>Fecha:</b> ${formatearFecha(ot.fecha)}</p>
+<p><b>Estado:</b> ${ot.estado}</p>
+
+<h3>Trabajos</h3>
+<div style="border:1px solid #333;padding:10px;margin:10px 0">${ot.trabajos || ""}</div>
+
+<h3>Observaciones</h3>
+<div style="border:1px solid #333;padding:10px;margin:10px 0">${ot.observaciones || ""}</div>
+
+<p>Firma cliente: __________________________</p>
+
+<br><br>
+<button onclick="location.href='https://jose1963-cmd.github.io/RecepcionTallerPro/?v=30'">
+VOLVER A OT
+</button>
+</div>
+`;
+
+setTimeout(()=>{
+window.print();
+},500);
+
+}
+
+const ot=ots.find(x=>x.id===id);
 
 if(!ot)return;
 
