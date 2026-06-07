@@ -493,7 +493,7 @@ const agenda=document.getElementById("agendaLista");
 agenda.innerHTML="";
 
 const conFecha=ots
-.filter(ot=>ot.fecha)
+.filter(ot=>ot.fecha && ot.estado!=="FINALIZADO")
 .sort((a,b)=>a.fecha.localeCompare(b.fecha));
 
 if(conFecha.length===0){
