@@ -445,7 +445,8 @@ lista.innerHTML="";
 
 const filtradas=ots
 .filter(ot=>
-!texto ||
+ot.estado==="FINALIZADO" &&
+(!texto ||
 normalizar(ot.matricula).includes(texto) ||
 normalizar(ot.cliente).includes(texto) ||
 normalizar(ot.telefono).includes(texto) ||
