@@ -18,7 +18,17 @@ button.green{background:#28a745;color:white}
 label{font-weight:bold;color:#ff7a1a}
 .hidden{display:none}
 .item{background:#101827;color:#e8edf7;padding:12px;margin-top:10px;border-radius:12px;border-left:5px solid #ff7a1a}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+align-items:start;
+}
+
+.row input{
+width:100%;
+max-width:100%;
+}
 .results button{background:#101827;color:#e8edf7;text-align:left;border-radius:0;margin:0;border-bottom:1px solid #3b4a63}
 .notice{background:#10281d;border-left:5px solid #28a745;padding:10px;border-radius:10px;margin-bottom:12px;font-weight:bold;color:#e8edf7}
 input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
