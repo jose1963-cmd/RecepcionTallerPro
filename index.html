@@ -377,15 +377,6 @@ document.getElementById("aviso").innerText=
 "DATOS RECUPERADOS";
 }
 
-function limpiarDictado(texto){
-return texto
-.replace(/\bREREPARACIÓN\b/g,"REPARACIÓN")
-.replace(/\bSUSSUSTITUIR\b/g,"SUSTITUIR")
-.replace(/\bLALA\b/g,"LA")
-.replace(/\bCACAMBIAR\b/g,"CAMBIAR")
-.replace(/\bMALDITA\b/g,"MAL")
-.trim();
-}
 function guardarOT(){
 
 const ot={
@@ -407,7 +398,7 @@ alert("FALTAN DATOS OBLIGATORIOS");
 return;
 }
 
-if(editandoId){
+trabajos:document.getElementById("trabajos").value.trim().toUpperCase(),
   ot.id=editandoId;
   ots=ots.map(x=>x.id===editandoId ? ot : x);
   editandoId=null;
