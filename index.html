@@ -501,13 +501,22 @@ agenda.innerHTML+=`
 <b>${formatearFecha(ot.fecha)}</b><br>
 ${ot.matricula}<br>
 ${ot.cliente}<br>
-${ot.estado}<br>
+${ot.telefono}<br>
+${ot.marca} ${ot.modelo}<br>
+Estado: ${ot.estado}<br>
 <br>
 <b>TRABAJOS:</b><br>
 ${ot.trabajos || "SIN TRABAJOS"}<br>
 <br>
 <b>OBSERVACIONES:</b><br>
-${ot.observaciones || "SIN OBSERVACIONES"}<br><br>
+${ot.observaciones || "SIN OBSERVACIONES"}
+<br><br>
+<button onclick="editarOT(${ot.id})">
+EDITAR
+</button>
+<button class="secondary" onclick="imprimir(${ot.id})">
+IMPRIMIR
+</button>
 </div>
 `;
 });
