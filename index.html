@@ -617,13 +617,9 @@ h1{text-align:center}
 <button onclick="history.back()">
 VOLVER A OT
 </button>
-<script>
-window.onload=function(){
-window.print();
-}
-<\/script>
 `);
-
+w.document.close();
+setTimeout(()=>w.print(),500);
 }
 
 function inicializarPrueba(){
