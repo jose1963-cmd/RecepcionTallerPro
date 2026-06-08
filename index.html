@@ -528,7 +528,7 @@ const agenda=document.getElementById("agendaLista");
 agenda.innerHTML="";
 
 const conFecha=ots
-.filter(ot=>ot.fecha && ot.estado!=="FINALIZADO")
+.filter(ot=>ot.fecha && ot.estado==="CITADO")
 .sort((a,b)=>a.fecha.localeCompare(b.fecha));
 
 if(conFecha.length===0){
@@ -562,7 +562,44 @@ IMPRIMIR
 `;
 });
 }
+function renderTaller(){
+const taller=document.getElementById("tallerLista");
+taller.innerHTML="";
 
+const enTaller=ots
+.filter(ot=>ot.estado==="EN TALLER")
+.sort((a,b)=>b.id-a.id);
+
+if(enTaller.length===0){
+taller.innerHTML="<p>No hay vehículos en taller.</p>";
+return;
+}
+
+enTaller.forEach(ot=>{
+taller.innerHTML+=`
+<div class="item" style="border-left-color:${colorEstado(ot.estado)}">
+<b>${ot.matricula}</b><br>
+${ot.cliente}<br>
+${ot.telefono}<br>
+${ot.marca} ${ot.modelo}<br>
+Estado: ${ot.estado}<br>
+<br>
+<b>TRABAJOS:</b><br>
+${ot.trabajos || "SIN TRABAJOS"}<br>
+<br>
+<b>OBSERVACIONES:</b><br>
+${ot.observaciones || "SIN OBSERVACIONES"}
+<br><br>
+<button onclick="editarOT(${ot.id})">
+EDITAR
+</button>
+<button class="secondary" onclick="imprimir(${ot.id})">
+IMPRIMIR
+</button>
+</div>
+`;
+});
+}
 function editarOT(id){
 
 const ot=ots.find(x=>x.id===id);
