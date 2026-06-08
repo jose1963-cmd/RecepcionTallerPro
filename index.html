@@ -67,9 +67,12 @@ color:white;
 <h1 id="tituloApp">RECEPCIÓN TALLERES AUTOBORJA</h1>
 
 <div class="tabs">
+
 <button onclick="showTab('nueva')">NUEVA OT</button>
 <button onclick="showTab('agenda')">AGENDA</button>
+<button onclick="showTab('taller')">TALLER</button>
 <button onclick="showTab('historial')">HISTORIAL</button>
+
 </div>
 
 <div id="nueva" class="card">
@@ -140,7 +143,10 @@ GUARDAR OT
 <h2>Agenda</h2>
 <div id="agendaLista"></div>
 </div>
-
+<div id="taller" class="card hidden">
+<h2>Taller</h2>
+<div id="tallerLista"></div>
+</div>
 <script>
 
 const STORAGE="RECEPCION_TALLER_PRO";
@@ -226,6 +232,7 @@ function showTab(id){
 document.getElementById("nueva").classList.add("hidden");
 document.getElementById("historial").classList.add("hidden");
 document.getElementById("agenda").classList.add("hidden");
+document.getElementById("taller").classList.add("hidden");
 document.getElementById(id).classList.remove("hidden");
 
 const titulo=document.getElementById("tituloApp");
