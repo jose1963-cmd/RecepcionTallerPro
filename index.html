@@ -287,7 +287,9 @@ if(id==="historial") renderHistorial();
 if(id==="agenda") renderAgenda();
 if(id==="taller") renderTaller();
 }
-
+function normalizar(t){
+return (t || "").toUpperCase();
+}
 function mostrarMarcas(){
 const texto=normalizar(document.getElementById("marca").value);
 const box=document.getElementById("marcaResultados");
