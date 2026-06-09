@@ -247,13 +247,20 @@ block:"center"
 
 
 function showTab(id){
+document.getElementById("inicio").classList.add("hidden");
 document.getElementById("nueva").classList.add("hidden");
 document.getElementById("historial").classList.add("hidden");
 document.getElementById("agenda").classList.add("hidden");
 document.getElementById("taller").classList.add("hidden");
+
 document.getElementById(id).classList.remove("hidden");
 
 const titulo=document.getElementById("tituloApp");
+
+if(id==="inicio"){
+titulo.style.background="#0f1728";
+titulo.style.color="#ff7a1a";
+}
 
 if(id==="nueva"){
 titulo.style.background="#ff7a1a";
@@ -278,9 +285,6 @@ titulo.style.color="white";
 if(id==="historial") renderHistorial();
 if(id==="agenda") renderAgenda();
 if(id==="taller") renderTaller();
-}
-function normalizar(t){
-return (t||"").toUpperCase();
 }
 
 function mostrarMarcas(){
