@@ -11,7 +11,16 @@ body{font-family:Arial,sans-serif;background:#0f1728;margin:0;padding:16px;color
 h1{text-align:center;color:#ff7a1a;background:#0b1220;margin:-16px -16px 16px;padding:22px 10px;font-size:26px}
 h2{margin:8px 0 14px;color:#ffffff}
 .tabs{display:flex;gap:8px;max-width:700px;margin:0 auto 14px}
-.tabs button{flex:1;background:#1c2940;color:#e8edf7;border:1px solid #ff7a1a}
+.tabs button{
+flex:1;
+background:#1c2940;
+color:#e8edf7;
+border:1px solid #ff7a1a;
+}
+
+.tabs button.activo{
+border:4px solid white;
+}
 input,textarea,select,button{width:100%;box-sizing:border-box;padding:13px;margin:6px 0 12px;border-radius:12px;border:1px solid #3b4a63;font-size:16px;
 ;background:#101827;color:#e8edf7}
 button{background:#ff7a1a;color:#0f1728;font-weight:bold;border:none}
@@ -253,7 +262,14 @@ document.getElementById("historial").classList.add("hidden");
 document.getElementById("agenda").classList.add("hidden");
 document.getElementById("taller").classList.add("hidden");
 
-document.getElementById(id).classList.remove("hidden");
+document.querySelectorAll("#tabs button").forEach(b=>{
+b.classList.remove("activo");
+});
+
+if(id==="nueva") document.querySelector("#tabs button:nth-child(1)").classList.add("activo");
+if(id==="agenda") document.querySelector("#tabs button:nth-child(2)").classList.add("activo");
+if(id==="taller") document.querySelector("#tabs button:nth-child(3)").classList.add("activo");
+if(id==="historial") document.querySelector("#tabs button:nth-child(4)").classList.add("activo");
 
 const titulo=document.getElementById("tituloApp");
 document.getElementById("tabs").style.display = id==="inicio" ? "none" : "flex";
