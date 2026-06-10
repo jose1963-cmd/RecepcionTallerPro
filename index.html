@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ja<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -261,15 +261,6 @@ document.getElementById("nueva").classList.add("hidden");
 document.getElementById("historial").classList.add("hidden");
 document.getElementById("agenda").classList.add("hidden");
 document.getElementById("taller").classList.add("hidden");
-
-document.querySelectorAll("#tabs button").forEach(b=>{
-b.classList.remove("activo");
-});
-
-if(id==="nueva") document.querySelector("#tabs button:nth-child(1)").classList.add("activo");
-if(id==="agenda") document.querySelector("#tabs button:nth-child(2)").classList.add("activo");
-if(id==="taller") document.querySelector("#tabs button:nth-child(3)").classList.add("activo");
-if(id==="historial") document.querySelector("#tabs button:nth-child(4)").classList.add("activo");
 
 const titulo=document.getElementById("tituloApp");
 document.getElementById("tabs").style.display = id==="inicio" ? "none" : "flex";
