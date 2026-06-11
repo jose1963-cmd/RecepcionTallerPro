@@ -763,7 +763,7 @@ body > *:not(#zonaImpresion){display:none!important}
 </style>
 
 <h1>${ot.estado==="CITADO" ? "CITA PENDIENTE" : "ORDEN DE TRABAJO"}</h1>
-${ot.estado==="CITADO" ? `<p><b>Fecha:</b> ${formatearFecha(ot.fecha)}</p>` : ""}
+<p><b>Fecha:</b> ${formatearFecha(ot.fecha)}</p>
 <p><b>Matrícula:</b> ${ot.matricula}</p>
 <p><b>Cliente:</b> ${ot.cliente}</p>
 <p><b>Teléfono:</b> ${ot.telefono}</p>
