@@ -735,6 +735,9 @@ EDITAR
 <button class="secondary" onclick="imprimir(${ot.id})">
 IMPRIMIR
 </button>
+<button class="green" onclick="enviarWhatsApp(${ot.id})">
+WHATSAPP
+</button>
 </div>
 `;
 });
@@ -745,7 +748,7 @@ agenda.innerHTML="";
 
 const conFecha=ots
 .filter(ot=>ot.fecha && ot.estado==="CITADO")
-.sort((a,b)=>b.fecha.localeCompare(a.fecha));
+.sort((a,b)=>a.fecha.localeCompare(b.fecha));
 
 if(conFecha.length===0){
 agenda.innerHTML="<p>No hay citas.</p>";
@@ -773,6 +776,9 @@ EDITAR
 </button>
 <button class="secondary" onclick="imprimir(${ot.id})">
 IMPRIMIR
+</button>
+<button class="green" onclick="enviarWhatsApp(${ot.id})">
+WHATSAPP
 </button>
 </div>
 `;
@@ -817,6 +823,9 @@ EDITAR
 <button class="secondary" onclick="imprimir(${ot.id})">
 IMPRIMIR
 </button>
+<button class="green" onclick="enviarWhatsApp(${ot.id})">
+WHATSAPP
+</button>
 </div>
 `;
 });
@@ -847,6 +856,58 @@ document.getElementById("aviso").classList.remove("hidden");
 document.getElementById("aviso").innerText=
 "✏️ EDITANDO OT: " + ot.matricula;
 }
+
+function limpiarTelefonoWhatsApp(telefono){
+let numero=(telefono||"").replace(/\D/g,"");
+
+if(numero.startsWith("00")){
+numero=numero.substring(2);
+}
+
+if(numero.length===9){
+numero="34"+numero;
+}
+
+return numero;
+}
+
+function textoWhatsApp(ot){
+const titulo=ot.estado==="CITADO" ? "Recordatorio de cita" :
+ot.estado==="EN TALLER" ? "Orden de trabajo" :
+"Trabajo finalizado";
+
+return `TALLERES AUTOBORJA
+
+${titulo}
+
+Número: ${referenciaOT(ot)}
+Fecha: ${formatearFecha(ot.fecha)}
+Matrícula: ${ot.matricula}
+Cliente: ${ot.cliente}
+Vehículo: ${ot.marca} ${ot.modelo}
+
+Trabajos:
+${ot.trabajos || "SIN TRABAJOS"}
+
+Gracias.`;
+}
+
+function enviarWhatsApp(id){
+const ot=ots.find(x=>x.id===id);
+if(!ot)return;
+
+const numero=limpiarTelefonoWhatsApp(ot.telefono);
+
+if(!numero || numero.length<11){
+alert("NO HAY TELÉFONO VÁLIDO PARA WHATSAPP");
+return;
+}
+
+const mensaje=encodeURIComponent(textoWhatsApp(ot));
+const url="https://wa.me/"+numero+"?text="+mensaje;
+window.location.href=url;
+}
+
 function imprimir(id){
 
 const ot=ots.find(x=>x.id===id);
