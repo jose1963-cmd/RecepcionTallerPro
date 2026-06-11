@@ -568,6 +568,7 @@ document.getElementById("modelo").value="";
 document.getElementById("km").value="";
 document.getElementById("fecha").value="";
 document.getElementById("estado").value="CITADO";
+actualizarColorEstado();
 document.getElementById("trabajos").value="";
 document.getElementById("observaciones").value="";
 
@@ -648,7 +649,7 @@ agenda.innerHTML="";
 
 const conFecha=ots
 .filter(ot=>ot.fecha && ot.estado==="CITADO")
-.sort((a,b)=>a.fecha.localeCompare(b.fecha));
+.sort((a,b)=>b.fecha.localeCompare(a.fecha));
 
 if(conFecha.length===0){
 agenda.innerHTML="<p>No hay citas.</p>";
@@ -687,7 +688,11 @@ taller.innerHTML="";
 
 const enTaller=ots
 .filter(ot=>ot.estado==="EN TALLER")
-.sort((a,b)=>b.id-a.id);
+.sort((a,b)=>{
+const fechaA=a.fecha ? new Date(a.fecha).getTime() : 0;
+const fechaB=b.fecha ? new Date(b.fecha).getTime() : 0;
+return fechaB-fechaA;
+});
 
 if(enTaller.length===0){
 taller.innerHTML="<p>No hay vehículos en taller.</p>";
@@ -735,6 +740,7 @@ document.getElementById("modelo").value=ot.modelo||"";
 document.getElementById("km").value=ot.km||"";
 document.getElementById("fecha").value=ot.fecha||"";
 document.getElementById("estado").value=ot.estado||"";
+actualizarColorEstado();
 document.getElementById("trabajos").value=ot.trabajos||"";
 document.getElementById("observaciones").value=ot.observaciones||"";
 
