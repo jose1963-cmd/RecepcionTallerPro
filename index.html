@@ -604,7 +604,11 @@ normalizar(ot.modelo).includes(texto) ||
 normalizar(ot.trabajos).includes(texto) ||
 normalizar(ot.observaciones).includes(texto)
 ))
-.sort((a,b)=>b.id-a.id);
+.sort((a,b)=>{
+const fechaA=a.fecha ? new Date(a.fecha).getTime() : a.id;
+const fechaB=b.fecha ? new Date(b.fecha).getTime() : b.id;
+return fechaB-fechaA;
+});
 
 if(filtradas.length===0){
 lista.innerHTML="<p>No hay órdenes.</p>";
