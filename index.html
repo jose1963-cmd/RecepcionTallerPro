@@ -18,11 +18,17 @@ color:#e8edf7;
 border:1px solid #ff7a1a;
 }
 
+.tabs button{
+transition:0.15s;
+}
+
 .tabs button.activo{
 border:4px solid white;
+transform:scale(1.08);
+box-shadow:0 0 12px white;
 }
 input,textarea,select,button{width:100%;box-sizing:border-box;padding:13px;margin:6px 0 12px;border-radius:12px;border:1px solid #3b4a63;font-size:16px;
-;background:#101827;color:#e8edf7}
+background:#101827;color:#e8edf7}
 button{background:#ff7a1a;color:#0f1728;font-weight:bold;border:none}
 button.secondary{background:#344d7a;color:white}
 button.green{background:#28a745;color:white}
@@ -101,6 +107,16 @@ onclick="showTab('nueva')"
 style="width:100%;font-size:24px;padding:20px;margin-top:40px;">
 NUEVA OT
 </button>
+
+<button class="secondary" onclick="exportarCopia()" type="button">
+EXPORTAR COPIA
+</button>
+
+<input type="file" id="backupFile" accept=".json" style="display:none" onchange="importarCopia(event)">
+
+<button class="secondary" onclick="document.getElementById('backupFile').click()" type="button">
+IMPORTAR COPIA
+</button>
 </div>
 
 <div id="nueva" class="card hidden">
@@ -157,16 +173,6 @@ IMPORTAR CSV
 
 <button id="btnGuardar" class="green" onclick="guardarOT()" type="button">
 GUARDAR OT
-</button>
-
-<button class="secondary" onclick="exportarCopia()" type="button">
-EXPORTAR COPIA
-</button>
-
-<input type="file" id="backupFile" accept=".json" style="display:none" onchange="importarCopia(event)">
-
-<button class="secondary" onclick="document.getElementById('backupFile').click()" type="button">
-IMPORTAR COPIA
 </button>
 
 </div>
@@ -313,14 +319,23 @@ block:"center"
 }
 
 function showTab(id){
+
 document.getElementById("inicio").classList.add("hidden");
 document.getElementById("nueva").classList.add("hidden");
 document.getElementById("historial").classList.add("hidden");
 document.getElementById("agenda").classList.add("hidden");
 document.getElementById("taller").classList.add("hidden");
+
 document.getElementById(id).classList.remove("hidden");
+
 const titulo=document.getElementById("tituloApp");
-document.getElementById("tabs").style.display = id==="inicio" ? "none" : "flex";
+
+document.getElementById("tabs").style.display =
+id==="inicio" ? "none" : "flex";
+
+document.querySelectorAll("#tabs button").forEach(btn=>{
+btn.classList.remove("activo");
+});
 
 if(id==="inicio"){
 titulo.style.background="#0f1728";
@@ -328,21 +343,25 @@ titulo.style.color="#ff7a1a";
 }
 
 if(id==="nueva"){
+document.querySelectorAll("#tabs button")[0].classList.add("activo");
 titulo.style.background="#ff7a1a";
 titulo.style.color="#0f1728";
 }
 
 if(id==="agenda"){
+document.querySelectorAll("#tabs button")[1].classList.add("activo");
 titulo.style.background="#2196f3";
 titulo.style.color="white";
 }
 
 if(id==="taller"){
+document.querySelectorAll("#tabs button")[2].classList.add("activo");
 titulo.style.background="#9c27b0";
 titulo.style.color="white";
 }
 
 if(id==="historial"){
+document.querySelectorAll("#tabs button")[3].classList.add("activo");
 titulo.style.background="#28a745";
 titulo.style.color="white";
 }
