@@ -745,7 +745,7 @@ agenda.innerHTML="";
 
 const conFecha=ots
 .filter(ot=>ot.fecha && ot.estado==="CITADO")
-.sort((a,b)=>a.fecha.localeCompare(b.fecha));
+.sort((a,b)=>b.fecha.localeCompare(a.fecha));
 
 if(conFecha.length===0){
 agenda.innerHTML="<p>No hay citas.</p>";
