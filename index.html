@@ -283,8 +283,7 @@ const datos=JSON.parse(e.target.result);
 
 if(!Array.isArray(datos)){
 alert("COPIA NO VÁLIDA");
-return;
-}
+
 
 ots=datos;
 guardar();
@@ -301,18 +300,7 @@ event.target.value="";
 reader.readAsText(file,"UTF-8");
 }
 
-ots=datos;
-guardar();
-alert("COPIA IMPORTADA CORRECTAMENTE");
-showTab('inicio');
 
-}catch(error){
-alert("ERROR AL IMPORTAR COPIA");
-}
-};
-
-reader.readAsText(file,"UTF-8");
-}
 function irGuardar(){
 setTimeout(()=>{
 document.getElementById("btnGuardar").scrollIntoView({
