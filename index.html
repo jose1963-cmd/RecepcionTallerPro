@@ -283,7 +283,9 @@ const datos=JSON.parse(e.target.result);
 
 if(!Array.isArray(datos)){
 alert("COPIA NO VÁLIDA");
-
+event.target.value="";
+return;
+}
 
 ots=datos;
 guardar();
