@@ -159,6 +159,16 @@ IMPORTAR CSV
 GUARDAR OT
 </button>
 
+<button class="secondary" onclick="exportarCopia()" type="button">
+EXPORTAR COPIA
+</button>
+
+<input type="file" id="backupFile" accept=".json" style="display:none" onchange="importarCopia(event)">
+
+<button class="secondary" onclick="document.getElementById('backupFile').click()" type="button">
+IMPORTAR COPIA
+</button>
+
 </div>
 
 <div id="historial" class="card hidden">
@@ -246,6 +256,46 @@ function guardar(){
 localStorage.setItem(STORAGE,JSON.stringify(ots));
 }
 
+function exportarCopia(){
+const datos=JSON.stringify(ots,null,2);
+const blob=new Blob([datos],{type:"application/json"});
+const url=URL.createObjectURL(blob);
+
+const a=document.createElement("a");
+a.href=url;
+a.download="copia_autoborja_ot.json";
+a.click();
+
+URL.revokeObjectURL(url);
+}
+
+function importarCopia(event){
+const file=event.target.files[0];
+if(!file)return;
+
+const reader=new FileReader();
+
+reader.onload=function(e){
+try{
+const datos=JSON.parse(e.target.result);
+
+if(!Array.isArray(datos)){
+alert("COPIA NO VÁLIDA");
+return;
+}
+
+ots=datos;
+guardar();
+alert("COPIA IMPORTADA CORRECTAMENTE");
+showTab('inicio');
+
+}catch(error){
+alert("ERROR AL IMPORTAR COPIA");
+}
+};
+
+reader.readAsText(file,"UTF-8");
+}
 function irGuardar(){
 setTimeout(()=>{
 document.getElementById("btnGuardar").scrollIntoView({
