@@ -264,7 +264,9 @@ const url=URL.createObjectURL(blob);
 const a=document.createElement("a");
 a.href=url;
 a.download="copia_autoborja_ot.json";
+document.body.appendChild(a);
 a.click();
+document.body.removeChild(a);
 
 URL.revokeObjectURL(url);
 }
@@ -282,6 +284,21 @@ const datos=JSON.parse(e.target.result);
 if(!Array.isArray(datos)){
 alert("COPIA NO VÁLIDA");
 return;
+}
+
+ots=datos;
+guardar();
+alert("COPIA IMPORTADA CORRECTAMENTE");
+showTab('inicio');
+
+}catch(error){
+alert("ERROR AL IMPORTAR COPIA");
+}
+
+event.target.value="";
+};
+
+reader.readAsText(file,"UTF-8");
 }
 
 ots=datos;
