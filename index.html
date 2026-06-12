@@ -88,6 +88,47 @@ color:white;
 background:#28a745;
 color:white;
 }
+
+/* Modal ficha cliente */
+#modalCliente{
+display:none;
+position:fixed;
+top:0;left:0;right:0;bottom:0;
+background:#000a;
+z-index:9999;
+overflow-y:auto;
+padding:20px;
+}
+#modalClienteBox{
+background:#1c2940;
+border:2px solid #ff7a1a;
+border-radius:18px;
+padding:20px;
+max-width:500px;
+margin:40px auto;
+}
+#modalClienteBox h2{
+color:#ff7a1a;
+margin-top:0;
+}
+#modalClienteBox label{
+font-weight:bold;
+color:#ff7a1a;
+display:block;
+margin-top:10px;
+}
+#modalClienteBox input{
+margin:4px 0 10px;
+}
+.aviso-modal{
+background:#2a1a00;
+border-left:4px solid #ff7a1a;
+padding:10px;
+border-radius:8px;
+font-size:14px;
+margin-bottom:14px;
+color:#ffd580;
+}
 </style>
 </head>
 <body>
@@ -189,10 +230,10 @@ BORRAR PRUEBAS / EMPEZAR DE CERO
 <option>FINALIZADO</option>
 </select>
 <label>Trabajos *</label>
-<textarea id="trabajos" rows="5" oninput="capitalizarLineas(this)"></textarea>
+<textarea id="trabajos" rows="5"></textarea>
 
 <label>Observaciones</label>
-<textarea id="observaciones" rows="4" oninput="capitalizarLineas(this)"></textarea>
+<textarea id="observaciones" rows="4"></textarea>
 
 <button id="btnGuardar" class="green" onclick="guardarOT()" type="button">
 GUARDAR OT
@@ -202,7 +243,13 @@ GUARDAR OT
 
 <div id="historial" class="card hidden">
 <h2>Historial</h2>
-<input id="buscar" placeholder="Buscar matrícula o cliente" oninput="renderHistorial()">
+<div id="filtroTabs" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+  <button type="button" id="ftbMatricula" onclick="setFiltro('matricula')" style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">MATRÍCULA</button>
+  <button type="button" id="ftbCliente"   onclick="setFiltro('cliente')"   style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">CLIENTE</button>
+  <button type="button" id="ftbFecha"     onclick="setFiltro('fecha')"     style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">FECHA</button>
+  <button type="button" id="ftbFactura"   onclick="setFiltro('factura')"   style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">Nº FACTURA</button>
+</div>
+<input id="buscar" placeholder="Buscar matrícula..." oninput="renderHistorial()" style="display:block;">
 <div id="lista"></div>
 </div>
 
@@ -214,12 +261,38 @@ GUARDAR OT
 <h2>Taller</h2>
 <div id="tallerLista"><p>No hay vehículos en taller.</p></div>
 </div>
+<!-- Modal ficha cliente para facturación -->
+<div id="modalCliente">
+<div id="modalClienteBox">
+  <h2>📋 FICHA DE CLIENTE</h2>
+  <div class="aviso-modal">
+    ⚠️ Para emitir una factura válida es obligatorio completar el NIF/NIE y la dirección del cliente.<br>Estos datos quedan guardados para futuras facturas.
+  </div>
+  <div id="modalClienteNombre" style="font-weight:bold;font-size:17px;color:#fff;margin-bottom:10px;"></div>
+
+  <label>NIF / NIE *</label>
+  <input id="mcNif" placeholder="12345678A" maxlength="20">
+
+  <label>Dirección *</label>
+  <input id="mcDireccion" placeholder="Calle, número, piso...">
+
+  <label>Población</label>
+  <input id="mcPoblacion" placeholder="Borja, Zaragoza...">
+
+  <div style="display:flex;gap:10px;margin-top:14px;">
+    <button type="button" class="green" onclick="confirmarFicha()" style="margin:0;">GUARDAR Y CONTINUAR</button>
+    <button type="button" class="danger" onclick="cancelarFicha()" style="margin:0;flex:0.5;">CANCELAR</button>
+  </div>
+</div>
+</div>
+
 <script>
 
 const STORAGE="RECEPCION_TALLER_PRO";
 
 let ots=[];
 let contadores={agenda:0,ot:0,factura:0};
+let clientes={};  // clave: NIF normalizado → {nif,nombre,direccion,poblacion}
 
 try{
 const guardado=JSON.parse(localStorage.getItem(STORAGE)||"[]");
@@ -229,13 +302,16 @@ ots=guardado;
 }else{
 ots=Array.isArray(guardado.ots) ? guardado.ots : [];
 contadores=guardado.contadores || {agenda:0,ot:0,factura:0};
+clientes=guardado.clientes || {};
 }
 }catch(e){
 ots=[];
 contadores={agenda:0,ot:0,factura:0};
+clientes={};
 }
 
 let editandoId=null;
+let _otPendienteGuardar=null;  // OT en espera de confirmar ficha cliente
 
 const MARCAS=[
 "SEAT","VOLKSWAGEN","AUDI","SKODA","BMW","MERCEDES",
@@ -294,7 +370,8 @@ return `${dia}/${mes}/${año} - ${hora}:${min}h`;
 function guardar(){
 localStorage.setItem(STORAGE,JSON.stringify({
 ots:ots,
-contadores:contadores
+contadores:contadores,
+clientes:clientes
 }));
 }
 
@@ -473,7 +550,7 @@ titulo.style.background="#28a745";
 titulo.style.color="white";
 }
 
-if(id==="historial") renderHistorial();
+if(id==="historial"){ setFiltro(filtroActivo); }
 if(id==="agenda") renderAgenda();
 if(id==="taller") renderTaller();
 }
@@ -522,29 +599,6 @@ function elegirModelo(modelo){
 document.getElementById("modelo").value=modelo;
 document.getElementById("modeloResultados").innerHTML="";
 }
-function capitalizarLineas(textarea){
-const pos=textarea.selectionStart;
-const lineas=textarea.value.split("\n").map(linea=>{
-if(linea.length===0) return linea;
-return linea.charAt(0).toUpperCase()+linea.slice(1);
-});
-const nuevo=lineas.join("\n");
-if(nuevo!==textarea.value){
-textarea.value=nuevo;
-textarea.selectionStart=pos;
-textarea.selectionEnd=pos;
-}
-}
-
-function formatearLineas(texto){
-if(!texto) return "";
-return texto.split("\n")
-.map(l=>l.trim())
-.filter(l=>l.length>0)
-.map(l=>"• "+l)
-.join("<br>");
-}
-
 function procesarCSV(file){
 
 if(!file){
@@ -679,32 +733,54 @@ modelo:document.getElementById("modelo").value.trim().toUpperCase(),
 km:document.getElementById("km").value.trim(),
 fecha:document.getElementById("fecha").value,
 estado:document.getElementById("estado").value,
-trabajos:document.getElementById("trabajos").value.trim(),
-observaciones:document.getElementById("observaciones").value.trim()
+trabajos:document.getElementById("trabajos").value.trim().toUpperCase(),
+observaciones:document.getElementById("observaciones").value.trim().toUpperCase()
 };
 
 if(!ot.matricula||!ot.cliente||!ot.trabajos){
 alert("FALTAN DATOS OBLIGATORIOS");
 return;
 }
+
+// Si es FINALIZADO, comprobar ficha de cliente
+if(ot.estado==="FINALIZADO"){
+const fichaExistente=buscarFichaCliente(ot.cliente);
+if(!fichaExistente || !fichaExistente.nif || !fichaExistente.direccion){
+// Guardar OT en espera y abrir modal
+_otPendienteGuardar=ot;
+abrirModalCliente(ot.cliente, fichaExistente);
+return;
+}
+// Ficha completa: enlazar datos a la OT
+ot.nif=fichaExistente.nif;
+ot.direccion=fichaExistente.direccion;
+ot.poblacion=fichaExistente.poblacion||"";
+}
+
+_completarGuardadoOT(ot);
+}
+
+function _completarGuardadoOT(ot){
 if(editandoId){
-  
-  const anterior=ots.find(x=>x.id===editandoId) || {};
-  ot.id=editandoId;
-  ot.numeroAgenda=anterior.numeroAgenda;
-  ot.numeroOT=anterior.numeroOT;
-  ot.numeroFactura=anterior.numeroFactura;
-  asegurarNumeracion(ot);
-  ots=ots.map(x=>x.id===editandoId ? ot : x);
-  editandoId=null;
-  alert("OT ACTUALIZADA: "+referenciaOT(ot));
+const anterior=ots.find(x=>x.id===editandoId) || {};
+ot.id=editandoId;
+ot.numeroAgenda=anterior.numeroAgenda;
+ot.numeroOT=anterior.numeroOT;
+ot.numeroFactura=anterior.numeroFactura;
+// Preservar datos fiscales si ya existían y no llegan nuevos
+if(!ot.nif && anterior.nif) ot.nif=anterior.nif;
+if(!ot.direccion && anterior.direccion) ot.direccion=anterior.direccion;
+if(!ot.poblacion && anterior.poblacion) ot.poblacion=anterior.poblacion;
+asegurarNumeracion(ot);
+ots=ots.map(x=>x.id===editandoId ? ot : x);
+editandoId=null;
+alert("OT ACTUALIZADA: "+referenciaOT(ot));
 }else{
-  asegurarNumeracion(ot);
-  ots.push(ot);
-  alert("OT GUARDADA: "+referenciaOT(ot));
+asegurarNumeracion(ot);
+ots.push(ot);
+alert("OT GUARDADA: "+referenciaOT(ot));
 }
 guardar();
-
 
 document.getElementById("matricula").value="";
 document.getElementById("cliente").value="";
@@ -725,12 +801,108 @@ top:0,
 behavior:"smooth"
 });
 }
+// ── FICHA DE CLIENTE ──────────────────────────────────────────
+function claveCliente(nombre){
+return (nombre||"").trim().toUpperCase();
+}
+
+function buscarFichaCliente(nombre){
+return clientes[claveCliente(nombre)] || null;
+}
+
+function guardarFichaCliente(nombre,nif,direccion,poblacion){
+clientes[claveCliente(nombre)]={
+nombre:claveCliente(nombre),
+nif:(nif||"").trim().toUpperCase(),
+direccion:(direccion||"").trim(),
+poblacion:(poblacion||"").trim()
+};
+guardar();
+}
+
+function abrirModalCliente(nombreCliente, fichaExistente){
+document.getElementById("modalClienteNombre").textContent=
+"Cliente: "+nombreCliente;
+document.getElementById("mcNif").value=
+fichaExistente ? (fichaExistente.nif||"") : "";
+document.getElementById("mcDireccion").value=
+fichaExistente ? (fichaExistente.direccion||"") : "";
+document.getElementById("mcPoblacion").value=
+fichaExistente ? (fichaExistente.poblacion||"") : "";
+document.getElementById("modalCliente").style.display="block";
+setTimeout(()=>document.getElementById("mcNif").focus(),200);
+}
+
+function confirmarFicha(){
+const nif=document.getElementById("mcNif").value.trim().toUpperCase();
+const dir=document.getElementById("mcDireccion").value.trim();
+const pob=document.getElementById("mcPoblacion").value.trim();
+
+if(!nif||!dir){
+alert("NIF/NIE Y DIRECCIÓN SON OBLIGATORIOS PARA EMITIR FACTURA");
+return;
+}
+
+const ot=_otPendienteGuardar;
+if(!ot) return;
+
+guardarFichaCliente(ot.cliente,nif,dir,pob);
+ot.nif=nif;
+ot.direccion=dir;
+ot.poblacion=pob;
+
+document.getElementById("modalCliente").style.display="none";
+_otPendienteGuardar=null;
+_completarGuardadoOT(ot);
+}
+
+function cancelarFicha(){
+document.getElementById("modalCliente").style.display="none";
+_otPendienteGuardar=null;
+}
+// ── FIN FICHA DE CLIENTE ──────────────────────────────────────
+
 function colorEstado(estado){
 if(estado==="CITADO") return "#2196f3";
 if(estado==="EN TALLER") return "#ff7a1a";
 if(estado==="FINALIZADO") return "#28a745";
 return "#ff7a1a";
 }
+let filtroActivo="matricula";
+
+function setFiltro(tipo){
+filtroActivo=tipo;
+
+// Actualizar estilos de pestañas
+["matricula","cliente","fecha","factura"].forEach(t=>{
+const btn=document.getElementById("ftb"+t.charAt(0).toUpperCase()+t.slice(1));
+if(btn){
+btn.style.background= t===tipo ? "#ff7a1a" : "#1c2940";
+btn.style.color=       t===tipo ? "#0f1728" : "#e8edf7";
+btn.style.border=      t===tipo ? "2px solid #ff7a1a" : "2px solid #3b4a63";
+btn.style.fontWeight=  t===tipo ? "bold" : "normal";
+}
+});
+
+const buscar=document.getElementById("buscar");
+if(tipo==="fecha"){
+buscar.style.display="none";
+buscar.value="";
+}else{
+buscar.style.display="block";
+buscar.value="";
+const placeholder={
+matricula:"Buscar matrícula...",
+cliente:"Buscar por nombre de cliente...",
+factura:"Buscar nº factura (ej: 8)..."
+};
+buscar.placeholder=placeholder[tipo]||"";
+buscar.focus();
+}
+
+renderHistorial();
+}
+
 function renderHistorial(){
 
 const texto=document.getElementById("buscar")
@@ -739,31 +911,62 @@ const texto=document.getElementById("buscar")
 const lista=document.getElementById("lista");
 lista.innerHTML="";
 
-const filtradas=ots
-.filter(ot=>
-ot.estado==="FINALIZADO" &&
-(!texto ||
-normalizar(ot.matricula).includes(texto) ||
-normalizar(ot.cliente).includes(texto) ||
-normalizar(ot.telefono).includes(texto) ||
-normalizar(ot.marca).includes(texto) ||
-normalizar(ot.modelo).includes(texto) ||
-normalizar(ot.trabajos).includes(texto) ||
-normalizar(ot.observaciones).includes(texto)
-))
-.sort((a,b)=>{
-const fechaA=a.fecha ? new Date(a.fecha).getTime() : a.id;
-const fechaB=b.fecha ? new Date(b.fecha).getTime() : b.id;
-return fechaB-fechaA;
+// Ordenar siempre por número de factura descendente
+const base=ots
+.filter(ot=>ot.estado==="FINALIZADO")
+.sort((a,b)=>(b.numeroFactura||0)-(a.numeroFactura||0));
+
+let filtradas;
+
+if(filtroActivo==="matricula"){
+filtradas=base.filter(ot=>
+!texto || normalizar(ot.matricula).includes(texto)
+);
+}else if(filtroActivo==="cliente"){
+filtradas=base.filter(ot=>
+!texto || normalizar(ot.cliente).startsWith(texto)
+);
+}else if(filtroActivo==="factura"){
+filtradas=base.filter(ot=>{
+if(!texto) return true;
+const num=String(ot.numeroFactura||"");
+const ref=normalizar(referenciaOT(ot));
+return num.includes(texto) || ref.includes(texto);
 });
+}else{
+// filtroActivo === "fecha": agrupar por día, más reciente primero
+// Reutilizamos base ya ordenada por factura, pero aquí ordenamos por fecha descendente
+const porFecha=[...ots]
+.filter(ot=>ot.estado==="FINALIZADO")
+.sort((a,b)=>{
+const fa=a.fecha ? new Date(a.fecha).getTime() : a.id;
+const fb=b.fecha ? new Date(b.fecha).getTime() : b.id;
+return fb-fa;
+});
+filtradas=porFecha;
+}
 
 if(filtradas.length===0){
 lista.innerHTML="<p>No hay órdenes.</p>";
 return;
 }
 
-filtradas.forEach(ot=>{
-lista.innerHTML+=`
+function etiquetaDia(fechaStr){
+if(!fechaStr) return "SIN FECHA";
+const d=new Date(fechaStr);
+const hoy=new Date();
+const ayer=new Date(); ayer.setDate(hoy.getDate()-1);
+const fmt=f=>f.toISOString().slice(0,10);
+if(fmt(d)===fmt(hoy)) return "HOY";
+if(fmt(d)===fmt(ayer)) return "AYER";
+const dia=String(d.getDate()).padStart(2,"0");
+const mes=String(d.getMonth()+1).padStart(2,"0");
+const año=d.getFullYear();
+return `${dia}/${mes}/${año}`;
+}
+
+function tarjetaOT(ot){
+return `
 <div class="item" style="border-left-color:${colorEstado(ot.estado)}">
 <b>${referenciaOT(ot)}</b><br>
 <b>${ot.matricula}</b><br>
@@ -775,10 +978,10 @@ Estado: ${ot.estado}<br>
 Fecha: ${formatearFecha(ot.fecha)}<br>
 <br>
 <b>TRABAJOS:</b><br>
-${formatearLineas(ot.trabajos) || "SIN TRABAJOS"}<br>
+${ot.trabajos || "SIN TRABAJOS"}<br>
 <br>
 <b>OBSERVACIONES:</b><br>
-${formatearLineas(ot.observaciones) || "SIN OBSERVACIONES"}
+${ot.observaciones || "SIN OBSERVACIONES"}
 <br><br>
 <div class="acciones">
 <button onclick="editarOT(${ot.id})">EDITAR</button>
@@ -787,7 +990,23 @@ ${formatearLineas(ot.observaciones) || "SIN OBSERVACIONES"}
 </div>
 </div>
 `;
+}
+
+if(filtroActivo==="fecha"){
+let diaActual="";
+filtradas.forEach(ot=>{
+const etiqueta=etiquetaDia(ot.fecha);
+if(etiqueta!==diaActual){
+diaActual=etiqueta;
+lista.innerHTML+=`<div style="background:#ff7a1a;color:#0f1728;font-weight:bold;padding:7px 12px;border-radius:10px;margin-top:14px;margin-bottom:4px;font-size:15px;">${etiqueta}</div>`;
+}
+lista.innerHTML+=tarjetaOT(ot);
 });
+}else{
+filtradas.forEach(ot=>{
+lista.innerHTML+=tarjetaOT(ot);
+});
+}
 }
 function renderAgenda(){
 const agenda=document.getElementById("agendaLista");
@@ -813,10 +1032,10 @@ ${ot.marca} ${ot.modelo}<br>
 Estado: ${ot.estado}<br>
 <br>
 <b>TRABAJOS:</b><br>
-${formatearLineas(ot.trabajos) || "SIN TRABAJOS"}<br>
+${ot.trabajos || "SIN TRABAJOS"}<br>
 <br>
 <b>OBSERVACIONES:</b><br>
-${formatearLineas(ot.observaciones) || "SIN OBSERVACIONES"}
+${ot.observaciones || "SIN OBSERVACIONES"}
 <br><br>
 <div class="acciones">
 <button onclick="editarOT(${ot.id})">EDITAR</button>
@@ -855,10 +1074,10 @@ ${ot.marca} ${ot.modelo}<br>
 Estado: ${ot.estado}<br>
 <br>
 <b>TRABAJOS:</b><br>
-${formatearLineas(ot.trabajos) || "SIN TRABAJOS"}<br>
+${ot.trabajos || "SIN TRABAJOS"}<br>
 <br>
 <b>OBSERVACIONES:</b><br>
-${formatearLineas(ot.observaciones) || "SIN OBSERVACIONES"}
+${ot.observaciones || "SIN OBSERVACIONES"}
 <br><br>
 <div class="acciones">
 <button onclick="editarOT(${ot.id})">EDITAR</button>
@@ -895,6 +1114,9 @@ document.getElementById("aviso").classList.remove("hidden");
 document.getElementById("aviso").innerText=
 "✏️ EDITANDO OT: " + ot.matricula;
 }
+
+// Al editar, preservar nif/direccion/poblacion de la OT original
+// (ya se hace vía _completarGuardadoOT que los lee de la ficha o de _otPendienteGuardar)
 
 function limpiarTelefonoWhatsApp(telefono){
 let numero=(telefono||"").replace(/\D/g,"");
@@ -952,8 +1174,29 @@ function imprimir(id){
 const ot=ots.find(x=>x.id===id);
 if(!ot)return;
 
+// Para facturas, asegurarse de tener los datos fiscales
+// (pueden estar en la OT o en la ficha del cliente)
+const ficha=buscarFichaCliente(ot.cliente)||{};
+const nif=ot.nif||ficha.nif||"";
+const direccion=ot.direccion||ficha.direccion||"";
+const poblacion=ot.poblacion||ficha.poblacion||"";
+
 const anterior=document.getElementById("zonaImpresion");
 if(anterior) anterior.remove();
+
+const esFactura=ot.estado==="FINALIZADO";
+const tituloPrint=ot.estado==="CITADO" ? "CITA PENDIENTE" :
+                  esFactura ? "FACTURA" : "ORDEN DE TRABAJO";
+
+const bloqueCliente=esFactura ? `
+<p><b>Cliente:</b> ${ot.cliente}</p>
+<p><b>NIF/NIE:</b> ${nif||"—"}</p>
+<p><b>Dirección:</b> ${direccion}${poblacion ? " — "+poblacion : ""}</p>
+<p><b>Teléfono:</b> ${ot.telefono}</p>
+` : `
+<p><b>Cliente:</b> ${ot.cliente}</p>
+<p><b>Teléfono:</b> ${ot.telefono}</p>
+`;
 
 const zona=document.createElement("div");
 zona.id="zonaImpresion";
@@ -966,25 +1209,24 @@ body > *:not(#zonaImpresion){display:none!important}
 #zonaImpresion{display:block!important;font-family:Arial;padding:20px;color:black}
 #zonaImpresion h1{text-align:center;color:black;background:white}
 .box{border:1px solid #333;padding:10px;margin:10px 0}
+.linea-fiscal{border-top:1px solid #999;padding-top:8px;margin-top:8px}
 }
 </style>
 
-<h1>${ot.estado==="CITADO" ? "CITA PENDIENTE" : ot.estado==="FINALIZADO" ? "FACTURA" : "ORDEN DE TRABAJO"}</h1>
+<h1>${tituloPrint}</h1>
 <p><b>Número:</b> ${referenciaOT(ot)}</p>
 <p><b>Fecha:</b> ${formatearFecha(ot.fecha)}</p>
 <p><b>Matrícula:</b> ${ot.matricula}</p>
-<p><b>Cliente:</b> ${ot.cliente}</p>
-<p><b>Teléfono:</b> ${ot.telefono}</p>
+${bloqueCliente}
 <p><b>Vehículo:</b> ${ot.marca} ${ot.modelo}</p>
 <p><b>KM:</b> ${ot.km}</p>
-
 <p><b>Estado:</b> ${ot.estado}</p>
 
 <h3>Trabajos</h3>
-<div class="box">${formatearLineas(ot.trabajos)}</div>
+<div class="box">${ot.trabajos || ""}</div>
 
 <h3>Observaciones</h3>
-<div class="box">${formatearLineas(ot.observaciones)}</div>
+<div class="box">${ot.observaciones || ""}</div>
 
 <p>Firma cliente: __________________________</p>
 `;
