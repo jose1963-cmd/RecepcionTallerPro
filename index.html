@@ -131,6 +131,16 @@ EXPORTAR COPIA
 IMPORTAR COPIA
 </button>
 
+<input type="file" id="importFileInicio" accept=".csv" style="display:none">
+
+<button class="secondary" onclick="importarCSVDesdeInicio()" type="button">
+IMPORTAR CSV
+</button>
+
+<button class="secondary" onclick="alert('MÓDULO DE ALMACÉN — PRÓXIMAMENTE')" type="button" style="background:#1e3a5f;border:2px dashed #ff7a1a;color:#ff7a1a;">
+ALMACÉN
+</button>
+
 <button class="danger" onclick="resetearPrograma()" type="button">
 BORRAR PRUEBAS / EMPEZAR DE CERO
 </button>
@@ -143,11 +153,7 @@ BORRAR PRUEBAS / EMPEZAR DE CERO
 <input id="matricula" placeholder="0000ABC">
 <button onclick="buscarMatricula()" type="button">BUSCAR MATRÍCULA</button>
 
-<label>Importar clientes/vehículos desde CSV</label>
-<input type="file" id="importFile" accept=".csv">
-<button class="secondary" onclick="importarCSV()" type="button">
-IMPORTAR CSV
-</button>
+
 
 <div id="aviso" class="notice hidden"></div>
 
@@ -516,9 +522,7 @@ function elegirModelo(modelo){
 document.getElementById("modelo").value=modelo;
 document.getElementById("modeloResultados").innerHTML="";
 }
-function importarCSV(){
-
-const file=document.getElementById("importFile").files[0];
+function procesarCSV(file){
 
 if(!file){
 alert("SELECCIONA UN ARCHIVO CSV");
@@ -586,12 +590,24 @@ importados++;
 }
 
 guardar();
-
 alert("IMPORTACIÓN COMPLETADA: "+importados+" REGISTROS");
 
 };
 
 reader.readAsText(file,"UTF-8");
+}
+
+function importarCSVDesdeInicio(){
+const fileInput=document.getElementById("importFileInicio");
+fileInput.onchange=function(e){
+procesarCSV(e.target.files[0]);
+fileInput.value="";
+};
+fileInput.click();
+}
+
+function importarCSV(){
+// Mantenida por compatibilidad — ya no se usa desde la UI
 }
 function buscarMatricula(){
 
