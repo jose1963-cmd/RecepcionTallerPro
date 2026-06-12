@@ -271,7 +271,7 @@ GUARDAR OT
   <div id="modalClienteNombre" style="font-weight:bold;font-size:17px;color:#fff;margin-bottom:10px;"></div>
 
   <label>NIF / NIE *</label>
-  <input id="mcNif" placeholder="12345678A" maxlength="20">
+  <input id="mcNif" placeholder="12345678A" maxlength="20" oninput="calcularLetraNif(this)">
 
   <label>Dirección *</label>
   <input id="mcDireccion" placeholder="Calle, número, piso...">
@@ -820,6 +820,32 @@ poblacion:(poblacion||"").trim()
 guardar();
 }
 
+// ── CÁLCULO AUTOMÁTICO LETRA NIF/NIE ─────────────────────────
+function calcularLetraNif(input){
+const LETRAS="TRWAGMYFPDXBNJZSQVHLCKE";
+let val=input.value.toUpperCase().replace(/\s/g,"");
+
+// NIE: sustituir letra inicial por número
+if(/^[XYZ]/.test(val)){
+val=val.replace("X","0").replace("Y","1").replace("Z","2");
+}
+
+// Extraer solo los dígitos del valor
+const soloNumeros=val.replace(/[^0-9]/g,"");
+
+if(soloNumeros.length===8){
+const letra=LETRAS[parseInt(soloNumeros,10)%23];
+// Recomponer: si era NIE restaurar la letra inicial
+let nifFinal=input.value.toUpperCase().replace(/\s/g,"");
+// Quitar letra final si ya hay una
+nifFinal=nifFinal.replace(/[A-Z]$/,"");
+input.value=nifFinal+letra;
+}else{
+input.value=input.value.toUpperCase();
+}
+}
+// ── FIN CÁLCULO NIF ───────────────────────────────────────────
+
 function abrirModalCliente(nombreCliente, fichaExistente){
 document.getElementById("modalClienteNombre").textContent=
 "Cliente: "+nombreCliente;
@@ -829,6 +855,19 @@ document.getElementById("mcDireccion").value=
 fichaExistente ? (fichaExistente.direccion||"") : "";
 document.getElementById("mcPoblacion").value=
 fichaExistente ? (fichaExistente.poblacion||"") : "";
+document.getElementById("modalCliente").style.display="block";
+setTimeout(()=>document.getElementById("mcNif").focus(),200);
+}
+
+function editarFichaCliente(nombreCliente){
+const ficha=buscarFichaCliente(nombreCliente)||{};
+_otPendienteGuardar=null; // no hay OT pendiente, solo edición de ficha
+document.getElementById("modalClienteNombre").textContent="Cliente: "+nombreCliente;
+document.getElementById("mcNif").value=ficha.nif||"";
+document.getElementById("mcDireccion").value=ficha.direccion||"";
+document.getElementById("mcPoblacion").value=ficha.poblacion||"";
+// Guardamos el nombre para que confirmarFicha sepa a quién actualizar
+document.getElementById("modalCliente").dataset.clienteEdicion=nombreCliente;
 document.getElementById("modalCliente").style.display="block";
 setTimeout(()=>document.getElementById("mcNif").focus(),200);
 }
@@ -844,8 +883,28 @@ return;
 }
 
 const ot=_otPendienteGuardar;
-if(!ot) return;
 
+// Caso 1: edición de ficha desde historial (sin OT pendiente)
+if(!ot){
+const nombreEdicion=document.getElementById("modalCliente").dataset.clienteEdicion||"";
+if(nombreEdicion){
+guardarFichaCliente(nombreEdicion,nif,dir,pob);
+// Actualizar también todas las OTs de ese cliente que sean FINALIZADO
+ots=ots.map(x=>{
+if(x.estado==="FINALIZADO" && claveCliente(x.cliente)===claveCliente(nombreEdicion)){
+return {...x, nif, direccion:dir, poblacion:pob};
+}
+return x;
+});
+guardar();
+alert("FICHA ACTUALIZADA CORRECTAMENTE");
+document.getElementById("modalCliente").style.display="none";
+renderHistorial();
+}
+return;
+}
+
+// Caso 2: OT pendiente de guardar
 guardarFichaCliente(ot.cliente,nif,dir,pob);
 ot.nif=nif;
 ot.direccion=dir;
@@ -966,12 +1025,24 @@ return `${dia}/${mes}/${año}`;
 }
 
 function tarjetaOT(ot){
+const ficha=buscarFichaCliente(ot.cliente)||{};
+const nif=ot.nif||ficha.nif||"";
+const direccion=ot.direccion||ficha.direccion||"";
+const poblacion=ot.poblacion||ficha.poblacion||"";
+const esFactura=ot.estado==="FINALIZADO";
+
+const bloqueFactura=esFactura ? `
+<span style="color:#ffd580">NIF/NIE: ${nif||"⚠️ SIN NIF"}</span><br>
+<span style="color:#ffd580">Dir: ${direccion||"⚠️ SIN DIRECCIÓN"}${poblacion?" — "+poblacion:""}</span><br>
+` : "";
+
 return `
 <div class="item" style="border-left-color:${colorEstado(ot.estado)}">
 <b>${referenciaOT(ot)}</b><br>
 <b>${ot.matricula}</b><br>
 ${ot.cliente}<br>
 ${ot.telefono}<br>
+${bloqueFactura}
 ${ot.marca} ${ot.modelo}<br>
 KM: ${ot.km}<br>
 Estado: ${ot.estado}<br>
@@ -987,6 +1058,7 @@ ${ot.observaciones || "SIN OBSERVACIONES"}
 <button onclick="editarOT(${ot.id})">EDITAR</button>
 <button class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>
 <button class="green" onclick="enviarWhatsApp(${ot.id})">WHATSAPP</button>
+${esFactura ? `<button style="background:#7b2fff;color:white;margin:0;" onclick="editarFichaCliente('${ot.cliente.replace(/'/g,"\\'")}')">FICHA</button>` : ""}
 </div>
 </div>
 `;
