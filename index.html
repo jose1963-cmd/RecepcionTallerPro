@@ -189,10 +189,10 @@ BORRAR PRUEBAS / EMPEZAR DE CERO
 <option>FINALIZADO</option>
 </select>
 <label>Trabajos *</label>
-<textarea id="trabajos" rows="5" oninput="capitalizarLineas(this)"></textarea>
+<textarea id="trabajos" rows="5"></textarea>
 
 <label>Observaciones</label>
-<textarea id="observaciones" rows="4" oninput="capitalizarLineas(this)"></textarea>
+<textarea id="observaciones" rows="4"></textarea>
 
 <button id="btnGuardar" class="green" onclick="guardarOT()" type="button">
 GUARDAR OT
@@ -202,7 +202,13 @@ GUARDAR OT
 
 <div id="historial" class="card hidden">
 <h2>Historial</h2>
-<input id="buscar" placeholder="Buscar matrícula o cliente" oninput="renderHistorial()">
+<div id="filtroTabs" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+  <button type="button" id="ftbMatricula" onclick="setFiltro('matricula')" style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">MATRÍCULA</button>
+  <button type="button" id="ftbCliente"   onclick="setFiltro('cliente')"   style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">CLIENTE</button>
+  <button type="button" id="ftbFecha"     onclick="setFiltro('fecha')"     style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">FECHA</button>
+  <button type="button" id="ftbFactura"   onclick="setFiltro('factura')"   style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">Nº FACTURA</button>
+</div>
+<input id="buscar" placeholder="Buscar matrícula..." oninput="renderHistorial()" style="display:block;">
 <div id="lista"></div>
 </div>
 
@@ -473,7 +479,7 @@ titulo.style.background="#28a745";
 titulo.style.color="white";
 }
 
-if(id==="historial") renderHistorial();
+if(id==="historial"){ setFiltro(filtroActivo); }
 if(id==="agenda") renderAgenda();
 if(id==="taller") renderTaller();
 }
@@ -522,29 +528,6 @@ function elegirModelo(modelo){
 document.getElementById("modelo").value=modelo;
 document.getElementById("modeloResultados").innerHTML="";
 }
-function capitalizarLineas(textarea){
-const pos=textarea.selectionStart;
-const lineas=textarea.value.split("\n").map(linea=>{
-if(linea.length===0) return linea;
-return linea.charAt(0).toUpperCase()+linea.slice(1);
-});
-const nuevo=lineas.join("\n");
-if(nuevo!==textarea.value){
-textarea.value=nuevo;
-textarea.selectionStart=pos;
-textarea.selectionEnd=pos;
-}
-}
-
-function formatearLineas(texto){
-if(!texto) return "";
-return texto.split("\n")
-.map(l=>l.trim())
-.filter(l=>l.length>0)
-.map(l=>"• "+l)
-.join("<br>");
-}
-
 function procesarCSV(file){
 
 if(!file){
@@ -679,8 +662,8 @@ modelo:document.getElementById("modelo").value.trim().toUpperCase(),
 km:document.getElementById("km").value.trim(),
 fecha:document.getElementById("fecha").value,
 estado:document.getElementById("estado").value,
-trabajos:document.getElementById("trabajos").value.trim(),
-observaciones:document.getElementById("observaciones").value.trim()
+trabajos:document.getElementById("trabajos").value.trim().toUpperCase(),
+observaciones:document.getElementById("observaciones").value.trim().toUpperCase()
 };
 
 if(!ot.matricula||!ot.cliente||!ot.trabajos){
@@ -731,6 +714,41 @@ if(estado==="EN TALLER") return "#ff7a1a";
 if(estado==="FINALIZADO") return "#28a745";
 return "#ff7a1a";
 }
+let filtroActivo="matricula";
+
+function setFiltro(tipo){
+filtroActivo=tipo;
+
+// Actualizar estilos de pestañas
+["matricula","cliente","fecha","factura"].forEach(t=>{
+const btn=document.getElementById("ftb"+t.charAt(0).toUpperCase()+t.slice(1));
+if(btn){
+btn.style.background= t===tipo ? "#ff7a1a" : "#1c2940";
+btn.style.color=       t===tipo ? "#0f1728" : "#e8edf7";
+btn.style.border=      t===tipo ? "2px solid #ff7a1a" : "2px solid #3b4a63";
+btn.style.fontWeight=  t===tipo ? "bold" : "normal";
+}
+});
+
+const buscar=document.getElementById("buscar");
+if(tipo==="fecha"){
+buscar.style.display="none";
+buscar.value="";
+}else{
+buscar.style.display="block";
+buscar.value="";
+const placeholder={
+matricula:"Buscar matrícula...",
+cliente:"Buscar por nombre de cliente...",
+factura:"Buscar nº factura (ej: 8)..."
+};
+buscar.placeholder=placeholder[tipo]||"";
+buscar.focus();
+}
+
+renderHistorial();
+}
+
 function renderHistorial(){
 
 const texto=document.getElementById("buscar")
@@ -739,31 +757,62 @@ const texto=document.getElementById("buscar")
 const lista=document.getElementById("lista");
 lista.innerHTML="";
 
-const filtradas=ots
-.filter(ot=>
-ot.estado==="FINALIZADO" &&
-(!texto ||
-normalizar(ot.matricula).includes(texto) ||
-normalizar(ot.cliente).includes(texto) ||
-normalizar(ot.telefono).includes(texto) ||
-normalizar(ot.marca).includes(texto) ||
-normalizar(ot.modelo).includes(texto) ||
-normalizar(ot.trabajos).includes(texto) ||
-normalizar(ot.observaciones).includes(texto)
-))
-.sort((a,b)=>{
-const fechaA=a.fecha ? new Date(a.fecha).getTime() : a.id;
-const fechaB=b.fecha ? new Date(b.fecha).getTime() : b.id;
-return fechaB-fechaA;
+// Ordenar siempre por número de factura descendente
+const base=ots
+.filter(ot=>ot.estado==="FINALIZADO")
+.sort((a,b)=>(b.numeroFactura||0)-(a.numeroFactura||0));
+
+let filtradas;
+
+if(filtroActivo==="matricula"){
+filtradas=base.filter(ot=>
+!texto || normalizar(ot.matricula).includes(texto)
+);
+}else if(filtroActivo==="cliente"){
+filtradas=base.filter(ot=>
+!texto || normalizar(ot.cliente).startsWith(texto)
+);
+}else if(filtroActivo==="factura"){
+filtradas=base.filter(ot=>{
+if(!texto) return true;
+const num=String(ot.numeroFactura||"");
+const ref=normalizar(referenciaOT(ot));
+return num.includes(texto) || ref.includes(texto);
 });
+}else{
+// filtroActivo === "fecha": agrupar por día, más reciente primero
+// Reutilizamos base ya ordenada por factura, pero aquí ordenamos por fecha descendente
+const porFecha=[...ots]
+.filter(ot=>ot.estado==="FINALIZADO")
+.sort((a,b)=>{
+const fa=a.fecha ? new Date(a.fecha).getTime() : a.id;
+const fb=b.fecha ? new Date(b.fecha).getTime() : b.id;
+return fb-fa;
+});
+filtradas=porFecha;
+}
 
 if(filtradas.length===0){
 lista.innerHTML="<p>No hay órdenes.</p>";
 return;
 }
 
-filtradas.forEach(ot=>{
-lista.innerHTML+=`
+function etiquetaDia(fechaStr){
+if(!fechaStr) return "SIN FECHA";
+const d=new Date(fechaStr);
+const hoy=new Date();
+const ayer=new Date(); ayer.setDate(hoy.getDate()-1);
+const fmt=f=>f.toISOString().slice(0,10);
+if(fmt(d)===fmt(hoy)) return "HOY";
+if(fmt(d)===fmt(ayer)) return "AYER";
+const dia=String(d.getDate()).padStart(2,"0");
+const mes=String(d.getMonth()+1).padStart(2,"0");
+const año=d.getFullYear();
+return `${dia}/${mes}/${año}`;
+}
+
+function tarjetaOT(ot){
+return `
 <div class="item" style="border-left-color:${colorEstado(ot.estado)}">
 <b>${referenciaOT(ot)}</b><br>
 <b>${ot.matricula}</b><br>
@@ -775,10 +824,10 @@ Estado: ${ot.estado}<br>
 Fecha: ${formatearFecha(ot.fecha)}<br>
 <br>
 <b>TRABAJOS:</b><br>
-${formatearLineas(ot.trabajos) || "SIN TRABAJOS"}<br>
+${ot.trabajos || "SIN TRABAJOS"}<br>
 <br>
 <b>OBSERVACIONES:</b><br>
-${formatearLineas(ot.observaciones) || "SIN OBSERVACIONES"}
+${ot.observaciones || "SIN OBSERVACIONES"}
 <br><br>
 <div class="acciones">
 <button onclick="editarOT(${ot.id})">EDITAR</button>
@@ -787,7 +836,23 @@ ${formatearLineas(ot.observaciones) || "SIN OBSERVACIONES"}
 </div>
 </div>
 `;
+}
+
+if(filtroActivo==="fecha"){
+let diaActual="";
+filtradas.forEach(ot=>{
+const etiqueta=etiquetaDia(ot.fecha);
+if(etiqueta!==diaActual){
+diaActual=etiqueta;
+lista.innerHTML+=`<div style="background:#ff7a1a;color:#0f1728;font-weight:bold;padding:7px 12px;border-radius:10px;margin-top:14px;margin-bottom:4px;font-size:15px;">${etiqueta}</div>`;
+}
+lista.innerHTML+=tarjetaOT(ot);
 });
+}else{
+filtradas.forEach(ot=>{
+lista.innerHTML+=tarjetaOT(ot);
+});
+}
 }
 function renderAgenda(){
 const agenda=document.getElementById("agendaLista");
@@ -813,10 +878,10 @@ ${ot.marca} ${ot.modelo}<br>
 Estado: ${ot.estado}<br>
 <br>
 <b>TRABAJOS:</b><br>
-${formatearLineas(ot.trabajos) || "SIN TRABAJOS"}<br>
+${ot.trabajos || "SIN TRABAJOS"}<br>
 <br>
 <b>OBSERVACIONES:</b><br>
-${formatearLineas(ot.observaciones) || "SIN OBSERVACIONES"}
+${ot.observaciones || "SIN OBSERVACIONES"}
 <br><br>
 <div class="acciones">
 <button onclick="editarOT(${ot.id})">EDITAR</button>
@@ -855,10 +920,10 @@ ${ot.marca} ${ot.modelo}<br>
 Estado: ${ot.estado}<br>
 <br>
 <b>TRABAJOS:</b><br>
-${formatearLineas(ot.trabajos) || "SIN TRABAJOS"}<br>
+${ot.trabajos || "SIN TRABAJOS"}<br>
 <br>
 <b>OBSERVACIONES:</b><br>
-${formatearLineas(ot.observaciones) || "SIN OBSERVACIONES"}
+${ot.observaciones || "SIN OBSERVACIONES"}
 <br><br>
 <div class="acciones">
 <button onclick="editarOT(${ot.id})">EDITAR</button>
@@ -981,10 +1046,10 @@ body > *:not(#zonaImpresion){display:none!important}
 <p><b>Estado:</b> ${ot.estado}</p>
 
 <h3>Trabajos</h3>
-<div class="box">${formatearLineas(ot.trabajos)}</div>
+<div class="box">${ot.trabajos || ""}</div>
 
 <h3>Observaciones</h3>
-<div class="box">${formatearLineas(ot.observaciones)}</div>
+<div class="box">${ot.observaciones || ""}</div>
 
 <p>Firma cliente: __________________________</p>
 `;
