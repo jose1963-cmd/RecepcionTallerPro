@@ -1033,7 +1033,8 @@ const esFactura=ot.estado==="FINALIZADO";
 
 const bloqueFactura=esFactura ? `
 <span style="color:#ffd580">NIF/NIE: ${nif||"⚠️ SIN NIF"}</span><br>
-<span style="color:#ffd580">Dir: ${direccion||"⚠️ SIN DIRECCIÓN"}${poblacion?" — "+poblacion:""}</span><br>
+<span style="color:#ffd580">Dir: ${direccion||"⚠️ SIN DIRECCIÓN"}</span><br>
+${poblacion ? `<span style="color:#ffd580">${poblacion}</span><br>` : ""}
 ` : "";
 
 return `
@@ -1263,7 +1264,8 @@ const tituloPrint=ot.estado==="CITADO" ? "CITA PENDIENTE" :
 const bloqueCliente=esFactura ? `
 <p><b>Cliente:</b> ${ot.cliente}</p>
 <p><b>NIF/NIE:</b> ${nif||"—"}</p>
-<p><b>Dirección:</b> ${direccion}${poblacion ? " — "+poblacion : ""}</p>
+<p><b>Dirección:</b> ${direccion||"—"}</p>
+${poblacion ? `<p><b>Población:</b> ${poblacion}</p>` : ""}
 <p><b>Teléfono:</b> ${ot.telefono}</p>
 ` : `
 <p><b>Cliente:</b> ${ot.cliente}</p>
