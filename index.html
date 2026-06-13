@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Autoborja</title>
 <link rel="apple-touch-icon" href="icono 1024x1024.png">
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 body{font-family:Arial,sans-serif;background:#0f1728;margin:0;padding:16px;color:#e8edf7}
 .card{background:#1c2940;padding:18px;border-radius:18px;max-width:700px;margin:0 auto 18px;box-shadow:0 2px 10px #0004;border:2px solid #ff7a1a}
@@ -87,6 +88,90 @@ color:white;
 .estado-finalizado{
 background:#28a745;
 color:white;
+}
+
+/* Modal cámara OCR */
+#modalCamara{
+display:none;
+position:fixed;
+top:0;left:0;right:0;bottom:0;
+background:#000d;
+z-index:10000;
+overflow-y:auto;
+padding:16px;
+}
+#modalCamaraBox{
+background:#0f1728;
+border:2px solid #ff7a1a;
+border-radius:18px;
+padding:16px;
+max-width:500px;
+margin:20px auto;
+}
+#modalCamaraBox h2{
+color:#ff7a1a;
+margin-top:0;
+text-align:center;
+}
+#videoOCR{
+width:100%;
+border-radius:12px;
+border:2px solid #3b4a63;
+background:#000;
+display:block;
+max-height:260px;
+object-fit:cover;
+}
+#overlayMat{
+text-align:center;
+font-size:28px;
+font-weight:bold;
+letter-spacing:6px;
+color:#ff7a1a;
+background:#0f1728;
+border-radius:10px;
+padding:12px 6px;
+margin:10px 0;
+min-height:54px;
+border:2px solid #ff7a1a;
+}
+#estadoOCR{
+text-align:center;
+font-size:14px;
+color:#aab4c8;
+margin-bottom:10px;
+min-height:20px;
+}
+#panelHistorialCamara{
+background:#101827;
+border-radius:12px;
+padding:10px;
+margin-top:10px;
+border:1px solid #3b4a63;
+display:none;
+}
+#panelHistorialCamara h3{
+color:#ff7a1a;
+margin:0 0 8px;
+font-size:15px;
+}
+#listadoHistCamara{
+font-size:13px;
+color:#e8edf7;
+max-height:160px;
+overflow-y:auto;
+}
+.item-hist-cam{
+border-left:3px solid #ff7a1a;
+padding:6px 8px;
+margin-bottom:6px;
+background:#1c2940;
+border-radius:8px;
+}
+#botoneraCamara{
+display:flex;
+gap:10px;
+margin-top:12px;
 }
 
 /* Modal ficha cliente */
@@ -191,7 +276,10 @@ BORRAR PRUEBAS / EMPEZAR DE CERO
 <h2>Nueva Orden</h2>
 
 <label>Matrícula *</label>
-<input id="matricula" placeholder="0000ABC">
+<div style="display:flex;gap:8px;align-items:flex-start;">
+<input id="matricula" placeholder="0000ABC" style="flex:1;margin:6px 0 12px;">
+<button type="button" onclick="abrirCamara()" style="flex:0 0 auto;width:auto;padding:13px 16px;margin:6px 0 12px;font-size:20px;line-height:1;" title="Escanear matrícula con cámara">📷</button>
+</div>
 <button onclick="buscarMatricula()" type="button">BUSCAR MATRÍCULA</button>
 
 
@@ -261,6 +349,24 @@ GUARDAR OT
 <h2>Taller</h2>
 <div id="tallerLista"><p>No hay vehículos en taller.</p></div>
 </div>
+<!-- Modal cámara OCR matrícula -->
+<div id="modalCamara">
+<div id="modalCamaraBox">
+  <h2>📷 ESCÁNER DE MATRÍCULA</h2>
+  <video id="videoOCR" autoplay playsinline muted></video>
+  <div id="overlayMat">— — — — — —</div>
+  <div id="estadoOCR">Apunta la cámara a la matrícula...</div>
+  <div id="panelHistorialCamara">
+    <h3>📁 HISTORIAL DEL VEHÍCULO</h3>
+    <div id="listadoHistCamara"></div>
+  </div>
+  <div id="botoneraCamara">
+    <button type="button" class="green" id="btnAceptarCamara" onclick="aceptarMatriculaEscaneada()" style="margin:0;display:none;">✅ ACEPTAR</button>
+    <button type="button" class="danger" onclick="cerrarCamara()" style="margin:0;">❌ CERRAR</button>
+  </div>
+</div>
+</div>
+
 <!-- Modal ficha cliente para facturación -->
 <div id="modalCliente">
 <div id="modalClienteBox">
@@ -1333,6 +1439,206 @@ observaciones:"REGISTRO DE PRUEBA"
 
 guardar();
 }
+
+// ══════════════════════════════════════════════════════
+// MÓDULO OCR — RECONOCIMIENTO DE MATRÍCULA POR CÁMARA
+// ══════════════════════════════════════════════════════
+
+let _ocrStream=null;
+let _ocrWorker=null;
+let _ocrLoop=null;
+let _ocrMatriculaDetectada=null;
+let _ocrConfirmaciones=0;
+const OCR_CONFIRMACIONES_NECESARIAS=3;
+
+// Letras válidas en matrículas españolas actuales (excluye vocales, Ñ, Q, U, W)
+const REGEX_MATRICULA=/\b(\d{4})([BCDFGHJKLMNPRSTV]{3})\b/i;
+
+function esMatriculaValida(texto){
+  const match=texto.match(REGEX_MATRICULA);
+  if(!match) return null;
+  return match[1]+match[2].toUpperCase();
+}
+
+async function abrirCamara(){
+  const modal=document.getElementById("modalCamara");
+  const video=document.getElementById("videoOCR");
+  const overlay=document.getElementById("overlayMat");
+  const estadoEl=document.getElementById("estadoOCR");
+  const panel=document.getElementById("panelHistorialCamara");
+  const btnAceptar=document.getElementById("btnAceptarCamara");
+
+  _ocrMatriculaDetectada=null;
+  _ocrConfirmaciones=0;
+  overlay.textContent="— — — — — —";
+  overlay.style.color="#ff7a1a";
+  estadoEl.textContent="Iniciando cámara...";
+  panel.style.display="none";
+  btnAceptar.style.display="none";
+  modal.style.display="block";
+
+  try{
+    _ocrStream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},
+      audio:false
+    });
+    video.srcObject=_ocrStream;
+    await video.play();
+  }catch(e){
+    estadoEl.textContent="⚠️ No se pudo acceder a la cámara. Verifica los permisos en Safari (Ajustes → Safari → Cámara).";
+    return;
+  }
+
+  estadoEl.textContent="Cargando motor OCR... (solo la primera vez)";
+  try{
+    _ocrWorker=await Tesseract.createWorker("eng",1,{logger:()=>{}});
+    await _ocrWorker.setParameters({
+      tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+      tessedit_pageseg_mode:"7"
+    });
+  }catch(e){
+    estadoEl.textContent="⚠️ Error al cargar el motor OCR. Comprueba la conexión.";
+    return;
+  }
+
+  estadoEl.textContent="Apunta la cámara a la matrícula del vehículo...";
+  _iniciarBucleOCR();
+}
+
+function _iniciarBucleOCR(){
+  const video=document.getElementById("videoOCR");
+  const overlay=document.getElementById("overlayMat");
+  const estadoEl=document.getElementById("estadoOCR");
+  const canvas=document.createElement("canvas");
+  const ctx=canvas.getContext("2d");
+  let procesando=false;
+
+  _ocrLoop=setInterval(async()=>{
+    if(procesando||!_ocrWorker) return;
+    if(video.readyState<2) return;
+    if(_ocrMatriculaDetectada&&_ocrConfirmaciones>=OCR_CONFIRMACIONES_NECESARIAS) return;
+
+    procesando=true;
+
+    try{
+      canvas.width=video.videoWidth;
+      canvas.height=video.videoHeight;
+      ctx.drawImage(video,0,0);
+
+      // Recortar banda central horizontal (35%-65% de la imagen)
+      const recorteY=Math.floor(canvas.height*0.35);
+      const recorteH=Math.floor(canvas.height*0.30);
+      const imgData=ctx.getImageData(0,recorteY,canvas.width,recorteH);
+      const canvasR=document.createElement("canvas");
+      canvasR.width=canvas.width;
+      canvasR.height=recorteH;
+      canvasR.getContext("2d").putImageData(imgData,0,0);
+
+      const {data:{text}}=await _ocrWorker.recognize(canvasR);
+      const limpio=text.replace(/\s+/g,"").toUpperCase();
+      const mat=esMatriculaValida(limpio);
+
+      if(mat){
+        if(mat===_ocrMatriculaDetectada){
+          _ocrConfirmaciones++;
+        }else{
+          _ocrMatriculaDetectada=mat;
+          _ocrConfirmaciones=1;
+        }
+        overlay.textContent=mat;
+
+        if(_ocrConfirmaciones>=OCR_CONFIRMACIONES_NECESARIAS){
+          clearInterval(_ocrLoop);
+          _ocrLoop=null;
+          overlay.style.color="#28a745";
+          estadoEl.textContent="✅ Matrícula confirmada";
+          _mostrarHistorialCamara(mat);
+        }else{
+          overlay.style.color="#ffd580";
+          estadoEl.textContent="Verificando... ("+_ocrConfirmaciones+"/"+OCR_CONFIRMACIONES_NECESARIAS+")";
+        }
+      }else{
+        if(_ocrConfirmaciones===0){
+          overlay.textContent="— — — — — —";
+          overlay.style.color="#ff7a1a";
+        }
+        estadoEl.textContent="Apunta la cámara a la matrícula del vehículo...";
+      }
+    }catch(e){/* silenciar errores de frame */}
+
+    procesando=false;
+  },1200);
+}
+
+function _mostrarHistorialCamara(matricula){
+  const panel=document.getElementById("panelHistorialCamara");
+  const lista=document.getElementById("listadoHistCamara");
+  const btnAceptar=document.getElementById("btnAceptarCamara");
+
+  const historial=[...ots]
+    .filter(x=>x.matricula===matricula)
+    .sort((a,b)=>(b.id||0)-(a.id||0))
+    .slice(0,5);
+
+  if(historial.length===0){
+    lista.innerHTML="<p style='color:#aab4c8;font-size:13px;margin:4px 0;'>Matrícula nueva — sin historial previo.</p>";
+  }else{
+    lista.innerHTML=historial.map(ot=>`
+      <div class="item-hist-cam">
+        <b>${referenciaOT(ot)}</b> — ${formatearFecha(ot.fecha)}<br>
+        ${ot.cliente}<br>
+        ${ot.marca} ${ot.modelo}<br>
+        <span style="color:#aab4c8;">${(ot.trabajos||"").substring(0,80)}${(ot.trabajos||"").length>80?"...":""}</span>
+      </div>
+    `).join("");
+  }
+
+  panel.style.display="block";
+  btnAceptar.style.display="block";
+}
+
+function aceptarMatriculaEscaneada(){
+  if(!_ocrMatriculaDetectada) return;
+  const mat=_ocrMatriculaDetectada;
+  cerrarCamara();
+
+  document.getElementById("matricula").value=mat;
+
+  const ot=[...ots].reverse().find(x=>x.matricula===mat);
+  const aviso=document.getElementById("aviso");
+  aviso.classList.remove("hidden");
+
+  if(ot){
+    document.getElementById("cliente").value=ot.cliente||"";
+    document.getElementById("telefono").value=ot.telefono||"";
+    document.getElementById("marca").value=ot.marca||"";
+    document.getElementById("modelo").value=ot.modelo||"";
+
+    // Intentar recuperar también datos fiscales de la ficha
+    const ficha=buscarFichaCliente(ot.cliente)||{};
+    if(ficha.nif){
+      // Los datos fiscales se recuperarán automáticamente al guardar como FINALIZADO
+    }
+
+    aviso.innerText="📷 DATOS RECUPERADOS: "+mat+" — "+ot.cliente;
+  }else{
+    aviso.innerText="📷 MATRÍCULA ESCANEADA: "+mat+" — Vehículo nuevo, completa los datos";
+  }
+}
+
+function cerrarCamara(){
+  if(_ocrLoop){clearInterval(_ocrLoop);_ocrLoop=null;}
+  if(_ocrStream){_ocrStream.getTracks().forEach(t=>t.stop());_ocrStream=null;}
+  if(_ocrWorker){_ocrWorker.terminate();_ocrWorker=null;}
+  document.getElementById("modalCamara").style.display="none";
+  const video=document.getElementById("videoOCR");
+  if(video) video.srcObject=null;
+}
+
+// ══════════════════════════════════════════════════════
+// FIN MÓDULO OCR
+// ══════════════════════════════════════════════════════
+
 completarNumeracionExistente();
 guardar();
 
