@@ -278,7 +278,7 @@ BORRAR PRUEBAS / EMPEZAR DE CERO
 <label>Matrícula *</label>
 <div style="display:flex;gap:8px;align-items:flex-start;">
 <input id="matricula" placeholder="0000ABC" style="flex:1;margin:6px 0 12px;">
-<button type="button" onclick="abrirCamara()" style="flex:0 0 auto;width:auto;padding:13px 16px;margin:6px 0 12px;font-size:20px;line-height:1;" title="Escanear matrícula con cámara">📷</button>
+<button type="button" onclick="abrirCamara()" style="flex:0 0 auto;width:auto;padding:13px 16px;margin:6px 0 12px;font-size:20px;line-height:1;" title="Seleccionar foto de matrícula">📷</button>
 </div>
 <button onclick="buscarMatricula()" type="button">BUSCAR MATRÍCULA</button>
 
@@ -351,7 +351,7 @@ GUARDAR OT
 </div>
 <!-- Modal cámara OCR matrícula -->
 <!-- Input oculto para captura de foto nativa iOS -->
-<input type="file" id="inputFotoCamara" style="display:none" onchange="procesarFotoMatricula(event)">
+<input type="file" id="inputFotoCamara" accept="image/*" style="display:none" onchange="procesarFotoMatricula(event)">
 
 <div id="modalCamara">
 <div id="modalCamaraBox">
