@@ -1460,7 +1460,7 @@ function esMatriculaValida(texto){
   return match[1]+match[2].toUpperCase();
 }
 
-async function abrirCamara(){
+function abrirCamara(){
   const modal=document.getElementById("modalCamara");
   const video=document.getElementById("videoOCR");
   const overlay=document.getElementById("overlayMat");
@@ -1477,32 +1477,35 @@ async function abrirCamara(){
   btnAceptar.style.display="none";
   modal.style.display="block";
 
-  try{
-    _ocrStream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},
-      audio:false
-    });
-    video.srcObject=_ocrStream;
-    await video.play();
-  }catch(e){
-    estadoEl.textContent="⚠️ No se pudo acceder a la cámara. Verifica los permisos en Safari (Ajustes → Safari → Cámara).";
-    return;
-  }
+  // Safari iOS requiere que getUserMedia se llame directamente desde el gesto del usuario
+  // sin await ni promesas encadenadas antes
+  const constraints={
+    video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},
+    audio:false
+  };
 
-  estadoEl.textContent="Cargando motor OCR... (solo la primera vez)";
-  try{
-    _ocrWorker=await Tesseract.createWorker("eng",1,{logger:()=>{}});
-    await _ocrWorker.setParameters({
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(function(stream){
+    _ocrStream=stream;
+    video.srcObject=stream;
+    video.play();
+    estadoEl.textContent="Cargando motor OCR... (solo la primera vez)";
+    return Tesseract.createWorker("eng",1,{logger:()=>{}});
+  })
+  .then(function(worker){
+    _ocrWorker=worker;
+    return _ocrWorker.setParameters({
       tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
       tessedit_pageseg_mode:"7"
     });
-  }catch(e){
-    estadoEl.textContent="⚠️ Error al cargar el motor OCR. Comprueba la conexión.";
-    return;
-  }
-
-  estadoEl.textContent="Apunta la cámara a la matrícula del vehículo...";
-  _iniciarBucleOCR();
+  })
+  .then(function(){
+    estadoEl.textContent="Apunta la cámara a la matrícula del vehículo...";
+    _iniciarBucleOCR();
+  })
+  .catch(function(e){
+    estadoEl.textContent="⚠️ No se pudo acceder a la cámara. Ve a Ajustes → Safari → Cámara → Permitir.";
+  });
 }
 
 function _iniciarBucleOCR(){
