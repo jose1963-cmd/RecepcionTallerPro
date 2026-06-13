@@ -1464,6 +1464,56 @@ function esMatriculaValida(texto){
   return match[1]+match[2].toUpperCase();
 }
 
+function _preprocesarImagen(file){
+  return new Promise(function(resolve){
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=function(){
+      // Canvas original
+      const cOrig=document.createElement("canvas");
+      cOrig.width=img.naturalWidth;
+      cOrig.height=img.naturalHeight;
+      const ctxOrig=cOrig.getContext("2d");
+      ctxOrig.drawImage(img,0,0);
+
+      // Recortar banda central vertical donde suele estar la matrícula
+      // (entre 40% y 75% de la altura de la imagen)
+      const recY=Math.floor(img.naturalHeight*0.35);
+      const recH=Math.floor(img.naturalHeight*0.45);
+      const recW=img.naturalWidth;
+
+      // Escalar a ancho fijo de 1200px para consistencia
+      const escala=1200/recW;
+      const cFinal=document.createElement("canvas");
+      cFinal.width=1200;
+      cFinal.height=Math.floor(recH*escala);
+      const ctx=cFinal.getContext("2d");
+
+      // Dibujar recorte escalado
+      ctx.drawImage(cOrig, 0, recY, recW, recH, 0, 0, cFinal.width, cFinal.height);
+
+      // Aplicar filtro: aumentar contraste y convertir a escala de grises
+      const imgData=ctx.getImageData(0,0,cFinal.width,cFinal.height);
+      const data=imgData.data;
+      for(let i=0;i<data.length;i+=4){
+        // Luminancia
+        const lum=0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];
+        // Umbral binario: si es más claro que 128 → blanco, si no → negro
+        // Esto convierte la matrícula (fondo blanco + letras negras) en imagen perfecta para OCR
+        const bin=lum>128 ? 255 : 0;
+        data[i]=bin;
+        data[i+1]=bin;
+        data[i+2]=bin;
+      }
+      ctx.putImageData(imgData,0,0);
+
+      URL.revokeObjectURL(url);
+      resolve(cFinal);
+    };
+    img.src=url;
+  });
+}
+
 function abrirCamara(){
   // Lanzar directamente la cámara nativa iOS — sin modal, sin getUserMedia
   // Esto funciona en Safari iOS en cualquier dominio incluyendo GitHub Pages
@@ -1504,15 +1554,19 @@ function procesarFotoMatricula(event){
     : Tesseract.createWorker("eng",1,{logger:()=>{}})
         .then(function(w){
           return w.setParameters({
-            tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-            tessedit_pageseg_mode:"6"
+            tessedit_char_whitelist:"BCDFGHJKLMNPRSTV0123456789",
+            tessedit_pageseg_mode:"7", // línea única de texto
+            tessedit_ocr_engine_mode:"1" // modo LSTM neuronal, más preciso
           }).then(function(){ _ocrWorker=w; return w; });
         });
 
   cargarWorker
   .then(function(worker){
     estadoEl.textContent="Leyendo matrícula...";
-    return worker.recognize(file);
+    // Preprocesar imagen: recortar banda central, alto contraste, umbral binario
+    return _preprocesarImagen(file).then(function(canvasProcesado){
+      return worker.recognize(canvasProcesado);
+    });
   })
   .then(function(result){
     const texto=result.data.text;
