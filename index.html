@@ -350,18 +350,24 @@ GUARDAR OT
 <div id="tallerLista"><p>No hay vehículos en taller.</p></div>
 </div>
 <!-- Modal cámara OCR matrícula -->
+<!-- Input oculto para captura de foto nativa iOS -->
+<input type="file" id="inputFotoCamara" accept="image/*" capture="environment" style="display:none" onchange="procesarFotoMatricula(event)">
+
 <div id="modalCamara">
 <div id="modalCamaraBox">
   <h2>📷 ESCÁNER DE MATRÍCULA</h2>
-  <video id="videoOCR" autoplay playsinline muted></video>
   <div id="overlayMat">— — — — — —</div>
-  <div id="estadoOCR">Apunta la cámara a la matrícula...</div>
+  <div id="estadoOCR">Procesando imagen...</div>
+  <div id="previewFoto" style="display:none;margin:10px 0;">
+    <img id="imgPreview" style="width:100%;border-radius:10px;border:2px solid #3b4a63;">
+  </div>
   <div id="panelHistorialCamara">
     <h3>📁 HISTORIAL DEL VEHÍCULO</h3>
     <div id="listadoHistCamara"></div>
   </div>
   <div id="botoneraCamara">
     <button type="button" class="green" id="btnAceptarCamara" onclick="aceptarMatriculaEscaneada()" style="margin:0;display:none;">✅ ACEPTAR</button>
+    <button type="button" id="btnRepetirFoto" onclick="repetirFoto()" style="margin:0;display:none;background:#344d7a;color:white;">🔄 REPETIR</button>
     <button type="button" class="danger" onclick="cerrarCamara()" style="margin:0;">❌ CERRAR</button>
   </div>
 </div>
@@ -1441,136 +1447,108 @@ guardar();
 }
 
 // ══════════════════════════════════════════════════════
-// MÓDULO OCR — RECONOCIMIENTO DE MATRÍCULA POR CÁMARA
+// MÓDULO OCR — FOTO NATIVA iOS + TESSERACT
 // ══════════════════════════════════════════════════════
 
-let _ocrStream=null;
-let _ocrWorker=null;
-let _ocrLoop=null;
 let _ocrMatriculaDetectada=null;
-let _ocrConfirmaciones=0;
-const OCR_CONFIRMACIONES_NECESARIAS=3;
+let _ocrWorker=null;
 
-// Letras válidas en matrículas españolas actuales (excluye vocales, Ñ, Q, U, W)
-const REGEX_MATRICULA=/\b(\d{4})([BCDFGHJKLMNPRSTV]{3})\b/i;
+// Letras válidas en matrículas españolas (sin vocales, Ñ, Q, U, W)
+const REGEX_MATRICULA=/(\d{4})([BCDFGHJKLMNPRSTV]{3})/i;
 
 function esMatriculaValida(texto){
-  const match=texto.match(REGEX_MATRICULA);
+  // Buscar en todo el texto extraído, no solo al inicio
+  const limpio=texto.replace(/\s+/g,"").toUpperCase();
+  const match=limpio.match(REGEX_MATRICULA);
   if(!match) return null;
   return match[1]+match[2].toUpperCase();
 }
 
 function abrirCamara(){
+  // Lanzar directamente la cámara nativa iOS — sin modal, sin getUserMedia
+  // Esto funciona en Safari iOS en cualquier dominio incluyendo GitHub Pages
+  document.getElementById("inputFotoCamara").click();
+}
+
+function procesarFotoMatricula(event){
+  const file=event.target.files[0];
+  if(!file) return;
+
+  // Mostrar modal con estado de procesamiento
   const modal=document.getElementById("modalCamara");
-  const video=document.getElementById("videoOCR");
   const overlay=document.getElementById("overlayMat");
   const estadoEl=document.getElementById("estadoOCR");
   const panel=document.getElementById("panelHistorialCamara");
   const btnAceptar=document.getElementById("btnAceptarCamara");
+  const btnRepetir=document.getElementById("btnRepetirFoto");
+  const previewDiv=document.getElementById("previewFoto");
+  const imgPreview=document.getElementById("imgPreview");
 
   _ocrMatriculaDetectada=null;
-  _ocrConfirmaciones=0;
   overlay.textContent="— — — — — —";
   overlay.style.color="#ff7a1a";
-  estadoEl.textContent="Iniciando cámara...";
+  estadoEl.textContent="Analizando imagen...";
   panel.style.display="none";
   btnAceptar.style.display="none";
+  btnRepetir.style.display="none";
   modal.style.display="block";
 
-  // Safari iOS requiere que getUserMedia se llame directamente desde el gesto del usuario
-  // sin await ni promesas encadenadas antes
-  const constraints={
-    video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},
-    audio:false
-  };
+  // Mostrar preview de la foto
+  const urlFoto=URL.createObjectURL(file);
+  imgPreview.src=urlFoto;
+  previewDiv.style.display="block";
 
-  navigator.mediaDevices.getUserMedia(constraints)
-  .then(function(stream){
-    _ocrStream=stream;
-    video.srcObject=stream;
-    video.play();
-    estadoEl.textContent="Cargando motor OCR... (solo la primera vez)";
-    return Tesseract.createWorker("eng",1,{logger:()=>{}});
-  })
+  // Cargar worker Tesseract si no existe
+  const cargarWorker=_ocrWorker
+    ? Promise.resolve(_ocrWorker)
+    : Tesseract.createWorker("eng",1,{logger:()=>{}})
+        .then(function(w){
+          return w.setParameters({
+            tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+            tessedit_pageseg_mode:"6"
+          }).then(function(){ _ocrWorker=w; return w; });
+        });
+
+  cargarWorker
   .then(function(worker){
-    _ocrWorker=worker;
-    return _ocrWorker.setParameters({
-      tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-      tessedit_pageseg_mode:"7"
-    });
+    estadoEl.textContent="Leyendo matrícula...";
+    return worker.recognize(file);
   })
-  .then(function(){
-    estadoEl.textContent="Apunta la cámara a la matrícula del vehículo...";
-    _iniciarBucleOCR();
+  .then(function(result){
+    const texto=result.data.text;
+    const mat=esMatriculaValida(texto);
+
+    if(mat){
+      _ocrMatriculaDetectada=mat;
+      overlay.textContent=mat;
+      overlay.style.color="#28a745";
+      estadoEl.textContent="✅ Matrícula detectada";
+      _mostrarHistorialCamara(mat);
+      btnRepetir.style.display="block";
+    }else{
+      overlay.textContent="NO DETECTADA";
+      overlay.style.color="#b00020";
+      estadoEl.textContent="⚠️ No se pudo leer la matrícula. Intenta de nuevo con mejor ángulo y luz.";
+      btnRepetir.style.display="block";
+    }
+    URL.revokeObjectURL(urlFoto);
   })
-  .catch(function(e){
-    estadoEl.textContent="⚠️ No se pudo acceder a la cámara. Ve a Ajustes → Safari → Cámara → Permitir.";
+  .catch(function(){
+    estadoEl.textContent="⚠️ Error al procesar la imagen.";
+    btnRepetir.style.display="block";
+    URL.revokeObjectURL(urlFoto);
   });
+
+  // Limpiar el input para permitir repetir con la misma foto
+  event.target.value="";
 }
 
-function _iniciarBucleOCR(){
-  const video=document.getElementById("videoOCR");
-  const overlay=document.getElementById("overlayMat");
-  const estadoEl=document.getElementById("estadoOCR");
-  const canvas=document.createElement("canvas");
-  const ctx=canvas.getContext("2d");
-  let procesando=false;
-
-  _ocrLoop=setInterval(async()=>{
-    if(procesando||!_ocrWorker) return;
-    if(video.readyState<2) return;
-    if(_ocrMatriculaDetectada&&_ocrConfirmaciones>=OCR_CONFIRMACIONES_NECESARIAS) return;
-
-    procesando=true;
-
-    try{
-      canvas.width=video.videoWidth;
-      canvas.height=video.videoHeight;
-      ctx.drawImage(video,0,0);
-
-      // Recortar banda central horizontal (35%-65% de la imagen)
-      const recorteY=Math.floor(canvas.height*0.35);
-      const recorteH=Math.floor(canvas.height*0.30);
-      const imgData=ctx.getImageData(0,recorteY,canvas.width,recorteH);
-      const canvasR=document.createElement("canvas");
-      canvasR.width=canvas.width;
-      canvasR.height=recorteH;
-      canvasR.getContext("2d").putImageData(imgData,0,0);
-
-      const {data:{text}}=await _ocrWorker.recognize(canvasR);
-      const limpio=text.replace(/\s+/g,"").toUpperCase();
-      const mat=esMatriculaValida(limpio);
-
-      if(mat){
-        if(mat===_ocrMatriculaDetectada){
-          _ocrConfirmaciones++;
-        }else{
-          _ocrMatriculaDetectada=mat;
-          _ocrConfirmaciones=1;
-        }
-        overlay.textContent=mat;
-
-        if(_ocrConfirmaciones>=OCR_CONFIRMACIONES_NECESARIAS){
-          clearInterval(_ocrLoop);
-          _ocrLoop=null;
-          overlay.style.color="#28a745";
-          estadoEl.textContent="✅ Matrícula confirmada";
-          _mostrarHistorialCamara(mat);
-        }else{
-          overlay.style.color="#ffd580";
-          estadoEl.textContent="Verificando... ("+_ocrConfirmaciones+"/"+OCR_CONFIRMACIONES_NECESARIAS+")";
-        }
-      }else{
-        if(_ocrConfirmaciones===0){
-          overlay.textContent="— — — — — —";
-          overlay.style.color="#ff7a1a";
-        }
-        estadoEl.textContent="Apunta la cámara a la matrícula del vehículo...";
-      }
-    }catch(e){/* silenciar errores de frame */}
-
-    procesando=false;
-  },1200);
+function repetirFoto(){
+  document.getElementById("modalCamara").style.display="none";
+  document.getElementById("previewFoto").style.display="none";
+  setTimeout(function(){
+    document.getElementById("inputFotoCamara").click();
+  },300);
 }
 
 function _mostrarHistorialCamara(matricula){
@@ -1616,13 +1594,6 @@ function aceptarMatriculaEscaneada(){
     document.getElementById("telefono").value=ot.telefono||"";
     document.getElementById("marca").value=ot.marca||"";
     document.getElementById("modelo").value=ot.modelo||"";
-
-    // Intentar recuperar también datos fiscales de la ficha
-    const ficha=buscarFichaCliente(ot.cliente)||{};
-    if(ficha.nif){
-      // Los datos fiscales se recuperarán automáticamente al guardar como FINALIZADO
-    }
-
     aviso.innerText="📷 DATOS RECUPERADOS: "+mat+" — "+ot.cliente;
   }else{
     aviso.innerText="📷 MATRÍCULA ESCANEADA: "+mat+" — Vehículo nuevo, completa los datos";
@@ -1630,12 +1601,13 @@ function aceptarMatriculaEscaneada(){
 }
 
 function cerrarCamara(){
-  if(_ocrLoop){clearInterval(_ocrLoop);_ocrLoop=null;}
-  if(_ocrStream){_ocrStream.getTracks().forEach(t=>t.stop());_ocrStream=null;}
-  if(_ocrWorker){_ocrWorker.terminate();_ocrWorker=null;}
+  if(_ocrWorker){
+    _ocrWorker.terminate();
+    _ocrWorker=null;
+  }
   document.getElementById("modalCamara").style.display="none";
-  const video=document.getElementById("videoOCR");
-  if(video) video.srcObject=null;
+  document.getElementById("previewFoto").style.display="none";
+  _ocrMatriculaDetectada=null;
 }
 
 // ══════════════════════════════════════════════════════
