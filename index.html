@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Autoborja</title>
 <link rel="apple-touch-icon" href="icono 1024x1024.png">
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 body{font-family:Arial,sans-serif;background:#0f1728;margin:0;padding:16px;color:#e8edf7}
 .card{background:#1c2940;padding:18px;border-radius:18px;max-width:700px;margin:0 auto 18px;box-shadow:0 2px 10px #0004;border:2px solid #ff7a1a}
@@ -1447,76 +1446,13 @@ guardar();
 }
 
 // ══════════════════════════════════════════════════════
-// MÓDULO OCR — FOTO NATIVA iOS + TESSERACT
+// MÓDULO OCR — PLATE RECOGNIZER API
 // ══════════════════════════════════════════════════════
 
+const PLATE_TOKEN="0fe93fa4d4ed7ad906d040fb28eb36c3ee4cdc8f";
 let _ocrMatriculaDetectada=null;
-let _ocrWorker=null;
-
-// Letras válidas en matrículas españolas (sin vocales, Ñ, Q, U, W)
-const REGEX_MATRICULA=/(\d{4})([BCDFGHJKLMNPRSTV]{3})/i;
-
-function esMatriculaValida(texto){
-  // Buscar en todo el texto extraído, no solo al inicio
-  const limpio=texto.replace(/\s+/g,"").toUpperCase();
-  const match=limpio.match(REGEX_MATRICULA);
-  if(!match) return null;
-  return match[1]+match[2].toUpperCase();
-}
-
-function _preprocesarImagen(file){
-  return new Promise(function(resolve){
-    const img=new Image();
-    const url=URL.createObjectURL(file);
-    img.onload=function(){
-      // Canvas original
-      const cOrig=document.createElement("canvas");
-      cOrig.width=img.naturalWidth;
-      cOrig.height=img.naturalHeight;
-      const ctxOrig=cOrig.getContext("2d");
-      ctxOrig.drawImage(img,0,0);
-
-      // Recortar banda central vertical donde suele estar la matrícula
-      // (entre 40% y 75% de la altura de la imagen)
-      const recY=Math.floor(img.naturalHeight*0.35);
-      const recH=Math.floor(img.naturalHeight*0.45);
-      const recW=img.naturalWidth;
-
-      // Escalar a ancho fijo de 1200px para consistencia
-      const escala=1200/recW;
-      const cFinal=document.createElement("canvas");
-      cFinal.width=1200;
-      cFinal.height=Math.floor(recH*escala);
-      const ctx=cFinal.getContext("2d");
-
-      // Dibujar recorte escalado
-      ctx.drawImage(cOrig, 0, recY, recW, recH, 0, 0, cFinal.width, cFinal.height);
-
-      // Aplicar filtro: aumentar contraste y convertir a escala de grises
-      const imgData=ctx.getImageData(0,0,cFinal.width,cFinal.height);
-      const data=imgData.data;
-      for(let i=0;i<data.length;i+=4){
-        // Luminancia
-        const lum=0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];
-        // Umbral binario: si es más claro que 128 → blanco, si no → negro
-        // Esto convierte la matrícula (fondo blanco + letras negras) en imagen perfecta para OCR
-        const bin=lum>128 ? 255 : 0;
-        data[i]=bin;
-        data[i+1]=bin;
-        data[i+2]=bin;
-      }
-      ctx.putImageData(imgData,0,0);
-
-      URL.revokeObjectURL(url);
-      resolve(cFinal);
-    };
-    img.src=url;
-  });
-}
 
 function abrirCamara(){
-  // Lanzar directamente la cámara nativa iOS — sin modal, sin getUserMedia
-  // Esto funciona en Safari iOS en cualquier dominio incluyendo GitHub Pages
   document.getElementById("inputFotoCamara").click();
 }
 
@@ -1524,7 +1460,6 @@ function procesarFotoMatricula(event){
   const file=event.target.files[0];
   if(!file) return;
 
-  // Mostrar modal con estado de procesamiento
   const modal=document.getElementById("modalCamara");
   const overlay=document.getElementById("overlayMat");
   const estadoEl=document.getElementById("estadoOCR");
@@ -1537,42 +1472,31 @@ function procesarFotoMatricula(event){
   _ocrMatriculaDetectada=null;
   overlay.textContent="— — — — — —";
   overlay.style.color="#ff7a1a";
-  estadoEl.textContent="Analizando imagen...";
+  estadoEl.textContent="Analizando matrícula...";
   panel.style.display="none";
   btnAceptar.style.display="none";
   btnRepetir.style.display="none";
   modal.style.display="block";
 
-  // Mostrar preview de la foto
   const urlFoto=URL.createObjectURL(file);
   imgPreview.src=urlFoto;
   previewDiv.style.display="block";
 
-  // Cargar worker Tesseract si no existe
-  const cargarWorker=_ocrWorker
-    ? Promise.resolve(_ocrWorker)
-    : Tesseract.createWorker("eng",1,{logger:()=>{}})
-        .then(function(w){
-          return w.setParameters({
-            tessedit_char_whitelist:"BCDFGHJKLMNPRSTV0123456789",
-            tessedit_pageseg_mode:"7", // línea única de texto
-            tessedit_ocr_engine_mode:"1" // modo LSTM neuronal, más preciso
-          }).then(function(){ _ocrWorker=w; return w; });
-        });
+  // Enviar a Plate Recognizer API
+  const formData=new FormData();
+  formData.append("upload",file);
+  formData.append("regions","es"); // España
 
-  cargarWorker
-  .then(function(worker){
-    estadoEl.textContent="Leyendo matrícula...";
-    // Preprocesar imagen: recortar banda central, alto contraste, umbral binario
-    return _preprocesarImagen(file).then(function(canvasProcesado){
-      return worker.recognize(canvasProcesado);
-    });
+  fetch("https://api.platerecognizer.com/v1/plate-reader/",{
+    method:"POST",
+    headers:{"Authorization":"Token "+PLATE_TOKEN},
+    body:formData
   })
-  .then(function(result){
-    const texto=result.data.text;
-    const mat=esMatriculaValida(texto);
-
-    if(mat){
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    URL.revokeObjectURL(urlFoto);
+    if(data.results && data.results.length>0){
+      const mat=data.results[0].plate.toUpperCase();
       _ocrMatriculaDetectada=mat;
       overlay.textContent=mat;
       overlay.style.color="#28a745";
@@ -1582,18 +1506,18 @@ function procesarFotoMatricula(event){
     }else{
       overlay.textContent="NO DETECTADA";
       overlay.style.color="#b00020";
-      estadoEl.textContent="⚠️ No se pudo leer la matrícula. Intenta de nuevo con mejor ángulo y luz.";
+      estadoEl.textContent="⚠️ No se pudo leer la matrícula. Intenta con mejor ángulo y luz.";
       btnRepetir.style.display="block";
     }
-    URL.revokeObjectURL(urlFoto);
   })
   .catch(function(){
-    estadoEl.textContent="⚠️ Error al procesar la imagen.";
-    btnRepetir.style.display="block";
     URL.revokeObjectURL(urlFoto);
+    overlay.textContent="ERROR";
+    overlay.style.color="#b00020";
+    estadoEl.textContent="⚠️ Error de conexión. Verifica que tienes internet.";
+    btnRepetir.style.display="block";
   });
 
-  // Limpiar el input para permitir repetir con la misma foto
   event.target.value="";
 }
 
@@ -1655,10 +1579,6 @@ function aceptarMatriculaEscaneada(){
 }
 
 function cerrarCamara(){
-  if(_ocrWorker){
-    _ocrWorker.terminate();
-    _ocrWorker=null;
-  }
   document.getElementById("modalCamara").style.display="none";
   document.getElementById("previewFoto").style.display="none";
   _ocrMatriculaDetectada=null;
