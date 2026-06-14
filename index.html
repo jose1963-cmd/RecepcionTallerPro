@@ -387,8 +387,25 @@ GUARDAR OT
   <label>Dirección *</label>
   <input id="mcDireccion" placeholder="Calle, número, piso...">
 
-  <label>Población</label>
-  <input id="mcPoblacion" placeholder="Borja, Zaragoza...">
+  <label>C. Postal - Ciudad</label>
+  <input id="mcPoblacion" placeholder="50540 - Borja">
+
+  <div style="display:flex;gap:10px;">
+    <div style="flex:1;">
+      <label>Móvil</label>
+      <input id="mcMovil" type="tel" inputmode="numeric" maxlength="9" placeholder="600000000">
+    </div>
+    <div style="flex:1;">
+      <label>Tfno</label>
+      <input id="mcTfno" type="tel" inputmode="numeric" maxlength="9" placeholder="976000000">
+    </div>
+  </div>
+
+  <label>E-mail</label>
+  <input id="mcEmail" type="email" placeholder="cliente@correo.com">
+
+  <label>Observaciones</label>
+  <textarea id="mcObservaciones" placeholder="Notas sobre el cliente..." rows="3" style="width:100%;box-sizing:border-box;resize:vertical;"></textarea>
 
   <div style="display:flex;gap:10px;margin-top:14px;">
     <button type="button" class="green" onclick="confirmarFicha()" style="margin:0;">GUARDAR Y CONTINUAR</button>
@@ -403,7 +420,7 @@ const STORAGE="RECEPCION_TALLER_PRO";
 
 let ots=[];
 let contadores={agenda:0,ot:0,factura:0};
-let clientes={};  // clave: NIF normalizado → {nif,nombre,direccion,poblacion}
+let clientes={};  // clave: NIF normalizado → {nif,nombre,direccion,poblacion,movil,tfno,email,observaciones}
 
 try{
 const guardado=JSON.parse(localStorage.getItem(STORAGE)||"[]");
@@ -921,12 +938,16 @@ function buscarFichaCliente(nombre){
 return clientes[claveCliente(nombre)] || null;
 }
 
-function guardarFichaCliente(nombre,nif,direccion,poblacion){
+function guardarFichaCliente(nombre,nif,direccion,poblacion,movil,tfno,email,observaciones){
 clientes[claveCliente(nombre)]={
 nombre:claveCliente(nombre),
 nif:(nif||"").trim().toUpperCase(),
 direccion:(direccion||"").trim(),
-poblacion:(poblacion||"").trim()
+poblacion:(poblacion||"").trim(),
+movil:(movil||"").trim(),
+tfno:(tfno||"").trim(),
+email:(email||"").trim(),
+observaciones:(observaciones||"").trim()
 };
 guardar();
 }
@@ -966,6 +987,14 @@ document.getElementById("mcDireccion").value=
 fichaExistente ? (fichaExistente.direccion||"") : "";
 document.getElementById("mcPoblacion").value=
 fichaExistente ? (fichaExistente.poblacion||"") : "";
+document.getElementById("mcMovil").value=
+fichaExistente ? (fichaExistente.movil||"") : "";
+document.getElementById("mcTfno").value=
+fichaExistente ? (fichaExistente.tfno||"") : "";
+document.getElementById("mcEmail").value=
+fichaExistente ? (fichaExistente.email||"") : "";
+document.getElementById("mcObservaciones").value=
+fichaExistente ? (fichaExistente.observaciones||"") : "";
 document.getElementById("modalCliente").style.display="block";
 setTimeout(()=>document.getElementById("mcNif").focus(),200);
 }
@@ -977,6 +1006,10 @@ document.getElementById("modalClienteNombre").textContent="Cliente: "+nombreClie
 document.getElementById("mcNif").value=ficha.nif||"";
 document.getElementById("mcDireccion").value=ficha.direccion||"";
 document.getElementById("mcPoblacion").value=ficha.poblacion||"";
+document.getElementById("mcMovil").value=ficha.movil||"";
+document.getElementById("mcTfno").value=ficha.tfno||"";
+document.getElementById("mcEmail").value=ficha.email||"";
+document.getElementById("mcObservaciones").value=ficha.observaciones||"";
 // Guardamos el nombre para que confirmarFicha sepa a quién actualizar
 document.getElementById("modalCliente").dataset.clienteEdicion=nombreCliente;
 document.getElementById("modalCliente").style.display="block";
@@ -987,6 +1020,10 @@ function confirmarFicha(){
 const nif=document.getElementById("mcNif").value.trim().toUpperCase();
 const dir=document.getElementById("mcDireccion").value.trim();
 const pob=document.getElementById("mcPoblacion").value.trim();
+const movil=document.getElementById("mcMovil").value.trim();
+const tfno=document.getElementById("mcTfno").value.trim();
+const email=document.getElementById("mcEmail").value.trim();
+const obs=document.getElementById("mcObservaciones").value.trim();
 
 if(!nif||!dir){
 alert("NIF/NIE Y DIRECCIÓN SON OBLIGATORIOS PARA EMITIR FACTURA");
@@ -999,7 +1036,7 @@ const ot=_otPendienteGuardar;
 if(!ot){
 const nombreEdicion=document.getElementById("modalCliente").dataset.clienteEdicion||"";
 if(nombreEdicion){
-guardarFichaCliente(nombreEdicion,nif,dir,pob);
+guardarFichaCliente(nombreEdicion,nif,dir,pob,movil,tfno,email,obs);
 // Actualizar también todas las OTs de ese cliente que sean FINALIZADO
 ots=ots.map(x=>{
 if(x.estado==="FINALIZADO" && claveCliente(x.cliente)===claveCliente(nombreEdicion)){
@@ -1016,7 +1053,7 @@ return;
 }
 
 // Caso 2: OT pendiente de guardar
-guardarFichaCliente(ot.cliente,nif,dir,pob);
+guardarFichaCliente(ot.cliente,nif,dir,pob,movil,tfno,email,obs);
 ot.nif=nif;
 ot.direccion=dir;
 ot.poblacion=pob;
@@ -1364,6 +1401,7 @@ const ficha=buscarFichaCliente(ot.cliente)||{};
 const nif=ot.nif||ficha.nif||"";
 const direccion=ot.direccion||ficha.direccion||"";
 const poblacion=ot.poblacion||ficha.poblacion||"";
+const emailCliente=ficha.email||"";
 
 const anterior=document.getElementById("zonaImpresion");
 if(anterior) anterior.remove();
@@ -1378,6 +1416,7 @@ const bloqueCliente=esFactura ? `
 <p><b>Dirección:</b> ${direccion||"—"}</p>
 ${poblacion ? `<p><b>Población:</b> ${poblacion}</p>` : ""}
 <p><b>Teléfono:</b> ${ot.telefono}</p>
+${emailCliente ? `<p><b>E-mail:</b> ${emailCliente}</p>` : ""}
 ` : `
 <p><b>Cliente:</b> ${ot.cliente}</p>
 <p><b>Teléfono:</b> ${ot.telefono}</p>
