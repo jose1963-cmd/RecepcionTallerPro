@@ -256,10 +256,20 @@ EXPORTAR COPIA
 IMPORTAR COPIA
 </button>
 
-<input type="file" id="importFileInicio" accept=".csv" style="display:none">
+<input type="file" id="importClientesFile" accept=".csv" style="display:none">
 
-<button class="secondary" onclick="importarCSVDesdeInicio()" type="button">
-IMPORTAR CSV
+<button class="secondary" onclick="importarClientesCSVDesdeInicio()" type="button">
+IMPORTAR CLIENTES CSV
+</button>
+
+<input type="file" id="importVehiculosFile" accept=".csv" style="display:none">
+
+<button class="secondary" onclick="importarVehiculosCSVDesdeInicio()" type="button">
+IMPORTAR VEHÍCULOS CSV
+</button>
+
+<button class="secondary" onclick="alert('IMPORTAR ARTÍCULOS CSV — PRÓXIMAMENTE (MÓDULO ALMACÉN)')" type="button" style="background:#1e3a5f;border:2px dashed #ff7a1a;color:#ff7a1a;">
+IMPORTAR ARTÍCULOS CSV
 </button>
 
 <button class="secondary" onclick="alert('MÓDULO DE ALMACÉN — PRÓXIMAMENTE')" type="button" style="background:#1e3a5f;border:2px dashed #ff7a1a;color:#ff7a1a;">
@@ -420,7 +430,8 @@ const STORAGE="RECEPCION_TALLER_PRO";
 
 let ots=[];
 let contadores={agenda:0,ot:0,factura:0};
-let clientes={};  // clave: NIF normalizado → {nif,nombre,direccion,poblacion,movil,tfno,email,observaciones}
+let clientes={};  // clave: nombre normalizado → {codigo,nombre,nif,direccion,poblacion,movil,tfno,email,observaciones}
+let vehiculos={}; // clave: matrícula → {matricula,cliente,marca,modelo}
 
 try{
 const guardado=JSON.parse(localStorage.getItem(STORAGE)||"[]");
@@ -431,11 +442,13 @@ ots=guardado;
 ots=Array.isArray(guardado.ots) ? guardado.ots : [];
 contadores=guardado.contadores || {agenda:0,ot:0,factura:0};
 clientes=guardado.clientes || {};
+vehiculos=guardado.vehiculos || {};
 }
 }catch(e){
 ots=[];
 contadores={agenda:0,ot:0,factura:0};
 clientes={};
+vehiculos={};
 }
 
 let editandoId=null;
@@ -499,7 +512,8 @@ function guardar(){
 localStorage.setItem(STORAGE,JSON.stringify({
 ots:ots,
 contadores:contadores,
-clientes:clientes
+clientes:clientes,
+vehiculos:vehiculos
 }));
 }
 
@@ -727,93 +741,6 @@ function elegirModelo(modelo){
 document.getElementById("modelo").value=modelo;
 document.getElementById("modeloResultados").innerHTML="";
 }
-function procesarCSV(file){
-
-if(!file){
-alert("SELECCIONA UN ARCHIVO CSV");
-return;
-}
-
-const reader=new FileReader();
-
-reader.onload=function(e){
-
-const texto=e.target.result;
-const lineas=texto.split(/\r?\n/).filter(l=>l.trim()!=="");
-
-if(lineas.length<2){
-alert("EL CSV ESTÁ VACÍO O NO TIENE DATOS");
-return;
-}
-
-const cabeceras=lineas[0]
-.split(";")
-.map(h=>h.trim().toLowerCase());
-
-let importados=0;
-
-for(let i=1;i<lineas.length;i++){
-
-const valores=lineas[i]
-.split(";")
-.map(v=>v.trim());
-
-const registro={};
-
-cabeceras.forEach((cabecera,index)=>{
-registro[cabecera]=valores[index]||"";
-});
-
-if(registro.matricula){
-
-const existente=ots.find(x=>
-x.matricula===registro.matricula.toUpperCase()
-);
-
-const nuevo={
-id:Date.now()+i,
-matricula:registro.matricula.toUpperCase(),
-cliente:(registro.cliente||"").toUpperCase(),
-telefono:registro.telefono||"",
-marca:(registro.marca||"").toUpperCase(),
-modelo:(registro.modelo||"").toUpperCase(),
-km:"",
-fecha:"",
-estado:"CITADO",
-trabajos:"IMPORTADO DESDE CSV",
-observaciones:""
-};
-
-if(existente){
-Object.assign(existente,nuevo,{id:existente.id});
-}else{
-ots.push(nuevo);
-}
-
-importados++;
-}
-}
-
-guardar();
-alert("IMPORTACIÓN COMPLETADA: "+importados+" REGISTROS");
-
-};
-
-reader.readAsText(file,"UTF-8");
-}
-
-function importarCSVDesdeInicio(){
-const fileInput=document.getElementById("importFileInicio");
-fileInput.onchange=function(e){
-procesarCSV(e.target.files[0]);
-fileInput.value="";
-};
-fileInput.click();
-}
-
-function importarCSV(){
-// Mantenida por compatibilidad — ya no se usa desde la UI
-}
 function buscarMatricula(){
 
 const mat=document.getElementById("matricula")
@@ -825,28 +752,36 @@ const ot=[...ots]
 .reverse()
 .find(x=>x.matricula===mat);
 
-if(!ot){
+if(ot){
+document.getElementById("cliente").value=ot.cliente||"";
+document.getElementById("telefono").value=ot.telefono||"";
+document.getElementById("marca").value=ot.marca||"";
+document.getElementById("modelo").value=ot.modelo||"";
 document.getElementById("aviso").classList.remove("hidden");
-document.getElementById("aviso").innerText=
-"MATRÍCULA NO ENCONTRADA";
+document.getElementById("aviso").innerText="DATOS RECUPERADOS";
 return;
 }
 
-document.getElementById("cliente").value=
-ot.cliente||"";
+// Sin OTs previas: buscar en vehículos/clientes importados por CSV
+const veh=buscarFichaVehiculo(mat);
+if(veh){
+document.getElementById("cliente").value=veh.cliente||"";
+document.getElementById("marca").value=veh.marca||"";
+document.getElementById("modelo").value=veh.modelo||"";
 
-document.getElementById("telefono").value=
-ot.telefono||"";
+const ficha=buscarFichaCliente(veh.cliente);
+if(ficha){
+document.getElementById("telefono").value=ficha.movil||ficha.tfno||"";
+}
 
-document.getElementById("marca").value=
-ot.marca||"";
-
-document.getElementById("modelo").value=
-ot.modelo||"";
+document.getElementById("aviso").classList.remove("hidden");
+document.getElementById("aviso").innerText="DATOS RECUPERADOS (FICHA IMPORTADA)";
+return;
+}
 
 document.getElementById("aviso").classList.remove("hidden");
 document.getElementById("aviso").innerText=
-"DATOS RECUPERADOS";
+"MATRÍCULA NO ENCONTRADA";
 }
 
 function guardarOT(){
@@ -939,8 +874,11 @@ return clientes[claveCliente(nombre)] || null;
 }
 
 function guardarFichaCliente(nombre,nif,direccion,poblacion,movil,tfno,email,observaciones){
-clientes[claveCliente(nombre)]={
-nombre:claveCliente(nombre),
+const clave=claveCliente(nombre);
+const existente=clientes[clave]||{};
+clientes[clave]={
+codigo:existente.codigo||generarCodigoCliente(),
+nombre:clave,
 nif:(nif||"").trim().toUpperCase(),
 direccion:(direccion||"").trim(),
 poblacion:(poblacion||"").trim(),
@@ -950,6 +888,153 @@ email:(email||"").trim(),
 observaciones:(observaciones||"").trim()
 };
 guardar();
+}
+
+// ── CÓDIGO DE CLIENTE (C0001, C0002...) ──────────────────────
+function generarCodigoCliente(){
+let max=0;
+Object.values(clientes).forEach(c=>{
+const m=(c.codigo||"").match(/^C(\d{4,})$/);
+if(m){
+const n=parseInt(m[1],10);
+if(n>max) max=n;
+}
+});
+return "C"+String(max+1).padStart(4,"0");
+}
+
+// ── VEHÍCULOS (matrícula → ficha técnica) ────────────────────
+function buscarFichaVehiculo(matricula){
+return vehiculos[(matricula||"").trim().toUpperCase()] || null;
+}
+
+function guardarFichaVehiculo(datos){
+const clave=(datos.matricula||"").trim().toUpperCase();
+if(!clave) return;
+vehiculos[clave]={
+matricula:clave,
+bastidor:(datos.bastidor||"").trim().toUpperCase(),
+cliente:(datos.cliente||"").trim().toUpperCase(),
+marca:(datos.marca||"").trim().toUpperCase(),
+modelo:(datos.modelo||"").trim().toUpperCase(),
+combustible:(datos.combustible||"").trim().toUpperCase(),
+cilindrada:(datos.cilindrada||"").trim(),
+kw:(datos.kw||"").trim(),
+cv:(datos.cv||"").trim(),
+fechaMatriculacion:(datos.fechaMatriculacion||"").trim(),
+color:(datos.color||"").trim().toUpperCase(),
+observaciones:(datos.observaciones||"").trim()
+};
+}
+
+// ── IMPORTACIÓN CSV: CLIENTES ────────────────────────────────
+// Formato esperado (cabecera fila 1, separador ;):
+// nombre;direccion;poblacion;nif;movil;tfno;email;observaciones
+function importarClientesCSVDesdeInicio(){
+const fileInput=document.getElementById("importClientesFile");
+fileInput.onchange=function(e){
+procesarClientesCSV(e.target.files[0]);
+fileInput.value="";
+};
+fileInput.click();
+}
+
+function procesarClientesCSV(file){
+if(!file){
+alert("SELECCIONA UN ARCHIVO CSV");
+return;
+}
+const reader=new FileReader();
+reader.onload=function(e){
+const texto=e.target.result;
+const lineas=texto.split(/\r?\n/).filter(l=>l.trim()!=="");
+if(lineas.length<2){
+alert("EL CSV ESTÁ VACÍO O NO TIENE DATOS");
+return;
+}
+const cabeceras=lineas[0].split(";").map(h=>h.trim().toLowerCase());
+let importados=0;
+for(let i=1;i<lineas.length;i++){
+const valores=lineas[i].split(";").map(v=>v.trim());
+const registro={};
+cabeceras.forEach((cabecera,index)=>{
+registro[cabecera]=valores[index]||"";
+});
+if(registro.nombre){
+guardarFichaCliente(
+registro.nombre,
+registro.nif||"",
+registro.direccion||"",
+registro.poblacion||"",
+registro.movil||"",
+registro.tfno||"",
+registro.email||"",
+registro.observaciones||""
+);
+importados++;
+}
+}
+guardar();
+alert("CLIENTES IMPORTADOS: "+importados);
+};
+reader.readAsText(file,"UTF-8");
+}
+
+// ── IMPORTACIÓN CSV: VEHÍCULOS ───────────────────────────────
+// Formato esperado (cabecera fila 1, separador ;):
+// matricula;bastidor;clientes;marca;modelo;combustible;cilindrada_cc;kw;cv;fecha_matriculacion;color;observaciones
+function importarVehiculosCSVDesdeInicio(){
+const fileInput=document.getElementById("importVehiculosFile");
+fileInput.onchange=function(e){
+procesarVehiculosCSV(e.target.files[0]);
+fileInput.value="";
+};
+fileInput.click();
+}
+
+function procesarVehiculosCSV(file){
+if(!file){
+alert("SELECCIONA UN ARCHIVO CSV");
+return;
+}
+const reader=new FileReader();
+reader.onload=function(e){
+const texto=e.target.result;
+const lineas=texto.split(/\r?\n/).filter(l=>l.trim()!=="");
+if(lineas.length<2){
+alert("EL CSV ESTÁ VACÍO O NO TIENE DATOS");
+return;
+}
+const cabeceras=lineas[0].split(";").map(h=>h.trim().toLowerCase());
+let importados=0;
+for(let i=1;i<lineas.length;i++){
+const valores=lineas[i].split(";").map(v=>v.trim());
+const registro={};
+cabeceras.forEach((cabecera,index)=>{
+registro[cabecera]=valores[index]||"";
+});
+if(registro.matricula){
+guardarFichaVehiculo({
+matricula:registro.matricula,
+bastidor:registro.bastidor||"",
+cliente:registro.clientes||"",
+marca:registro.marca||"",
+modelo:registro.modelo||"",
+combustible:registro.combustible||"",
+cilindrada:registro.cilindrada_cc||"",
+kw:registro.kw||"",
+cv:registro.cv||"",
+fechaMatriculacion:registro.fecha_matriculacion||"",
+color:registro.color||"",
+observaciones:registro.observaciones||""
+});
+importados++;
+}
+}
+guardar();
+alert("VEHÍCULOS IMPORTADOS: "+importados);
+};
+reader.readAsText(file,"UTF-8");
 }
 
 // ── CÁLCULO AUTOMÁTICO LETRA NIF/NIE ─────────────────────────
