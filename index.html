@@ -268,12 +268,14 @@ IMPORTAR CLIENTES CSV
 IMPORTAR VEHÍCULOS CSV
 </button>
 
-<button class="secondary" onclick="alert('IMPORTAR ARTÍCULOS CSV — PRÓXIMAMENTE (MÓDULO ALMACÉN)')" type="button" style="background:#1e3a5f;border:2px dashed #ff7a1a;color:#ff7a1a;">
+<input type="file" id="importArticulosFile" accept=".csv" style="display:none">
+
+<button class="secondary" onclick="importarArticulosCSVDesdeInicio()" type="button">
 IMPORTAR ARTÍCULOS CSV
 </button>
 
-<button class="secondary" onclick="alert('MÓDULO DE ALMACÉN — PRÓXIMAMENTE')" type="button" style="background:#1e3a5f;border:2px dashed #ff7a1a;color:#ff7a1a;">
-ALMACÉN
+<button class="secondary" onclick="showTab('almacen')" type="button">
+📦 ALMACÉN
 </button>
 
 <button class="danger" onclick="resetearPrograma()" type="button">
@@ -358,6 +360,12 @@ GUARDAR OT
 <h2>Taller</h2>
 <div id="tallerLista"><p>No hay vehículos en taller.</p></div>
 </div>
+<div id="almacen" class="card hidden">
+<h2>📦 Almacén</h2>
+<button type="button" class="secondary" onclick="showTab('inicio')" style="margin-bottom:10px;">⬅️ VOLVER A INICIO</button>
+<input id="buscarArticulo" placeholder="Buscar por referencia o descripción..." oninput="renderAlmacen()" style="display:block;">
+<div id="almacenLista"></div>
+</div>
 <!-- Modal cámara OCR matrícula -->
 <!-- Input oculto para captura de foto nativa iOS -->
 <input type="file" id="inputFotoCamara" accept="image/*" style="display:none" onchange="procesarFotoMatricula(event)">
@@ -431,7 +439,8 @@ const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
 let contadores={agenda:0,ot:0,factura:0};
 let clientes={};  // clave: nombre normalizado → {codigo,nombre,nif,direccion,poblacion,movil,tfno,email,observaciones}
-let vehiculos={}; // clave: matrícula → {matricula,cliente,marca,modelo}
+let vehiculos={}; // clave: matrícula → {matricula,cliente,marca,modelo,...}
+let articulos=[]; // array de {referencia,descripcion,proveedor,familia,precio_compra,margen_pct,precio_venta,iva,stock,stock_minimo,observaciones}
 
 try{
 const guardado=JSON.parse(localStorage.getItem(STORAGE)||"[]");
@@ -443,12 +452,14 @@ ots=Array.isArray(guardado.ots) ? guardado.ots : [];
 contadores=guardado.contadores || {agenda:0,ot:0,factura:0};
 clientes=guardado.clientes || {};
 vehiculos=guardado.vehiculos || {};
+articulos=Array.isArray(guardado.articulos) ? guardado.articulos : [];
 }
 }catch(e){
 ots=[];
 contadores={agenda:0,ot:0,factura:0};
 clientes={};
 vehiculos={};
+articulos=[];
 }
 
 let editandoId=null;
@@ -513,7 +524,8 @@ localStorage.setItem(STORAGE,JSON.stringify({
 ots:ots,
 contadores:contadores,
 clientes:clientes,
-vehiculos:vehiculos
+vehiculos:vehiculos,
+articulos:articulos
 }));
 }
 
@@ -651,13 +663,14 @@ document.getElementById("nueva").classList.add("hidden");
 document.getElementById("historial").classList.add("hidden");
 document.getElementById("agenda").classList.add("hidden");
 document.getElementById("taller").classList.add("hidden");
+document.getElementById("almacen").classList.add("hidden");
 
 document.getElementById(id).classList.remove("hidden");
 
 const titulo=document.getElementById("tituloApp");
 
 document.getElementById("tabs").style.display =
-id==="inicio" ? "none" : "flex";
+(id==="inicio"||id==="almacen") ? "none" : "flex";
 
 document.querySelectorAll("#tabs button").forEach(btn=>{
 btn.classList.remove("activo");
@@ -665,6 +678,11 @@ btn.classList.remove("activo");
 
 if(id==="inicio"){
 titulo.style.background="#0f1728";
+titulo.style.color="#ff7a1a";
+}
+
+if(id==="almacen"){
+titulo.style.background="#37474f";
 titulo.style.color="#ff7a1a";
 }
 
@@ -695,6 +713,7 @@ titulo.style.color="white";
 if(id==="historial"){ setFiltro(filtroActivo); }
 if(id==="agenda") renderAgenda();
 if(id==="taller") renderTaller();
+if(id==="almacen") renderAlmacen();
 }
 function normalizar(t){
 return (t || "").toUpperCase();
@@ -1035,6 +1054,137 @@ guardar();
 alert("VEHÍCULOS IMPORTADOS: "+importados);
 };
 reader.readAsText(file,"UTF-8");
+}
+
+// ── ALMACÉN: ARTÍCULOS ───────────────────────────────────────
+// Formato esperado (cabecera fila 1, separador ;):
+// referencia;descripcion;proveedor;familia;precio_compra;margen_pct;precio_venta;iva;stock;stock_minimo;observaciones
+function importarArticulosCSVDesdeInicio(){
+const fileInput=document.getElementById("importArticulosFile");
+fileInput.onchange=function(e){
+procesarArticulosCSV(e.target.files[0]);
+fileInput.value="";
+};
+fileInput.click();
+}
+
+function numero(valor){
+if(valor===undefined||valor===null||valor==="") return null;
+const n=parseFloat(String(valor).replace(",","."));
+return isNaN(n) ? null : n;
+}
+
+function procesarArticulosCSV(file){
+if(!file){
+alert("SELECCIONA UN ARCHIVO CSV");
+return;
+}
+const reader=new FileReader();
+reader.onload=function(e){
+const texto=e.target.result;
+const lineas=texto.split(/\r?\n/).filter(l=>l.trim()!=="");
+if(lineas.length<2){
+alert("EL CSV ESTÁ VACÍO O NO TIENE DATOS");
+return;
+}
+const cabeceras=lineas[0].split(";").map(h=>h.trim().toLowerCase());
+let importados=0;
+for(let i=1;i<lineas.length;i++){
+const valores=lineas[i].split(";").map(v=>v.trim());
+const registro={};
+cabeceras.forEach((cabecera,index)=>{
+registro[cabecera]=valores[index]||"";
+});
+if(!registro.referencia || !registro.descripcion || !registro.proveedor) continue;
+
+const precioCompra=numero(registro.precio_compra);
+const margenPct=numero(registro.margen_pct);
+let precioVenta=numero(registro.precio_venta);
+
+if(precioVenta===null && precioCompra!==null && margenPct!==null){
+precioVenta=Math.round(precioCompra*(1+margenPct/100)*100)/100;
+}
+
+const articulo={
+referencia:registro.referencia.trim().toUpperCase(),
+descripcion:registro.descripcion.trim().toUpperCase(),
+proveedor:registro.proveedor.trim().toUpperCase(),
+familia:(registro.familia||"").trim().toUpperCase(),
+precio_compra:precioCompra,
+margen_pct:margenPct,
+precio_venta:precioVenta,
+iva:numero(registro.iva)!==null ? numero(registro.iva) : 21,
+stock:numero(registro.stock)!==null ? numero(registro.stock) : 0,
+stock_minimo:numero(registro.stock_minimo)!==null ? numero(registro.stock_minimo) : 0,
+observaciones:(registro.observaciones||"").trim()
+};
+
+// Si ya existe la misma referencia+proveedor, actualizar; si no, añadir
+const existente=articulos.find(a=>
+a.referencia===articulo.referencia && a.proveedor===articulo.proveedor
+);
+if(existente){
+Object.assign(existente,articulo);
+}else{
+articulos.push(articulo);
+}
+importados++;
+}
+guardar();
+alert("ARTÍCULOS IMPORTADOS: "+importados);
+};
+reader.readAsText(file,"UTF-8");
+}
+
+function renderAlmacen(){
+const lista=document.getElementById("almacenLista");
+const texto=(document.getElementById("buscarArticulo").value||"").trim().toUpperCase();
+
+if(!texto){
+lista.innerHTML="<p>Escribe una referencia o descripción para buscar.</p>";
+return;
+}
+
+const coincidencias=articulos.filter(a=>
+a.referencia.includes(texto) || a.descripcion.includes(texto)
+);
+
+if(coincidencias.length===0){
+lista.innerHTML="<p>SIN RESULTADOS</p>";
+return;
+}
+
+// Agrupar por referencia
+const grupos={};
+coincidencias.forEach(a=>{
+if(!grupos[a.referencia]) grupos[a.referencia]=[];
+grupos[a.referencia].push(a);
+});
+
+let html="";
+Object.keys(grupos).sort().forEach(ref=>{
+const items=grupos[ref];
+html+=`<div class="item" style="border-left-color:#ff7a1a">`;
+html+=`<b>${ref}</b> — ${items[0].descripcion}<br>`;
+if(items[0].familia) html+=`Familia: ${items[0].familia}<br>`;
+items.forEach(a=>{
+const roturaStock=a.stock<=a.stock_minimo;
+const avisoStock=roturaStock
+? `<span style="color:#ff5252">⚠️ STOCK: ${a.stock} (mín. ${a.stock_minimo})</span>`
+: `STOCK: ${a.stock}`;
+html+=`<div style="margin-top:6px;padding-top:6px;border-top:1px solid #3b4a63;">`;
+html+=`Proveedor: <b>${a.proveedor}</b><br>`;
+html+=`PVP: ${a.precio_venta!==null ? a.precio_venta.toFixed(2)+" €" : "—"}`;
+html+=` &nbsp;|&nbsp; Coste: ${a.precio_compra!==null ? a.precio_compra.toFixed(2)+" €" : "—"}`;
+html+=` &nbsp;|&nbsp; IVA: ${a.iva}%<br>`;
+html+=avisoStock;
+if(a.observaciones) html+=`<br><i>${a.observaciones}</i>`;
+html+=`</div>`;
+});
+html+=`</div>`;
+});
+
+lista.innerHTML=html;
 }
 
 // ── CÁLCULO AUTOMÁTICO LETRA NIF/NIE ─────────────────────────
