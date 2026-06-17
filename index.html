@@ -6,7 +6,6 @@
 <title>Autoborja</title>
 <link rel="apple-touch-icon" href="icono.png">
 <style>
-/* (estilos iguales que antes, no los repito por brevedad, pero están completos) */
 body{font-family:Arial,sans-serif;background:#0f1728;margin:0;padding:16px;color:#e8edf7}
 .card{background:#1c2940;padding:18px;border-radius:18px;max-width:700px;margin:0 auto 18px;box-shadow:0 2px 10px #0004;border:2px solid #ff7a1a}
 h1{text-align:center;color:#ff7a1a;background:#0b1220;margin:-16px -16px 16px;padding:22px 10px;font-size:26px}
@@ -262,7 +261,7 @@ BIENVENIDO A GESTIÓN
 
 <script>
 // ============================================================
-// 1. FUNCIONES GLOBALES (numero, htmlSeguro, etc.)
+// 1. FUNCIONES GLOBALES
 // ============================================================
 function numero(valor){
   if(valor===undefined || valor===null || valor==="") return null;
@@ -303,7 +302,39 @@ let paginaHistorial=1;
 const POR_PAGINA=20;
 
 const MARCAS=["SEAT","VOLKSWAGEN","AUDI","SKODA","BMW","MERCEDES","PEUGEOT","RENAULT","CITROEN","OPEL","FORD","TOYOTA","NISSAN","KIA","HYUNDAI","DACIA","FIAT","MAZDA"];
-const MODELOS={ ... }; // (se mantiene igual, omitido por brevedad)
+
+const MODELOS={
+"ABARTH":["500","595","695"],
+"ALFA ROMEO":["147","156","159","GIULIA","GIULIETTA","MITO","STELVIO","TONALE"],
+"AUDI":["A1","A3","A4","A5","A6","A7","A8","Q2","Q3","Q5","Q7","Q8","TT"],
+"BMW":["SERIE 1","SERIE 2","SERIE 3","SERIE 4","SERIE 5","X1","X3","X5","X6"],
+"CITROEN":["C1","C2","C3","C3 AIRCROSS","C4","C4 CACTUS","C5","BERLINGO","JUMPY","JUMPER"],
+"CUPRA":["ATECA","BORN","FORMENTOR","LEON"],
+"DACIA":["DUSTER","JOGGER","LOGAN","SANDERO","SPRING"],
+"FIAT":["500","500L","500X","DOBLO","DUCATO","PANDA","PUNTO","TIPO"],
+"FORD":["B-MAX","C-MAX","FIESTA","FOCUS","KUGA","MONDEO","PUMA","RANGER","S-MAX","TOURNEO","TRANSIT"],
+"HONDA":["ACCORD","CIVIC","CR-V","HR-V","JAZZ"],
+"HYUNDAI":["BAYON","GETZ","I10","I20","I30","IONIQ","KONA","SANTA FE","TUCSON"],
+"KIA":["CARENS","CEED","NIRO","PICANTO","RIO","SORENTO","SPORTAGE","STONIC","XCEED"],
+"MAZDA":["2","3","5","6","CX-3","CX-30","CX-5","MX-5"],
+"MERCEDES":["CLASE A","CLASE B","CLASE C","CLASE E","CLA","GLA","GLB","GLC","GLE","SPRINTER","VITO"],
+"MINI":["MINI","CLUBMAN","COUNTRYMAN"],
+"MITSUBISHI":["ASX","COLT","ECLIPSE CROSS","L200","MONTERO","OUTLANDER","SPACE STAR"],
+"NISSAN":["JUKE","LEAF","MICRA","NAVARA","NOTE","NV200","PULSAR","QASHQAI","X-TRAIL"],
+"OPEL":["ADAM","AGILA","ANTARA","ASTRA","COMBO","CORSA","CROSSLAND","GRANDLAND","INSIGNIA","MERIVA","MOKKA","MOVANO","VECTRA","VIVARO","ZAFIRA"],
+"PEUGEOT":["106","107","108","206","207","208","2008","307","308","3008","407","508","5008","PARTNER","RIFTER","BOXER","EXPERT"],
+"PORSCHE":["911","BOXSTER","CAYENNE","CAYMAN","MACAN","PANAMERA"],
+"RENAULT":["ARKANA","CAPTUR","CLIO","KADJAR","KANGOO","LAGUNA","MASTER","MEGANE","SCENIC","TRAFIC","TWINGO","ZOE"],
+"SEAT":["ALHAMBRA","ALTEA","ARONA","ATECA","CORDOBA","EXEO","IBIZA","LEON","TARRACO","TOLEDO"],
+"SKODA":["FABIA","KAMIQ","KAROQ","KODIAQ","OCTAVIA","RAPID","SCALA","SUPERB","YETI"],
+"SMART":["FORTWO","FORFOUR"],
+"SUBARU":["FORESTER","IMPREZA","LEGACY","OUTBACK","XV"],
+"SUZUKI":["ALTO","BALENO","IGNIS","JIMNY","S-CROSS","SWIFT","VITARA"],
+"TESLA":["MODEL 3","MODEL S","MODEL X","MODEL Y"],
+"TOYOTA":["AURIS","AVENSIS","AYGO","C-HR","COROLLA","HILUX","LAND CRUISER","PRIUS","PROACE","RAV4","VERSO","YARIS","YARIS CROSS"],
+"VOLKSWAGEN":["AMAROK","BEETLE","CADDY","CRAFTER","GOLF","PASSAT","POLO","T-CROSS","T-ROC","TIGUAN","TOUAREG","TOURAN","TRANSPORTER"],
+"VOLVO":["C30","S40","S60","S80","V40","V50","V60","V70","XC40","XC60","XC90"]
+};
 
 // ============================================================
 // 3. CARGA DE DATOS
@@ -326,7 +357,7 @@ try{
 }
 
 // ============================================================
-// 4. FUNCIONES AUXILIARES (fechas, numeración, guardado, etc.)
+// 4. FUNCIONES AUXILIARES
 // ============================================================
 function formatearFecha(fecha){
   if(!fecha) return "SIN CITA";
@@ -468,7 +499,7 @@ function sincronizarFiscalDesdeFicha(ot){
 }
 
 // ============================================================
-// 5. FUNCIONES DE INTERFAZ (showTab, render, etc.)
+// 5. FUNCIONES DE INTERFAZ
 // ============================================================
 function showTab(id){
   ["inicio","nueva","historial","agenda","taller","almacen"].forEach(t=>{
@@ -494,7 +525,7 @@ function mostrarVersion(){
 }
 
 // ============================================================
-// 6. FUNCIONES DE TARJETA DE OT (reutilizable, con escape)
+// 6. FUNCIONES DE TARJETA DE OT
 // ============================================================
 function crearTarjetaOT(ot){
   const ficha=buscarFichaCliente(ot.cliente)||{};
@@ -547,7 +578,7 @@ function crearTarjetaOT(ot){
 }
 
 // ============================================================
-// 7. RENDERIZADO DE LISTAS (con paginación en historial)
+// 7. RENDERIZADO DE LISTAS
 // ============================================================
 function renderHistorial(){
   const texto=document.getElementById("buscar").value.trim().toUpperCase();
@@ -574,7 +605,6 @@ function renderHistorial(){
     filtradas=base;
   }
 
-  // Paginación
   const total=filtradas.length;
   const paginas=Math.ceil(total/POR_PAGINA);
   if(paginaHistorial>paginas) paginaHistorial=1;
@@ -588,7 +618,6 @@ function renderHistorial(){
     return;
   }
 
-  // Mostrar por fecha si filtroActivo==="fecha"
   if(filtroActivo==="fecha"){
     let diaActual="";
     let html="";
@@ -602,7 +631,6 @@ function renderHistorial(){
     lista.innerHTML=paginaDatos.map(ot=>crearTarjetaOT(ot)).join("");
   }
 
-  // Controles de paginación
   let pagHTML="";
   if(paginas>1){
     pagHTML+=`<button class="secondary" onclick="paginaHistorial=${paginaHistorial-1<1?1:paginaHistorial-1};renderHistorial()" style="width:auto;padding:5px 12px;">◀</button>`;
@@ -641,7 +669,7 @@ function renderTaller(){
 }
 
 // ============================================================
-// 8. ALMACÉN (con escape, y muestra todos si búsqueda vacía)
+// 8. ALMACÉN
 // ============================================================
 function renderAlmacen(){
   const lista=document.getElementById("almacenLista");
@@ -661,11 +689,9 @@ function renderAlmacen(){
     return;
   }
   if(coincidencias.length===0 && !texto){
-    // Mostrar todos (con agrupación)
-    coincidencias=articulos.slice(); // todos
+    coincidencias=articulos.slice();
   }
 
-  // Agrupar por referencia
   const grupos={};
   coincidencias.forEach(a=>{ if(!grupos[a.referencia]) grupos[a.referencia]=[]; grupos[a.referencia].push(a); });
   let html="";
@@ -694,17 +720,120 @@ function renderAlmacen(){
 }
 
 // ============================================================
-// 9. FUNCIONES DE ARTÍCULOS (modal)
+// 9. FUNCIONES DE ARTÍCULOS (MODAL)
 // ============================================================
-function abrirModalNuevoArticulo(){ /* igual que antes, pero con evento focus */ }
-function abrirModalEditarArticulo(clave){ /* igual */ }
-function calcularPVP(){ /* igual */ }
-function guardarArticuloModal(){ /* igual, usando numero global */ }
-function eliminarArticuloModal(){ /* igual */ }
-function cerrarModalArticulo(){ document.getElementById("modalArticulo").style.display="none"; }
+function abrirModalNuevoArticulo(){
+  document.getElementById("modalArticuloTitulo").textContent="➕ NUEVO ARTÍCULO";
+  document.getElementById("maRef").value="";
+  document.getElementById("maDesc").value="";
+  document.getElementById("maProv").value="";
+  document.getElementById("maFam").value="";
+  document.getElementById("maPcomp").value="";
+  document.getElementById("maMargen").value="";
+  document.getElementById("maPventa").value="";
+  document.getElementById("maIva").value="21";
+  document.getElementById("maStock").value="0";
+  document.getElementById("maStockMin").value="0";
+  document.getElementById("maObs").value="";
+  document.getElementById("maClaveOriginal").value="";
+  document.querySelector("#modalArticulo button.danger").style.display="none";
+  document.getElementById("modalArticulo").style.display="block";
+  setTimeout(()=>document.getElementById("maRef").focus(),200);
+}
+
+function abrirModalEditarArticulo(clave){
+  const [ref,prov]=clave.split("|||");
+  const a=articulos.find(x=>x.referencia===ref && x.proveedor===prov);
+  if(!a){alert("ARTÍCULO NO ENCONTRADO");return;}
+  document.getElementById("modalArticuloTitulo").textContent="✏️ EDITAR ARTÍCULO";
+  document.getElementById("maRef").value=a.referencia||"";
+  document.getElementById("maDesc").value=a.descripcion||"";
+  document.getElementById("maProv").value=a.proveedor||"";
+  document.getElementById("maFam").value=a.familia||"";
+  document.getElementById("maPcomp").value=a.precio_compra!==null?a.precio_compra:"";
+  document.getElementById("maMargen").value=a.margen_pct!==null?a.margen_pct:"";
+  document.getElementById("maPventa").value=a.precio_venta!==null?a.precio_venta:"";
+  document.getElementById("maIva").value=a.iva!==null?a.iva:21;
+  document.getElementById("maStock").value=a.stock!==null?a.stock:0;
+  document.getElementById("maStockMin").value=a.stock_minimo!==null?a.stock_minimo:0;
+  document.getElementById("maObs").value=a.observaciones||"";
+  document.getElementById("maClaveOriginal").value=clave;
+  document.querySelector("#modalArticulo button.danger").style.display="block";
+  document.getElementById("modalArticulo").style.display="block";
+}
+
+function calcularPVP(){
+  const pcomp=parseFloat(document.getElementById("maPcomp").value)||0;
+  const margen=parseFloat(document.getElementById("maMargen").value);
+  if(pcomp>0 && !isNaN(margen)){
+    const pvp=Math.round(pcomp*(1+margen/100)*100)/100;
+    document.getElementById("maPventa").value=pvp.toFixed(2);
+  }
+}
+
+function guardarArticuloModal(){
+  const ref=(document.getElementById("maRef").value||"").trim().toUpperCase();
+  const desc=(document.getElementById("maDesc").value||"").trim().toUpperCase();
+  const prov=(document.getElementById("maProv").value||"").trim().toUpperCase();
+  if(!ref||!desc||!prov){
+    alert("REFERENCIA, DESCRIPCIÓN Y PROVEEDOR SON OBLIGATORIOS");
+    return;
+  }
+  const precioCompra=numero(document.getElementById("maPcomp").value);
+  const margenPct=numero(document.getElementById("maMargen").value);
+  let precioVenta=numero(document.getElementById("maPventa").value);
+  if(precioVenta===null && precioCompra!==null && margenPct!==null){
+    precioVenta=Math.round(precioCompra*(1+margenPct/100)*100)/100;
+  }
+  const art={
+    referencia:ref,
+    descripcion:desc,
+    proveedor:prov,
+    familia:(document.getElementById("maFam").value||"").trim().toUpperCase(),
+    precio_compra:precioCompra,
+    margen_pct:margenPct,
+    precio_venta:precioVenta,
+    iva:numero(document.getElementById("maIva").value)!==null?numero(document.getElementById("maIva").value):21,
+    stock:numero(document.getElementById("maStock").value)!==null?numero(document.getElementById("maStock").value):0,
+    stock_minimo:numero(document.getElementById("maStockMin").value)!==null?numero(document.getElementById("maStockMin").value):0,
+    observaciones:(document.getElementById("maObs").value||"").trim()
+  };
+  const claveOrig=document.getElementById("maClaveOriginal").value;
+  if(claveOrig){
+    const [refOrig,provOrig]=claveOrig.split("|||");
+    const idx=articulos.findIndex(x=>x.referencia===refOrig && x.proveedor===provOrig);
+    if(idx>=0) articulos.splice(idx,1);
+  }
+  const existente=articulos.findIndex(x=>x.referencia===art.referencia && x.proveedor===art.proveedor);
+  if(existente>=0){
+    Object.assign(articulos[existente],art);
+  }else{
+    articulos.push(art);
+  }
+  guardar();
+  cerrarModalArticulo();
+  renderAlmacen();
+  alert("ARTÍCULO GUARDADO: "+ref+" / "+prov);
+}
+
+function eliminarArticuloModal(){
+  const clave=document.getElementById("maClaveOriginal").value;
+  if(!clave) return;
+  const [ref,prov]=clave.split("|||");
+  if(!confirm("¿ELIMINAR EL ARTÍCULO "+ref+" / "+prov+"? Esta acción no se puede deshacer.")) return;
+  articulos=articulos.filter(x=>!(x.referencia===ref && x.proveedor===prov));
+  guardar();
+  cerrarModalArticulo();
+  renderAlmacen();
+  alert("ARTÍCULO ELIMINADO");
+}
+
+function cerrarModalArticulo(){
+  document.getElementById("modalArticulo").style.display="none";
+}
 
 // ============================================================
-// 10. IMPORTACIÓN CSV (con feedback)
+// 10. IMPORTACIÓN CSV
 // ============================================================
 function importarClientesCSVDesdeInicio(){
   document.getElementById("importClientesFile").onchange=function(e){
@@ -738,17 +867,142 @@ function procesarClientesCSV(file){
   reader.readAsText(file,"UTF-8");
 }
 
-// Similar para vehiculos y articulos (se mantienen igual, pero con numero global)
+function importarVehiculosCSVDesdeInicio(){
+  document.getElementById("importVehiculosFile").onchange=function(e){
+    procesarVehiculosCSV(e.target.files[0]);
+    this.value="";
+  };
+  document.getElementById("importVehiculosFile").click();
+}
+
+function procesarVehiculosCSV(file){
+  if(!file){ alert("SELECCIONA UN ARCHIVO CSV"); return; }
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const texto=e.target.result;
+    const lineas=texto.split(/\r?\n/).filter(l=>l.trim()!=="");
+    if(lineas.length<2){ alert("EL CSV ESTÁ VACÍO O NO TIENE DATOS"); return; }
+    const cabeceras=lineas[0].split(";").map(h=>h.trim().toLowerCase());
+    let importados=0;
+    for(let i=1;i<lineas.length;i++){
+      const valores=lineas[i].split(";").map(v=>v.trim());
+      const registro={};
+      cabeceras.forEach((cabecera,index)=>{ registro[cabecera]=valores[index]||""; });
+      if(registro.matricula){
+        guardarFichaVehiculo({
+          matricula:registro.matricula,
+          bastidor:registro.bastidor||"",
+          cliente:registro.clientes||"",
+          marca:registro.marca||"",
+          modelo:registro.modelo||"",
+          combustible:registro.combustible||"",
+          cilindrada:registro.cilindrada_cc||"",
+          kw:registro.kw||"",
+          cv:registro.cv||"",
+          fechaMatriculacion:registro.fecha_matriculacion||"",
+          color:registro.color||"",
+          observaciones:registro.observaciones||""
+        });
+        importados++;
+      }
+    }
+    guardar();
+    alert("VEHÍCULOS IMPORTADOS: "+importados);
+  };
+  reader.readAsText(file,"UTF-8");
+}
+
+function importarArticulosCSVDesdeInicio(){
+  document.getElementById("importArticulosFile").onchange=function(e){
+    procesarArticulosCSV(e.target.files[0]);
+    this.value="";
+  };
+  document.getElementById("importArticulosFile").click();
+}
+
+function procesarArticulosCSV(file){
+  if(!file){ alert("SELECCIONA UN ARCHIVO CSV"); return; }
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const texto=e.target.result;
+    const lineas=texto.split(/\r?\n/).filter(l=>l.trim()!=="");
+    if(lineas.length<2){ alert("EL CSV ESTÁ VACÍO O NO TIENE DATOS"); return; }
+    const cabeceras=lineas[0].split(";").map(h=>h.trim().toLowerCase());
+    let importados=0;
+    for(let i=1;i<lineas.length;i++){
+      const valores=lineas[i].split(";").map(v=>v.trim());
+      const registro={};
+      cabeceras.forEach((cabecera,index)=>{ registro[cabecera]=valores[index]||""; });
+      if(!registro.referencia || !registro.descripcion || !registro.proveedor) continue;
+      const precioCompra=numero(registro.precio_compra);
+      const margenPct=numero(registro.margen_pct);
+      let precioVenta=numero(registro.precio_venta);
+      if(precioVenta===null && precioCompra!==null && margenPct!==null){
+        precioVenta=Math.round(precioCompra*(1+margenPct/100)*100)/100;
+      }
+      const articulo={
+        referencia:registro.referencia.trim().toUpperCase(),
+        descripcion:registro.descripcion.trim().toUpperCase(),
+        proveedor:registro.proveedor.trim().toUpperCase(),
+        familia:(registro.familia||"").trim().toUpperCase(),
+        precio_compra:precioCompra,
+        margen_pct:margenPct,
+        precio_venta:precioVenta,
+        iva:numero(registro.iva)!==null ? numero(registro.iva) : 21,
+        stock:numero(registro.stock)!==null ? numero(registro.stock) : 0,
+        stock_minimo:numero(registro.stock_minimo)!==null ? numero(registro.stock_minimo) : 0,
+        observaciones:(registro.observaciones||"").trim()
+      };
+      const existente=articulos.findIndex(a=>a.referencia===articulo.referencia && a.proveedor===articulo.proveedor);
+      if(existente>=0){
+        Object.assign(articulos[existente],articulo);
+      }else{
+        articulos.push(articulo);
+      }
+      importados++;
+    }
+    guardar();
+    alert("ARTÍCULOS IMPORTADOS: "+importados);
+  };
+  reader.readAsText(file,"UTF-8");
+}
 
 // ============================================================
 // 11. FUNCIONES DE BÚSQUEDA Y GUARDADO DE OT
 // ============================================================
 function normalizar(t){ return (t||"").toUpperCase(); }
 
-function mostrarMarcas(){ /* igual, usando htmlSeguro */ }
-function elegirMarca(marca){ /* igual */ }
-function mostrarModelos(){ /* igual */ }
-function elegirModelo(modelo){ /* igual */ }
+function mostrarMarcas(){
+  const texto=normalizar(document.getElementById("marca").value);
+  const box=document.getElementById("marcaResultados");
+  box.innerHTML="";
+  MARCAS.filter(m=>m.includes(texto)).forEach(m=>{
+    box.innerHTML+=`<button type="button" onclick="elegirMarca('${m}')">${m}</button>`;
+  });
+}
+
+function elegirMarca(marca){
+  document.getElementById("marca").value=marca;
+  document.getElementById("marcaResultados").innerHTML="";
+  document.getElementById("modelo").value="";
+  mostrarModelos();
+}
+
+function mostrarModelos(){
+  const marca=document.getElementById("marca").value.toUpperCase();
+  const texto=normalizar(document.getElementById("modelo").value);
+  const box=document.getElementById("modeloResultados");
+  box.innerHTML="";
+  const lista=MODELOS[marca]||[];
+  lista.filter(m=>m.includes(texto)).forEach(m=>{
+    box.innerHTML+=`<button type="button" onclick="elegirModelo('${m}')">${m}</button>`;
+  });
+}
+
+function elegirModelo(modelo){
+  document.getElementById("modelo").value=modelo;
+  document.getElementById("modeloResultados").innerHTML="";
+}
 
 function buscarMatricula(){
   const mat=document.getElementById("matricula").value.trim().toUpperCase();
@@ -778,17 +1032,252 @@ function buscarMatricula(){
   document.getElementById("aviso").innerText="MATRÍCULA NO ENCONTRADA";
 }
 
-function guardarOT(){ /* igual, con validación y llamada a _completarGuardadoOT */ }
+function guardarOT(){
+  const ot={
+    id:Date.now(),
+    matricula:document.getElementById("matricula").value.trim().toUpperCase(),
+    cliente:document.getElementById("cliente").value.trim().toUpperCase(),
+    telefono:document.getElementById("telefono").value.trim(),
+    marca:document.getElementById("marca").value.trim().toUpperCase(),
+    modelo:document.getElementById("modelo").value.trim().toUpperCase(),
+    km:document.getElementById("km").value.trim(),
+    fecha:document.getElementById("fecha").value,
+    estado:document.getElementById("estado").value,
+    trabajos:document.getElementById("trabajos").value.trim().toUpperCase(),
+    observaciones:document.getElementById("observaciones").value.trim().toUpperCase()
+  };
+  if(!ot.matricula||!ot.cliente||!ot.trabajos){
+    alert("FALTAN DATOS OBLIGATORIOS");
+    return;
+  }
+  if(rectificandoId){
+    const motivo=(document.getElementById("motivoRectificativa") ? document.getElementById("motivoRectificativa").value.trim().toUpperCase() : "");
+    if(!motivo){
+      alert("FALTA EL MOTIVO DE RECTIFICACIÓN");
+      return;
+    }
+    ot.motivoRectificativa=motivo;
+  }
+  if(ot.estado==="FINALIZADO"){
+    const fichaExistente=buscarFichaCliente(ot.cliente);
+    if(!fichaExistente || !fichaExistente.nif || !fichaExistente.direccion){
+      _otPendienteGuardar=ot;
+      abrirModalCliente(ot.cliente, fichaExistente);
+      return;
+    }
+    ot.nif=fichaExistente.nif;
+    ot.direccion=fichaExistente.direccion;
+    ot.poblacion=fichaExistente.poblacion||"";
+    ot.telefono=fichaExistente.movil||fichaExistente.tfno||ot.telefono||"";
+    ot.email=fichaExistente.email||"";
+  }
+  _completarGuardadoOT(ot);
+}
 
-function _completarGuardadoOT(ot){ /* igual, usando sincronizarFiscalDesdeFicha y asegurarNumeracion */ }
+function _completarGuardadoOT(ot){
+  if(editandoId){
+    const anterior=ots.find(x=>x.id===editandoId) || {};
+    ot.id=editandoId;
+    ot.numeroAgenda=anterior.numeroAgenda;
+    ot.numeroOT=anterior.numeroOT;
+    ot.numeroFactura=anterior.numeroFactura;
+    ot.numeroRectificativa=anterior.numeroRectificativa;
+    ot.esRectificativa=anterior.esRectificativa || false;
+    ot.facturaRectificada=anterior.facturaRectificada || "";
+    ot.facturaRectificadaId=anterior.facturaRectificadaId || null;
+    if(ot.estado==="FINALIZADO"){
+      if(anterior.estado==="FINALIZADO" && anterior.fechaFinalizacion){
+        ot.fechaFinalizacion=anterior.fechaFinalizacion;
+      }else{
+        ot.fechaFinalizacion=ahoraLocalInput();
+      }
+    }else{
+      ot.fechaFinalizacion=anterior.fechaFinalizacion;
+    }
+    if(!ot.nif && anterior.nif) ot.nif=anterior.nif;
+    if(!ot.direccion && anterior.direccion) ot.direccion=anterior.direccion;
+    if(!ot.poblacion && anterior.poblacion) ot.poblacion=anterior.poblacion;
+    if(!ot.email && anterior.email) ot.email=anterior.email;
+    sincronizarFiscalDesdeFicha(ot);
+    asegurarNumeracion(ot);
+    ots=ots.map(x=>x.id===editandoId ? ot : x);
+    editandoId=null;
+    rectificandoId=null;
+    document.getElementById("bannerEdicion").style.display="none";
+    prepararFormularioNormal();
+    actualizarTextoBotonGuardar();
+    alert("OT ACTUALIZADA: "+referenciaOT(ot));
+  }else if(rectificandoId){
+    const original=ots.find(x=>x.id===rectificandoId);
+    if(!original){
+      alert("NO SE ENCUENTRA LA FACTURA ORIGINAL");
+      rectificandoId=null;
+      return;
+    }
+    ot.id=Date.now();
+    ot.estado="FINALIZADO";
+    ot.esRectificativa=true;
+    ot.facturaRectificada=referenciaOT(original);
+    ot.facturaRectificadaId=original.id;
+    ot.fechaFinalizacion=ahoraLocalInput();
+    ot.motivoRectificativa=ot.motivoRectificativa || (document.getElementById("motivoRectificativa") ? document.getElementById("motivoRectificativa").value.trim().toUpperCase() : "");
+    sincronizarFiscalDesdeFicha(ot);
+    asegurarNumeracion(ot);
+    ots.push(ot);
+    alert("FACTURA RECTIFICATIVA CREADA: "+referenciaOT(ot)+" sobre "+ot.facturaRectificada);
+    rectificandoId=null;
+  }else{
+    if(ot.estado==="FINALIZADO" && !ot.fechaFinalizacion){
+      ot.fechaFinalizacion=ahoraLocalInput();
+    }
+    sincronizarFiscalDesdeFicha(ot);
+    asegurarNumeracion(ot);
+    ots.push(ot);
+    alert("OT GUARDADA: "+referenciaOT(ot));
+  }
+  if(!guardar()) return;
+  document.getElementById("matricula").value="";
+  document.getElementById("cliente").value="";
+  document.getElementById("telefono").value="";
+  document.getElementById("marca").value="";
+  document.getElementById("modelo").value="";
+  document.getElementById("km").value="";
+  document.getElementById("fecha").value="";
+  document.getElementById("estado").value="CITADO";
+  actualizarColorEstado();
+  actualizarTextoBotonGuardar();
+  document.getElementById("trabajos").value="";
+  document.getElementById("observaciones").value="";
+  prepararFormularioNormal();
+  showTab('inicio');
+  window.scrollTo({top:0,behavior:"smooth"});
+}
 
-function editarOT(id){ /* igual, con banner y scroll */ }
+function editarOT(id){
+  const ot=ots.find(x=>x.id===id);
+  if(!ot)return;
+  if(ot.estado==="FINALIZADO"){
+    asegurarFichaClienteDesdeOT(ot);
+    sincronizarFiscalDesdeFicha(ot);
+    guardar();
+  }
+  editandoId=id;
+  document.getElementById("matricula").value=ot.matricula||"";
+  document.getElementById("cliente").value=ot.cliente||"";
+  document.getElementById("telefono").value=ot.telefono||"";
+  document.getElementById("marca").value=ot.marca||"";
+  document.getElementById("modelo").value=ot.modelo||"";
+  document.getElementById("km").value=ot.km||"";
+  document.getElementById("fecha").value=ot.fecha||"";
+  document.getElementById("estado").value=ot.estado||"";
+  actualizarColorEstado();
+  actualizarTextoBotonGuardar();
+  document.getElementById("trabajos").value=ot.trabajos||"";
+  document.getElementById("observaciones").value=ot.observaciones||"";
+  showTab('nueva');
+  prepararFormularioNormal(ot.estado==="FINALIZADO" ? "Editar factura" : "Editar orden");
+  document.getElementById("aviso").classList.add("hidden");
+  const banner=document.getElementById("bannerEdicion");
+  document.getElementById("bannerEdicionRef").textContent=referenciaOT(ot)+" — "+ot.matricula;
+  banner.style.display="block";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
 
-function eliminarOT(id){ /* igual, con confirmación */ }
+function eliminarOT(id){
+  const ot=ots.find(x=>x.id===id);
+  if(!ot) return;
+  const ref=referenciaOT(ot);
+  if(ot.estado==="FINALIZADO"){
+    alert("NO SE PUEDE BORRAR UNA FACTURA EMITIDA. Crea una FREC si hay que corregirla.");
+    return;
+  }
+  if(!confirm("¿ELIMINAR "+ref+" — "+ot.matricula+" ("+ot.cliente+")? Esta acción no se puede deshacer.")) return;
+  ots=ots.filter(x=>x.id!==id);
+  guardar();
+  const activas=["agenda","taller","historial"];
+  activas.forEach(v=>{
+    const el=document.getElementById(v);
+    if(el && !el.classList.contains("hidden")){
+      if(v==="agenda") renderAgenda();
+      if(v==="taller") renderTaller();
+      if(v==="historial") renderHistorial();
+    }
+  });
+  alert("OT ELIMINADA: "+ref);
+}
 
-function rectificarFactura(id){ /* igual, mostrando panel rectificativa */ }
+function rectificarFactura(id){
+  const original=ots.find(x=>x.id===id);
+  if(!original) return;
+  if(original.estado!=="FINALIZADO"){
+    alert("SOLO SE PUEDE RECTIFICAR UNA FACTURA YA EMITIDA");
+    return;
+  }
+  rectificandoId=id;
+  editandoId=null;
+  asegurarFichaClienteDesdeOT(original);
+  const refOriginal=referenciaOT(original);
+  const ficha=buscarFichaCliente(original.cliente)||{};
+  document.getElementById("matricula").value=original.matricula||"";
+  document.getElementById("cliente").value=original.cliente||"";
+  document.getElementById("telefono").value=original.telefono||ficha.movil||ficha.tfno||"";
+  document.getElementById("marca").value=original.marca||"";
+  document.getElementById("modelo").value=original.modelo||"";
+  document.getElementById("km").value=original.km||"";
+  document.getElementById("fecha").value=ahoraLocalInput();
+  document.getElementById("estado").value="FINALIZADO";
+  actualizarColorEstado();
+  actualizarTextoBotonGuardar();
+  document.getElementById("trabajos").value=original.trabajos||"";
+  document.getElementById("observaciones").value=original.observaciones||"";
+  const titulo=document.getElementById("tituloFormulario");
+  if(titulo) titulo.textContent="FACTURA RECTIFICATIVA DE "+refOriginal;
+  const banner=document.getElementById("bannerEdicion");
+  if(banner) banner.style.display="none";
+  const panel=document.getElementById("panelRectificativa");
+  const tituloRec=document.getElementById("tituloRectificativa");
+  const datos=document.getElementById("datosFacturaOriginal");
+  const motivo=document.getElementById("motivoRectificativa");
+  if(tituloRec) tituloRec.textContent="FACTURA RECTIFICATIVA DE "+refOriginal;
+  if(datos){
+    datos.innerHTML=`
+      <b>Factura original:</b> ${refOriginal}<br>
+      <b>Fecha FAC:</b> ${formatearFecha(fechaDocumento(original))}<br>
+      <b>Cliente:</b> ${original.cliente||""}<br>
+      <b>NIF/NIE:</b> ${ficha.nif||"—"}<br>
+      <b>Matrícula:</b> ${original.matricula||""}<br>
+      <b>Vehículo:</b> ${(original.marca||"")+" "+(original.modelo||"")}
+    `;
+  }
+  if(motivo) motivo.value="";
+  if(panel) panel.style.display="block";
+  renderConceptosRectificativa(original);
+  modoVisualFrec(true);
+  showTab('nueva');
+  document.getElementById("aviso").classList.add("hidden");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
 
-function cancelarEdicion(){ /* igual, resetea formulario y vuelve a inicio */ }
+function cancelarEdicion(){
+  editandoId=null;
+  rectificandoId=null;
+  document.getElementById("bannerEdicion").style.display="none";
+  actualizarTextoBotonGuardar();
+  document.getElementById("aviso").classList.add("hidden");
+  document.getElementById("matricula").value="";
+  document.getElementById("cliente").value="";
+  document.getElementById("telefono").value="";
+  document.getElementById("marca").value="";
+  document.getElementById("modelo").value="";
+  document.getElementById("km").value="";
+  document.getElementById("fecha").value="";
+  document.getElementById("estado").value="CITADO";
+  actualizarColorEstado();
+  actualizarTextoBotonGuardar();
+  document.getElementById("trabajos").value="";
+  document.getElementById("observaciones").value="";
+  showTab("inicio");
+}
 
 function actualizarColorEstado(){
   const sel=document.getElementById("estado");
@@ -808,38 +1297,404 @@ function actualizarTextoBotonGuardar(){
 
 function irGuardar(){ setTimeout(()=>document.getElementById("btnGuardar").scrollIntoView({behavior:"smooth",block:"center"}),150); }
 
-function prepararFormularioNormal(titulo){ /* oculta panel rectificativa, restaura campos */ }
+function prepararFormularioNormal(titulo){
+  const h=document.getElementById("tituloFormulario");
+  if(h) h.textContent=titulo||"Nueva Orden";
+  const panel=document.getElementById("panelRectificativa");
+  if(panel) panel.style.display="none";
+  const motivo=document.getElementById("motivoRectificativa");
+  if(motivo) motivo.value="";
+  modoVisualFrec(false);
+}
 
-function modoVisualFrec(activo){ /* oculta/muestra campos */ }
+function modoVisualFrec(activo){
+  ["telefono","marca","modelo","km","fecha","estado"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    const bloque=(id==="km"||id==="fecha") ? el.closest(".row") : null;
+    if(bloque && (id==="km"||id==="fecha")){
+      bloque.style.display=activo ? "none" : "grid";
+      return;
+    }
+    const label=el.previousElementSibling;
+    if(label && label.tagName && label.tagName.toLowerCase()==="label"){
+      label.style.display=activo ? "none" : "";
+    }
+    el.style.display=activo ? "none" : "";
+    const resultados=document.getElementById(id+"Resultados");
+    if(resultados) resultados.style.display=activo ? "none" : "";
+  });
+  const panel=document.getElementById("panelConceptosRectificativa");
+  if(panel) panel.style.display=activo ? "block" : "none";
+  const estado=document.getElementById("estado");
+  if(estado && activo){ estado.value="FINALIZADO"; actualizarColorEstado(); }
+}
 
-function renderConceptosRectificativa(original){ /* muestra conceptos originales */ }
+function renderConceptosRectificativa(original){
+  const panel=document.getElementById("panelConceptosRectificativa");
+  if(!panel) return;
+  const trabajos=htmlSeguro(original.trabajos);
+  const observaciones=htmlSeguro(original.observaciones);
+  const ref=referenciaOT(original);
+  panel.innerHTML=`
+    <h3>CONCEPTOS DE LA FACTURA ORIGINAL</h3>
+    <div class="aviso">Edita abajo solo lo que quieras rectificar. No hace falta repetir dirección, kilómetros ni fecha de cita.</div>
+    <div style="font-size:14px;margin-bottom:8px;"><b>${ref}</b> · ${htmlSeguro(original.matricula||"")} · ${htmlSeguro((original.marca||"")+" "+(original.modelo||""))}</div>
+    <b>Trabajos / conceptos originales:</b>
+    <div class="mini">${trabajos}</div>
+    <b>Observaciones originales:</b>
+    <div class="mini">${observaciones}</div>
+  `;
+  panel.style.display="block";
+}
 
 // ============================================================
-// 12. FUNCIONES DE CLIENTE (modal ficha)
+// 12. FUNCIONES DE CLIENTE (MODAL FICHA)
 // ============================================================
-function abrirModalCliente(nombreCliente, fichaExistente){ /* igual */ }
-function editarFichaClienteFactura(id,nombreCliente){ /* igual */ }
-function confirmarFicha(){ /* igual, con actualización de facturas */ }
-function cancelarFicha(){ /* igual */ }
+function abrirModalCliente(nombreCliente, fichaExistente){
+  const ficha=fichaExistente || buscarFichaCliente(nombreCliente) || {};
+  document.getElementById("modalCliente").dataset.clienteEdicion=nombreCliente;
+  document.getElementById("modalClienteNombre").textContent="Cliente: "+nombreCliente;
+  document.getElementById("mcNif").value=ficha.nif||"";
+  document.getElementById("mcDireccion").value=ficha.direccion||"";
+  document.getElementById("mcPoblacion").value=ficha.poblacion||"";
+  document.getElementById("mcMovil").value=ficha.movil||"";
+  document.getElementById("mcTfno").value=ficha.tfno||"";
+  document.getElementById("mcEmail").value=ficha.email||"";
+  document.getElementById("mcObservaciones").value=ficha.observaciones||"";
+  document.getElementById("modalCliente").style.display="block";
+  setTimeout(()=>document.getElementById("mcNif").focus(),200);
+}
+
+function editarFichaClienteFactura(id,nombreCliente){
+  const ot=id ? ots.find(x=>x.id===id) : null;
+  const nombre=(ot && ot.cliente) ? ot.cliente : nombreCliente;
+  const ficha=buscarFichaCliente(nombre) || {};
+  _otPendienteGuardar=null;
+  document.getElementById("modalClienteNombre").textContent="Cliente: "+nombre;
+  document.getElementById("mcNif").value=ficha.nif||"";
+  document.getElementById("mcDireccion").value=ficha.direccion||"";
+  document.getElementById("mcPoblacion").value=ficha.poblacion||"";
+  document.getElementById("mcMovil").value=ficha.movil||ficha.telefono||"";
+  document.getElementById("mcTfno").value=ficha.tfno||"";
+  document.getElementById("mcEmail").value=ficha.email||"";
+  document.getElementById("mcObservaciones").value=ficha.observaciones||"";
+  document.getElementById("modalCliente").dataset.clienteEdicion=nombre;
+  document.getElementById("modalCliente").style.display="block";
+  setTimeout(()=>document.getElementById("mcNif").focus(),200);
+}
+
+function asegurarFichaClienteDesdeOT(ot){
+  if(!ot || !ot.cliente) return null;
+  let ficha=buscarFichaCliente(ot.cliente);
+  if(!ficha && (ot.nif||ot.direccion||ot.poblacion||ot.telefono||ot.email)){
+    guardarFichaCliente(
+      ot.cliente,
+      ot.nif||"",
+      ot.direccion||"",
+      ot.poblacion||"",
+      ot.telefono||"",
+      "",
+      ot.email||"",
+      ""
+    );
+    ficha=buscarFichaCliente(ot.cliente);
+  }
+  return ficha;
+}
+
+function sincronizarFacturasCliente(nombreCliente){
+  const ficha=buscarFichaCliente(nombreCliente);
+  if(!ficha) return 0;
+  let actualizadas=0;
+  ots=ots.map(x=>{
+    if(x.estado==="FINALIZADO" && claveCliente(x.cliente)===claveCliente(nombreCliente)){
+      actualizadas++;
+      return {
+        ...x,
+        nif:ficha.nif||x.nif||"",
+        direccion:ficha.direccion||x.direccion||"",
+        poblacion:ficha.poblacion||x.poblacion||"",
+        telefono:ficha.movil||ficha.tfno||x.telefono||"",
+        email:ficha.email||x.email||""
+      };
+    }
+    return x;
+  });
+  return actualizadas;
+}
+
+function confirmarFicha(){
+  const nif=document.getElementById("mcNif").value.trim().toUpperCase();
+  const dir=document.getElementById("mcDireccion").value.trim();
+  const pob=document.getElementById("mcPoblacion").value.trim();
+  const movil=document.getElementById("mcMovil").value.trim();
+  const tfno=document.getElementById("mcTfno").value.trim();
+  const email=document.getElementById("mcEmail").value.trim();
+  const obs=document.getElementById("mcObservaciones").value.trim();
+  if(!nif||!dir){
+    alert("NIF/NIE Y DIRECCIÓN SON OBLIGATORIOS PARA EMITIR FACTURA");
+    return;
+  }
+  const ot=_otPendienteGuardar;
+  if(!ot){
+    const nombreEdicion=document.getElementById("modalCliente").dataset.clienteEdicion||"";
+    if(nombreEdicion){
+      guardarFichaCliente(nombreEdicion,nif,dir,pob,movil,tfno,email,obs);
+      const n=sincronizarFacturasCliente(nombreEdicion);
+      guardar();
+      alert("FICHA ACTUALIZADA CORRECTAMENTE"+(n ? " — FACTURAS ACTUALIZADAS: "+n : ""));
+      document.getElementById("modalCliente").style.display="none";
+      renderHistorial();
+    }
+    return;
+  }
+  guardarFichaCliente(ot.cliente,nif,dir,pob,movil,tfno,email,obs);
+  ot.nif=nif;
+  ot.direccion=dir;
+  ot.poblacion=pob;
+  ot.telefono=movil||tfno||ot.telefono||"";
+  ot.email=email;
+  document.getElementById("modalCliente").style.display="none";
+  _otPendienteGuardar=null;
+  _completarGuardadoOT(ot);
+}
+
+function cancelarFicha(){
+  document.getElementById("modalCliente").style.display="none";
+  _otPendienteGuardar=null;
+}
 
 // ============================================================
 // 13. FUNCIONES DE EXPORTACIÓN/IMPORTACIÓN DE COPIA
 // ============================================================
-function exportarCopia(){ /* igual */ }
-function importarCopia(event){ /* igual */ }
-function resetearPrograma(){ /* igual */ }
-function actualizarAvisoCopia(){ /* igual */ }
+function exportarCopia(){
+  const copia={
+    version:COPIA_VERSION,
+    appVersion:APP_VERSION,
+    fechaCopia:new Date().toISOString(),
+    ots:ots,
+    contadores:contadores,
+    clientes:clientes,
+    vehiculos:vehiculos,
+    articulos:articulos,
+    resumen:{
+      ot:ots.length,
+      clientes:Object.keys(clientes).length,
+      vehiculos:Object.keys(vehiculos).length,
+      articulos:articulos.length,
+      agenda:contadores.agenda||0,
+      ordenesTrabajo:contadores.ot||0,
+      facturas:contadores.factura||0,
+      rectificativas:contadores.rectificativa||0
+    }
+  };
+  const datos=JSON.stringify(copia,null,2);
+  const blob=new Blob([datos],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  const sello=new Date().toISOString().slice(0,16).replace(/[-:T]/g,"");
+  a.download="copia_autoborja_ot_v3_"+sello+".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  actualizarAvisoCopia();
+}
+
+function importarCopia(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const datos=JSON.parse(e.target.result);
+      if(!confirm("Vas a sustituir los datos actuales por esta copia. Antes se descargará una copia de seguridad del estado actual. ¿Continuar?")){
+        event.target.value="";
+        return;
+      }
+      exportarCopia();
+      if(Array.isArray(datos)){
+        ots=datos;
+        contadores={agenda:0,ot:0,factura:0,rectificativa:0};
+        clientes={};
+        vehiculos={};
+        articulos=[];
+        completarNumeracionExistente();
+      }else if(datos && Array.isArray(datos.ots)){
+        ots=Array.isArray(datos.ots) ? datos.ots : [];
+        contadores=datos.contadores || {agenda:0,ot:0,factura:0};
+        clientes=(datos.clientes && typeof datos.clientes==="object") ? datos.clientes : {};
+        vehiculos=(datos.vehiculos && typeof datos.vehiculos==="object") ? datos.vehiculos : {};
+        articulos=Array.isArray(datos.articulos) ? datos.articulos : [];
+        completarNumeracionExistente();
+      }else{
+        alert("COPIA NO VÁLIDA");
+        event.target.value="";
+        return;
+      }
+      if(guardar()){
+        alert("COPIA IMPORTADA CORRECTAMENTE");
+        showTab('inicio');
+      }
+    }catch(error){
+      alert("ERROR AL IMPORTAR COPIA");
+      console.error(error);
+    }
+    event.target.value="";
+  };
+  reader.readAsText(file,"UTF-8");
+}
+
+function resetearPrograma(){
+  const texto=prompt("PELIGRO: esto borra OTs, clientes, vehículos y almacén, y reinicia A, OT, FAC y FREC desde 0001. Se descargará antes una copia. Para confirmar escribe BORRAR TODO");
+  if(texto!=="BORRAR TODO"){
+    alert("OPERACIÓN CANCELADA");
+    return;
+  }
+  exportarCopia();
+  ots=[];
+  contadores={agenda:0,ot:0,factura:0,rectificativa:0};
+  clientes={};
+  vehiculos={};
+  articulos=[];
+  editandoId=null;
+  if(guardar()){
+    alert("PROGRAMA REINICIADO. LA PRÓXIMA OT EMPEZARÁ EN 0001");
+    showTab('inicio');
+  }
+}
+
+function actualizarAvisoCopia(){
+  const div=document.getElementById("avisoCopia");
+  if(!div) return;
+  try{
+    const datos=JSON.parse(localStorage.getItem(STORAGE)||"{}");
+    const fecha=datos.fechaGuardado ? new Date(datos.fechaGuardado) : null;
+    if(fecha){
+      const ahora=new Date();
+      const diff=Math.floor((ahora-fecha)/60000);
+      let texto;
+      if(diff<2) texto="hace un momento";
+      else if(diff<60) texto="hace "+diff+" min";
+      else if(diff<1440) texto="hace "+Math.floor(diff/60)+"h "+( diff%60)+"min";
+      else texto="hace "+Math.floor(diff/1440)+" día(s)";
+      div.textContent="💾 Último guardado automático: "+texto+" — OTs: "+(Array.isArray(datos.ots)?datos.ots.length:0)+" | Clientes: "+Object.keys(datos.clientes||{}).length+" | Artículos: "+(Array.isArray(datos.articulos)?datos.articulos.length:0);
+      div.style.display="block";
+    }else{
+      div.textContent="⚠️ Sin datos de copia guardada aún.";
+      div.style.display="block";
+    }
+  }catch(e){
+    div.style.display="none";
+  }
+}
 
 // ============================================================
-// 14. FUNCIONES DE WHATSAPP E IMPRESIÓN
+// 14. FUNCIONES WHATSAPP E IMPRESIÓN
 // ============================================================
-function limpiarTelefonoWhatsApp(telefono){ /* igual */ }
-function textoWhatsApp(ot){ /* igual */ }
-function enviarWhatsApp(id){ /* igual */ }
-function imprimir(id){ /* igual, con zona de impresión */ }
+function limpiarTelefonoWhatsApp(telefono){
+  let numero=(telefono||"").replace(/\D/g,"");
+  if(numero.startsWith("00")) numero=numero.substring(2);
+  if(numero.length===9) numero="34"+numero;
+  return numero;
+}
+
+function textoWhatsApp(ot){
+  const titulo=ot.estado==="CITADO" ? "Recordatorio de cita" :
+    ot.estado==="EN TALLER" ? "Orden de trabajo" :
+    "Trabajo finalizado";
+  return `TALLERES AUTOBORJA
+
+${titulo}
+
+Número: ${referenciaOT(ot)}
+Fecha: ${formatearFecha(fechaDocumento(ot))}
+Matrícula: ${ot.matricula}
+Cliente: ${ot.cliente}
+Vehículo: ${ot.marca} ${ot.modelo}
+
+Trabajos:
+${ot.trabajos || "SIN TRABAJOS"}
+
+Gracias.`;
+}
+
+function enviarWhatsApp(id){
+  const ot=ots.find(x=>x.id===id);
+  if(!ot)return;
+  const numero=limpiarTelefonoWhatsApp(ot.telefono);
+  if(!numero || numero.length<11){
+    alert("NO HAY TELÉFONO VÁLIDO PARA WHATSAPP");
+    return;
+  }
+  const mensaje=encodeURIComponent(textoWhatsApp(ot));
+  const url="https://wa.me/"+numero+"?text="+mensaje;
+  window.location.href=url;
+}
+
+function imprimir(id){
+  const ot=ots.find(x=>x.id===id);
+  if(!ot)return;
+  const ficha=buscarFichaCliente(ot.cliente)||{};
+  const nif=ot.nif||ficha.nif||"";
+  const direccion=ot.direccion||ficha.direccion||"";
+  const poblacion=ot.poblacion||ficha.poblacion||"";
+  const emailCliente=ficha.email||"";
+  const anterior=document.getElementById("zonaImpresion");
+  if(anterior) anterior.remove();
+  const esFactura=ot.estado==="FINALIZADO";
+  const tituloPrint=ot.estado==="CITADO" ? "CITA PENDIENTE" :
+    (esFactura && ot.esRectificativa) ? "FACTURA RECTIFICATIVA" :
+    esFactura ? "FACTURA" : "ORDEN DE TRABAJO";
+  const bloqueCliente=esFactura ? `
+    <p><b>Cliente:</b> ${ot.cliente}</p>
+    <p><b>NIF/NIE:</b> ${nif||"—"}</p>
+    <p><b>Dirección:</b> ${direccion||"—"}</p>
+    ${poblacion ? `<p><b>Población:</b> ${poblacion}</p>` : ""}
+    <p><b>Teléfono:</b> ${ot.telefono}</p>
+    ${emailCliente ? `<p><b>E-mail:</b> ${emailCliente}</p>` : ""}
+  ` : `
+    <p><b>Cliente:</b> ${ot.cliente}</p>
+    <p><b>Teléfono:</b> ${ot.telefono}</p>
+  `;
+  const zona=document.createElement("div");
+  zona.id="zonaImpresion";
+  zona.innerHTML=`
+    <style>
+    #zonaImpresion{display:none}
+    @media print{
+      body{background:white!important;color:black!important}
+      body > *:not(#zonaImpresion){display:none!important}
+      #zonaImpresion{display:block!important;font-family:Arial;padding:20px;color:black}
+      #zonaImpresion h1{text-align:center;color:black;background:white}
+      .box{border:1px solid #333;padding:10px;margin:10px 0}
+      .linea-fiscal{border-top:1px solid #999;padding-top:8px;margin-top:8px}
+    }
+    </style>
+    <h1>${tituloPrint}</h1>
+    <p><b>Número:</b> ${referenciaOT(ot)}</p>
+    ${ot.esRectificativa ? `<p><b>Rectifica:</b> ${ot.facturaRectificada||"—"}</p>` : ""}
+    ${ot.esRectificativa && ot.motivoRectificativa ? `<p><b>Motivo rectificación:</b> ${ot.motivoRectificativa}</p>` : ""}
+    <p><b>${esFactura ? "Fecha factura" : "Fecha"}:</b> ${formatearFecha(fechaDocumento(ot))}</p>
+    <p><b>Matrícula:</b> ${ot.matricula}</p>
+    ${bloqueCliente}
+    <p><b>Vehículo:</b> ${ot.marca} ${ot.modelo}</p>
+    <p><b>KM:</b> ${ot.km}</p>
+    <p><b>Estado:</b> ${ot.estado}</p>
+    <h3>Trabajos</h3>
+    <div class="box">${ot.trabajos || ""}</div>
+    <h3>Observaciones</h3>
+    <div class="box">${ot.observaciones || ""}</div>
+    <p>Firma cliente: __________________________</p>
+  `;
+  document.body.appendChild(zona);
+  setTimeout(()=>{ window.print(); },1000);
+}
 
 // ============================================================
-// 15. FUNCIONES DE FILTRO Y PESTAÑAS
+// 15. FUNCIONES DE FILTRO
 // ============================================================
 function setFiltro(tipo){
   filtroActivo=tipo;
@@ -860,29 +1715,131 @@ function setFiltro(tipo){
 }
 
 // ============================================================
-// 16. MÓDULO OCR (Plate Recognizer) – mismo código, pero con
-//     funciones ya definidas (se mantiene igual)
+// 16. MÓDULO OCR (PLATE RECOGNIZER)
 // ============================================================
 const PLATE_TOKEN="0fe93fa4d4ed7ad906d040fb28eb36c3ee4cdc8f";
 let _ocrMatriculaDetectada=null;
 
 function abrirCamara(){ document.getElementById("inputFotoCamara").click(); }
-function procesarFotoMatricula(event){ /* igual, con manejo de errores */ }
-function repetirFoto(){ /* igual */ }
-function _mostrarHistorialCamara(matricula){ /* igual */ }
-function aceptarMatriculaEscaneada(){ /* igual */ }
-function cerrarCamara(){ /* igual */ }
+
+function procesarFotoMatricula(event){
+  const file=event.target.files[0];
+  if(!file) return;
+  const modal=document.getElementById("modalCamara");
+  const overlay=document.getElementById("overlayMat");
+  const estadoEl=document.getElementById("estadoOCR");
+  const panel=document.getElementById("panelHistorialCamara");
+  const btnAceptar=document.getElementById("btnAceptarCamara");
+  const btnRepetir=document.getElementById("btnRepetirFoto");
+  const previewDiv=document.getElementById("previewFoto");
+  const imgPreview=document.getElementById("imgPreview");
+  _ocrMatriculaDetectada=null;
+  overlay.textContent="— — — — — —";
+  overlay.style.color="#ff7a1a";
+  estadoEl.textContent="Analizando matrícula...";
+  panel.style.display="none";
+  btnAceptar.style.display="none";
+  btnRepetir.style.display="none";
+  modal.style.display="block";
+  const urlFoto=URL.createObjectURL(file);
+  imgPreview.src=urlFoto;
+  previewDiv.style.display="block";
+  const formData=new FormData();
+  formData.append("upload",file);
+  formData.append("regions","es");
+  fetch("https://api.platerecognizer.com/v1/plate-reader/",{
+    method:"POST",
+    headers:{"Authorization":"Token "+PLATE_TOKEN},
+    body:formData
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    URL.revokeObjectURL(urlFoto);
+    if(data.results && data.results.length>0){
+      const mat=data.results[0].plate.toUpperCase();
+      _ocrMatriculaDetectada=mat;
+      overlay.textContent=mat;
+      overlay.style.color="#28a745";
+      estadoEl.textContent="✅ Matrícula detectada";
+      _mostrarHistorialCamara(mat);
+      btnRepetir.style.display="block";
+    }else{
+      overlay.textContent="NO DETECTADA";
+      overlay.style.color="#b00020";
+      estadoEl.textContent="⚠️ No se pudo leer la matrícula. Intenta con mejor ángulo y luz.";
+      btnRepetir.style.display="block";
+    }
+  })
+  .catch(function(){
+    URL.revokeObjectURL(urlFoto);
+    overlay.textContent="ERROR";
+    overlay.style.color="#b00020";
+    estadoEl.textContent="⚠️ Error de conexión. Verifica que tienes internet.";
+    btnRepetir.style.display="block";
+  });
+  event.target.value="";
+}
+
+function repetirFoto(){
+  document.getElementById("modalCamara").style.display="none";
+  document.getElementById("previewFoto").style.display="none";
+  setTimeout(function(){ document.getElementById("inputFotoCamara").click(); },300);
+}
+
+function _mostrarHistorialCamara(matricula){
+  const panel=document.getElementById("panelHistorialCamara");
+  const lista=document.getElementById("listadoHistCamara");
+  const btnAceptar=document.getElementById("btnAceptarCamara");
+  const historial=[...ots].filter(x=>x.matricula===matricula).sort((a,b)=>(b.id||0)-(a.id||0)).slice(0,5);
+  if(historial.length===0){
+    lista.innerHTML="<p style='color:#aab4c8;font-size:13px;margin:4px 0;'>Matrícula nueva — sin historial previo.</p>";
+  }else{
+    lista.innerHTML=historial.map(ot=>`
+      <div class="item-hist-cam">
+        <b>${referenciaOT(ot)}</b> — ${formatearFecha(ot.fecha)}<br>
+        ${ot.cliente}<br>
+        ${ot.marca} ${ot.modelo}<br>
+        <span style="color:#aab4c8;">${(ot.trabajos||"").substring(0,80)}${(ot.trabajos||"").length>80?"...":""}</span>
+      </div>
+    `).join("");
+  }
+  panel.style.display="block";
+  btnAceptar.style.display="block";
+}
+
+function aceptarMatriculaEscaneada(){
+  if(!_ocrMatriculaDetectada) return;
+  const mat=_ocrMatriculaDetectada;
+  cerrarCamara();
+  document.getElementById("matricula").value=mat;
+  const ot=[...ots].reverse().find(x=>x.matricula===mat);
+  const aviso=document.getElementById("aviso");
+  aviso.classList.remove("hidden");
+  if(ot){
+    document.getElementById("cliente").value=ot.cliente||"";
+    document.getElementById("telefono").value=ot.telefono||"";
+    document.getElementById("marca").value=ot.marca||"";
+    document.getElementById("modelo").value=ot.modelo||"";
+    aviso.innerText="📷 DATOS RECUPERADOS: "+mat+" — "+ot.cliente;
+  }else{
+    aviso.innerText="📷 MATRÍCULA ESCANEADA: "+mat+" — Vehículo nuevo, completa los datos";
+  }
+}
+
+function cerrarCamara(){
+  document.getElementById("modalCamara").style.display="none";
+  document.getElementById("previewFoto").style.display="none";
+  _ocrMatriculaDetectada=null;
+}
 
 // ============================================================
-// 17. VALIDACIÓN NIF (mejorada)
+// 17. VALIDACIÓN NIF
 // ============================================================
 function calcularLetraNif(input){
   const LETRAS="TRWAGMYFPDXBNJZSQVHLCKE";
   let val=input.value.toUpperCase().replace(/\s/g,"");
   let nifOriginal=val;
-  // Quitar letra final si existe
   if(/[A-Z]$/.test(val)) val=val.slice(0,-1);
-  // NIE: sustituir X,Y,Z
   let numeros=val;
   if(/^[XYZ]/.test(numeros)){
     numeros=numeros.replace("X","0").replace("Y","1").replace("Z","2");
@@ -891,7 +1848,6 @@ function calcularLetraNif(input){
   if(soloNumeros.length===8){
     const letra=LETRAS[parseInt(soloNumeros,10)%23];
     let nuevoVal=nifOriginal;
-    // Si era NIE, restaurar letra inicial
     if(/^[XYZ]/.test(val)){
       nuevoVal=val.charAt(0)+soloNumeros+letra;
     }else{
@@ -904,7 +1860,7 @@ function calcularLetraNif(input){
 }
 
 // ============================================================
-// 18. INICIALIZACIÓN Y GUARDADO AUTOMÁTICO
+// 18. INICIALIZACIÓN
 // ============================================================
 function inicializarPrueba(){
   if(ots.length>0) return;
@@ -927,7 +1883,7 @@ function inicializarPrueba(){
 completarNumeracionExistente();
 guardar();
 
-// Sincronizar color del estado al cargar
+// Sincronizar estado
 document.getElementById("estado").addEventListener("change",function(){
   actualizarColorEstado();
   actualizarTextoBotonGuardar();
@@ -938,7 +1894,7 @@ actualizarTextoBotonGuardar();
 // Guardado automático cada 5 minutos
 setInterval(()=>{ guardar(); }, 300000);
 
-// Eventos de autocompletado
+// Eventos autocompletado
 document.getElementById("marca").addEventListener("input",mostrarMarcas);
 document.getElementById("marca").addEventListener("focus",mostrarMarcas);
 document.getElementById("modelo").addEventListener("input",mostrarModelos);
