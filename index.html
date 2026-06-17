@@ -279,13 +279,20 @@ function htmlSeguro(texto){
     .replace(/'/g,"&#39;");
 }
 
+function colorEstado(estado){
+  if(estado==="CITADO") return "#2196f3";
+  if(estado==="EN TALLER") return "#ff7a1a";
+  if(estado==="FINALIZADO") return "#28a745";
+  return "#ff7a1a";
+}
+
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
 const APP_VERSION="R93";
 const COPIA_VERSION=3;
 const APP_FECHA="17/06/2026";
-const APP_NOTAS="R93: FREC compacta datos, oculta campos no esenciales y prioriza conceptos/trabajos a rectificar. + Corregido error numero, XSS, paginación, etc.";
+const APP_NOTAS="R93: FREC compacta datos, oculta campos no esenciales y prioriza conceptos/trabajos a rectificar. + Corregido bug importarCopia, colores centralizados.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -525,7 +532,7 @@ function mostrarVersion(){
 }
 
 // ============================================================
-// 6. FUNCIONES DE TARJETA DE OT
+// 6. FUNCIONES DE TARJETA DE OT (con color centralizado)
 // ============================================================
 function crearTarjetaOT(ot){
   const ficha=buscarFichaCliente(ot.cliente)||{};
@@ -560,7 +567,8 @@ function crearTarjetaOT(ot){
       <button class="danger" onclick="eliminarOT(${ot.id})" style="margin:0;">🗑</button>`;
   }
 
-  return `<div class="item" style="border-left-color:${ot.estado==="CITADO"?"#2196f3":ot.estado==="EN TALLER"?"#ff7a1a":"#28a745"}">
+  const color=colorEstado(ot.estado);
+  return `<div class="item" style="border-left-color:${color}">
     <b>${htmlSeguro(ref)}</b><br>
     <b>${htmlSeguro(ot.matricula)}</b><br>
     ${htmlSeguro(ot.cliente)}<br>
@@ -1524,7 +1532,13 @@ function importarCopia(event){
         completarNumeracionExistente();
       }else if(datos && Array.isArray(datos.ots)){
         ots=Array.isArray(datos.ots) ? datos.ots : [];
-        contadores=datos.contadores || {agenda:0,ot:0,factura:0};
+        // ✅ CORREGIDO: restaurar todos los contadores
+        contadores={
+          agenda: datos.contadores?.agenda || 0,
+          ot: datos.contadores?.ot || 0,
+          factura: datos.contadores?.factura || 0,
+          rectificativa: datos.contadores?.rectificativa || 0
+        };
         clientes=(datos.clientes && typeof datos.clientes==="object") ? datos.clientes : {};
         vehiculos=(datos.vehiculos && typeof datos.vehiculos==="object") ? datos.vehiculos : {};
         articulos=Array.isArray(datos.articulos) ? datos.articulos : [];
