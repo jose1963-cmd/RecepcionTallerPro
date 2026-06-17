@@ -57,8 +57,6 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .resumen-frec .mini{background:#0b1220;border:1px solid #3b4a63;border-radius:10px;padding:10px;margin:8px 0;white-space:pre-wrap;line-height:1.35}
 .resumen-frec .aviso{background:#16233a;border-left:4px solid #2196f3;padding:9px;border-radius:8px;font-size:13px;color:#cfe3ff;margin-bottom:10px}
 .aviso-modal{background:#2a1a00;border-left:4px solid #ff7a1a;padding:10px;border-radius:8px;font-size:14px;margin-bottom:14px;color:#ffd580}
-
-/* Nuevos estilos para líneas de factura */
 .lineas-panel{background:#101827;border:1px solid #3b4a63;border-radius:12px;padding:12px;margin-top:16px}
 .lineas-panel h3{color:#ff7a1a;margin:0 0 8px}
 .lineas-tabla{width:100%;border-collapse:collapse;font-size:14px}
@@ -68,7 +66,6 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .lineas-totales{display:flex;gap:20px;flex-wrap:wrap;margin-top:10px;font-weight:bold}
 .lineas-totales span{background:#0b1220;padding:6px 12px;border-radius:8px}
 .btn-anadir{background:#344d7a;color:white;margin:4px 4px 4px 0;padding:8px 14px;font-size:14px;width:auto;display:inline-block}
-/* Modal selección artículo */
 #modalSeleccionArticulo{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000a;z-index:9999;padding:20px;overflow-y:auto}
 #modalSeleccionArticuloBox{background:#1c2940;border:2px solid #ff7a1a;border-radius:18px;padding:20px;max-width:600px;margin:40px auto}
 #modalSeleccionArticuloBox h2{color:#ff7a1a;margin-top:0}
@@ -78,7 +75,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R94</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R95</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -153,7 +150,6 @@ BIENVENIDO A GESTIÓN
 <label>Observaciones</label>
 <textarea id="observaciones" rows="4"></textarea>
 
-<!-- NUEVO PANEL DE LÍNEAS DE FACTURA -->
 <div class="lineas-panel">
   <h3>🧾 LÍNEAS DE FACTURA</h3>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
@@ -217,7 +213,6 @@ BIENVENIDO A GESTIÓN
 <div id="almacenLista"></div>
 </div>
 
-<!-- Modal cámara OCR -->
 <input type="file" id="inputFotoCamara" accept="image/*" style="display:none" onchange="procesarFotoMatricula(event)">
 <div id="modalCamara">
 <div id="modalCamaraBox">
@@ -239,7 +234,6 @@ BIENVENIDO A GESTIÓN
 </div>
 </div>
 
-<!-- Modal artículos (edición) -->
 <div id="modalArticulo" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000a;z-index:9999;overflow-y:auto;padding:20px;">
 <div style="background:#1c2940;border:2px solid #ff7a1a;border-radius:18px;padding:20px;max-width:500px;margin:40px auto;">
 <h2 id="modalArticuloTitulo" style="color:#ff7a1a;margin-top:0;">✏️ ARTÍCULO</h2>
@@ -273,7 +267,6 @@ BIENVENIDO A GESTIÓN
 </div>
 </div>
 
-<!-- Modal selección de artículo (para añadir a línea) -->
 <div id="modalSeleccionArticulo">
 <div id="modalSeleccionArticuloBox">
 <h2>🔍 SELECCIONAR ARTÍCULO</h2>
@@ -285,7 +278,6 @@ BIENVENIDO A GESTIÓN
 </div>
 </div>
 
-<!-- Modal ficha cliente -->
 <div id="modalCliente">
 <div id="modalClienteBox">
 <h2>📋 FICHA DE CLIENTE</h2>
@@ -313,9 +305,6 @@ BIENVENIDO A GESTIÓN
 </div>
 
 <script>
-// ============================================================
-// 1. FUNCIONES GLOBALES
-// ============================================================
 function numero(valor){
   if(valor===undefined || valor===null || valor==="") return null;
   const n=parseFloat(String(valor).replace(",","."));
@@ -339,9 +328,6 @@ function colorEstado(estado){
   return "#ff7a1a";
 }
 
-// ============================================================
-// 2. CONSTANTES Y VARIABLES GLOBALES
-// ============================================================
 const APP_VERSION="R95-LINEAS";
 const COPIA_VERSION=4;
 const APP_FECHA="17/06/2026";
@@ -361,7 +347,6 @@ let filtroActivo="matricula";
 let paginaHistorial=1;
 const POR_PAGINA=20;
 
-// Almacenamos líneas temporales mientras se edita una OT
 let lineasTemp=[];
 
 const MARCAS=["SEAT","VOLKSWAGEN","AUDI","SKODA","BMW","MERCEDES","PEUGEOT","RENAULT","CITROEN","OPEL","FORD","TOYOTA","NISSAN","KIA","HYUNDAI","DACIA","FIAT","MAZDA"];
@@ -399,9 +384,6 @@ const MODELOS={
 "VOLVO":["C30","S40","S60","S80","V40","V50","V60","V70","XC40","XC60","XC90"]
 };
 
-// ============================================================
-// 3. CARGA DE DATOS
-// ============================================================
 try{
   const guardado=JSON.parse(localStorage.getItem(STORAGE)||"[]");
   if(Array.isArray(guardado)){
@@ -419,9 +401,6 @@ try{
   clientes={}; vehiculos={}; articulos=[];
 }
 
-// ============================================================
-// 4. FUNCIONES AUXILIARES
-// ============================================================
 function formatearFecha(fecha){
   if(!fecha) return "SIN CITA";
   const d=new Date(fecha);
@@ -561,9 +540,6 @@ function sincronizarFiscalDesdeFicha(ot){
   return ot;
 }
 
-// ============================================================
-// 5. FUNCIONES DE INTERFAZ
-// ============================================================
 function showTab(id){
   ["inicio","nueva","historial","agenda","taller","almacen"].forEach(t=>{
     document.getElementById(t).classList.toggle("hidden", t!==id);
@@ -587,9 +563,6 @@ function mostrarVersion(){
   alert(APP_VERSION+"\n"+APP_FECHA+"\n"+APP_NOTAS);
 }
 
-// ============================================================
-// 6. FUNCIONES DE TARJETA DE OT (con color centralizado)
-// ============================================================
 function crearTarjetaOT(ot){
   const ficha=buscarFichaCliente(ot.cliente)||{};
   const nif=ot.nif||ficha.nif||"";
@@ -611,7 +584,6 @@ function crearTarjetaOT(ot){
       ${poblacion ? `<span style="color:#ffd580">${htmlSeguro(poblacion)}</span><br>` : ""}`;
   }
 
-  // Mostrar totales si es factura
   let bloqueTotales="";
   if(esFactura && ot.total!==undefined && ot.total!==null){
     bloqueTotales=`<span style="color:#28a745;font-weight:bold;">Total: ${ot.total.toFixed(2)} €</span>`;
@@ -653,9 +625,6 @@ function crearTarjetaOT(ot){
   </div>`;
 }
 
-// ============================================================
-// 7. RENDERIZADO DE LISTAS
-// ============================================================
 function renderHistorial(){
   const texto=document.getElementById("buscar").value.trim().toUpperCase();
   const lista=document.getElementById("lista");
@@ -753,9 +722,6 @@ function renderTaller(){
   taller.innerHTML=enTaller.map(ot=>crearTarjetaOT(ot)).join("");
 }
 
-// ============================================================
-// 8. ALMACÉN
-// ============================================================
 function renderAlmacen(){
   const lista=document.getElementById("almacenLista");
   const texto=document.getElementById("buscarArticulo").value.trim().toUpperCase();
@@ -804,9 +770,6 @@ function renderAlmacen(){
   lista.innerHTML=html;
 }
 
-// ============================================================
-// 9. FUNCIONES DE ARTÍCULOS (MODAL)
-// ============================================================
 function abrirModalNuevoArticulo(){
   document.getElementById("modalArticuloTitulo").textContent="➕ NUEVO ARTÍCULO";
   document.getElementById("maRef").value="";
@@ -917,9 +880,6 @@ function cerrarModalArticulo(){
   document.getElementById("modalArticulo").style.display="none";
 }
 
-// ============================================================
-// 10. IMPORTACIÓN CSV
-// ============================================================
 function importarClientesCSVDesdeInicio(){
   document.getElementById("importClientesFile").onchange=function(e){
     procesarClientesCSV(e.target.files[0]);
@@ -1052,9 +1012,6 @@ function procesarArticulosCSV(file){
   reader.readAsText(file,"UTF-8");
 }
 
-// ============================================================
-// 11. FUNCIONES DE BÚSQUEDA Y GUARDADO DE OT
-// ============================================================
 function normalizar(t){ return (t||"").toUpperCase(); }
 
 function mostrarMarcas(){
@@ -1130,8 +1087,7 @@ function guardarOT(){
     estado:document.getElementById("estado").value,
     trabajos:document.getElementById("trabajos").value.trim().toUpperCase(),
     observaciones:document.getElementById("observaciones").value.trim().toUpperCase(),
-    // Líneas de factura
-    lineas: lineasTemp.map(l=> ({...l})) // copia
+    lineas: lineasTemp.map(l=> ({...l}))
   };
   if(!ot.matricula||!ot.cliente||!ot.trabajos){
     alert("FALTAN DATOS OBLIGATORIOS");
@@ -1162,7 +1118,6 @@ function guardarOT(){
 }
 
 function _completarGuardadoOT(ot){
-  // Calcular totales si es factura
   if(ot.estado==="FINALIZADO" && ot.lineas && ot.lineas.length>0){
     let base=0;
     let costeTotal=0;
@@ -1181,7 +1136,6 @@ function _completarGuardadoOT(ot){
     ot.beneficio = total - costeTotal;
     ot.margen = total > 0 ? (ot.beneficio / total) * 100 : 0;
   } else {
-    // Si no hay líneas, dejamos los campos como estaban o los ponemos a 0
     ot.total_base = ot.total_base || 0;
     ot.total_iva = ot.total_iva || 0;
     ot.total = ot.total || 0;
@@ -1251,7 +1205,6 @@ function _completarGuardadoOT(ot){
     alert("OT GUARDADA: "+referenciaOT(ot));
   }
   if(!guardar()) return;
-  // Limpiar formulario
   document.getElementById("matricula").value="";
   document.getElementById("cliente").value="";
   document.getElementById("telefono").value="";
@@ -1292,7 +1245,6 @@ function editarOT(id){
   actualizarTextoBotonGuardar();
   document.getElementById("trabajos").value=ot.trabajos||"";
   document.getElementById("observaciones").value=ot.observaciones||"";
-  // Cargar líneas
   lineasTemp = (ot.lineas || []).map(l=>({...l}));
   renderLineas();
   showTab('nueva');
@@ -1351,7 +1303,6 @@ function rectificarFactura(id){
   actualizarTextoBotonGuardar();
   document.getElementById("trabajos").value=original.trabajos||"";
   document.getElementById("observaciones").value=original.observaciones||"";
-  // Copiar líneas originales para rectificación
   lineasTemp = (original.lineas || []).map(l=>({...l}));
   renderLineas();
   const titulo=document.getElementById("tituloFormulario");
@@ -1474,9 +1425,6 @@ function renderConceptosRectificativa(original){
   panel.style.display="block";
 }
 
-// ============================================================
-// 12. FUNCIONES DE LÍNEAS DE FACTURA (NUEVO)
-// ============================================================
 function renderLineas(){
   const tbody=document.getElementById("cuerpoLineas");
   const vacio=document.getElementById("lineasVacio");
@@ -1589,7 +1537,6 @@ function seleccionarArticulo(referencia, proveedor){
   if(stock < cantidad){
     if(!confirm(`Stock insuficiente (${stock} disponibles). ¿Añadir igualmente?`)) return;
   }
-  // Descontar stock
   const idxArt=articulos.indexOf(a);
   if(idxArt>=0){
     articulos[idxArt].stock = Math.max(0, stock - cantidad);
@@ -1606,15 +1553,11 @@ function seleccionarArticulo(referencia, proveedor){
   });
   renderLineas();
   cerrarModalSeleccionArticulo();
-  // Actualizar almacén si está visible
   if(!document.getElementById("almacen").classList.contains("hidden")){
     renderAlmacen();
   }
 }
 
-// ============================================================
-// 13. FUNCIONES DE CLIENTE (MODAL FICHA)
-// ============================================================
 function abrirModalCliente(nombreCliente, fichaExistente){
   const ficha=fichaExistente || buscarFichaCliente(nombreCliente) || {};
   document.getElementById("modalCliente").dataset.clienteEdicion=nombreCliente;
@@ -1729,9 +1672,6 @@ function cancelarFicha(){
   _otPendienteGuardar=null;
 }
 
-// ============================================================
-// 14. FUNCIONES DE EXPORTACIÓN/IMPORTACIÓN DE COPIA
-// ============================================================
 function exportarCopia(){
   const copia={
     version:COPIA_VERSION,
@@ -1860,9 +1800,6 @@ function actualizarAvisoCopia(){
   }
 }
 
-// ============================================================
-// 15. FUNCIONES WHATSAPP E IMPRESIÓN (MEJORADA)
-// ============================================================
 function limpiarTelefonoWhatsApp(telefono){
   let numero=(telefono||"").replace(/\D/g,"");
   if(numero.startsWith("00")) numero=numero.substring(2);
@@ -1918,7 +1855,6 @@ function imprimir(id){
     (esFactura && ot.esRectificativa) ? "FACTURA RECTIFICATIVA" :
     esFactura ? "FACTURA" : "ORDEN DE TRABAJO";
 
-  // Construir tabla de líneas si existen
   let tablaLineas="";
   let totalBase=0, totalIVA=0, total=0;
   if(ot.lineas && ot.lineas.length>0){
@@ -1942,7 +1878,6 @@ function imprimir(id){
       </div>`;
   }
 
-  // Si no hay líneas, mostrar el campo trabajos como texto
   let bloqueTrabajos = "";
   if(!ot.lineas || ot.lineas.length===0){
     bloqueTrabajos = `<h3>Trabajos</h3><div class="box">${htmlSeguro(ot.trabajos||"")}</div>`;
@@ -1997,9 +1932,6 @@ function imprimir(id){
   setTimeout(()=>{ window.print(); },1000);
 }
 
-// ============================================================
-// 16. FUNCIONES DE FILTRO
-// ============================================================
 function setFiltro(tipo){
   filtroActivo=tipo;
   ["matricula","cliente","fecha","factura","frec"].forEach(t=>{
@@ -2020,9 +1952,6 @@ function setFiltro(tipo){
   renderHistorial();
 }
 
-// ============================================================
-// 17. MÓDULO OCR (PLATE RECOGNIZER)
-// ============================================================
 const PLATE_TOKEN="0fe93fa4d4ed7ad906d040fb28eb36c3ee4cdc8f";
 let _ocrMatriculaDetectada=null;
 
@@ -2138,9 +2067,6 @@ function cerrarCamara(){
   _ocrMatriculaDetectada=null;
 }
 
-// ============================================================
-// 18. VALIDACIÓN NIF
-// ============================================================
 function calcularLetraNif(input){
   const LETRAS="TRWAGMYFPDXBNJZSQVHLCKE";
   let val=input.value.toUpperCase().replace(/\s/g,"");
@@ -2165,9 +2091,6 @@ function calcularLetraNif(input){
   }
 }
 
-// ============================================================
-// 19. INICIALIZACIÓN
-// ============================================================
 function inicializarPrueba(){
   if(ots.length>0) return;
   ots.push({
@@ -2190,19 +2113,16 @@ function inicializarPrueba(){
 completarNumeracionExistente();
 guardar();
 
-// Sincronizar estado
 document.getElementById("estado").addEventListener("change",function(){
   actualizarColorEstado();
   actualizarTextoBotonGuardar();
 });
 actualizarColorEstado();
 actualizarTextoBotonGuardar();
-renderLineas(); // inicializar tabla vacía
+renderLineas();
 
-// Guardado automático cada 5 minutos
 setInterval(()=>{ guardar(); }, 300000);
 
-// Eventos autocompletado
 document.getElementById("marca").addEventListener("input",mostrarMarcas);
 document.getElementById("marca").addEventListener("focus",mostrarMarcas);
 document.getElementById("modelo").addEventListener("input",mostrarModelos);
