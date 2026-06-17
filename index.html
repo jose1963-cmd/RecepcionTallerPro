@@ -75,7 +75,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R95</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R96</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -84,6 +84,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <button onclick="showTab('agenda')">AGENDA</button>
 <button onclick="showTab('taller')">TALLER</button>
 <button onclick="showTab('historial')">FACTURAS</button>
+<button onclick="showTab('estadisticas')">📊 ESTADÍSTICAS</button>
 </div>
 
 <div id="inicio" class="card hidden">
@@ -150,6 +151,7 @@ BIENVENIDO A GESTIÓN
 <label>Observaciones</label>
 <textarea id="observaciones" rows="4"></textarea>
 
+<!-- NUEVO PANEL DE LÍNEAS -->
 <div class="lineas-panel">
   <h3>🧾 LÍNEAS DE FACTURA</h3>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
@@ -213,6 +215,13 @@ BIENVENIDO A GESTIÓN
 <div id="almacenLista"></div>
 </div>
 
+<!-- PESTAÑA ESTADÍSTICAS -->
+<div id="estadisticas" class="card hidden">
+<h2>📊 ESTADÍSTICAS DE TALLER</h2>
+<div id="estadisticasContenido"></div>
+</div>
+
+<!-- Modal cámara OCR -->
 <input type="file" id="inputFotoCamara" accept="image/*" style="display:none" onchange="procesarFotoMatricula(event)">
 <div id="modalCamara">
 <div id="modalCamaraBox">
@@ -234,6 +243,7 @@ BIENVENIDO A GESTIÓN
 </div>
 </div>
 
+<!-- Modal artículos -->
 <div id="modalArticulo" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000a;z-index:9999;overflow-y:auto;padding:20px;">
 <div style="background:#1c2940;border:2px solid #ff7a1a;border-radius:18px;padding:20px;max-width:500px;margin:40px auto;">
 <h2 id="modalArticuloTitulo" style="color:#ff7a1a;margin-top:0;">✏️ ARTÍCULO</h2>
@@ -267,6 +277,7 @@ BIENVENIDO A GESTIÓN
 </div>
 </div>
 
+<!-- Modal selección de artículo -->
 <div id="modalSeleccionArticulo">
 <div id="modalSeleccionArticuloBox">
 <h2>🔍 SELECCIONAR ARTÍCULO</h2>
@@ -278,6 +289,7 @@ BIENVENIDO A GESTIÓN
 </div>
 </div>
 
+<!-- Modal ficha cliente -->
 <div id="modalCliente">
 <div id="modalClienteBox">
 <h2>📋 FICHA DE CLIENTE</h2>
@@ -305,6 +317,9 @@ BIENVENIDO A GESTIÓN
 </div>
 
 <script>
+// ============================================================
+// 1. FUNCIONES GLOBALES
+// ============================================================
 function numero(valor){
   if(valor===undefined || valor===null || valor==="") return null;
   const n=parseFloat(String(valor).replace(",","."));
@@ -328,10 +343,13 @@ function colorEstado(estado){
   return "#ff7a1a";
 }
 
-const APP_VERSION="R95-LINEAS";
+// ============================================================
+// 2. CONSTANTES Y VARIABLES GLOBALES
+// ============================================================
+const APP_VERSION="R96";
 const COPIA_VERSION=4;
 const APP_FECHA="17/06/2026";
-const APP_NOTAS="R95: Sistema completo de líneas de factura (artículos + MO), vinculación con almacén, descuento de stock, totales, P&L por OT, impresión profesional con tabla de líneas.";
+const APP_NOTAS="R96: Añadido sistema de líneas de factura (artículos + MO), vinculación con almacén, descuento de stock, totales, P&L por OT, impresión con tabla, y pestaña de estadísticas con consumo y top 5.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -346,7 +364,6 @@ let _otPendienteGuardar=null;
 let filtroActivo="matricula";
 let paginaHistorial=1;
 const POR_PAGINA=20;
-
 let lineasTemp=[];
 
 const MARCAS=["SEAT","VOLKSWAGEN","AUDI","SKODA","BMW","MERCEDES","PEUGEOT","RENAULT","CITROEN","OPEL","FORD","TOYOTA","NISSAN","KIA","HYUNDAI","DACIA","FIAT","MAZDA"];
@@ -384,6 +401,9 @@ const MODELOS={
 "VOLVO":["C30","S40","S60","S80","V40","V50","V60","V70","XC40","XC60","XC90"]
 };
 
+// ============================================================
+// 3. CARGA DE DATOS
+// ============================================================
 try{
   const guardado=JSON.parse(localStorage.getItem(STORAGE)||"[]");
   if(Array.isArray(guardado)){
@@ -401,6 +421,9 @@ try{
   clientes={}; vehiculos={}; articulos=[];
 }
 
+// ============================================================
+// 4. FUNCIONES AUXILIARES
+// ============================================================
 function formatearFecha(fecha){
   if(!fecha) return "SIN CITA";
   const d=new Date(fecha);
@@ -540,8 +563,11 @@ function sincronizarFiscalDesdeFicha(ot){
   return ot;
 }
 
+// ============================================================
+// 5. FUNCIONES DE INTERFAZ
+// ============================================================
 function showTab(id){
-  ["inicio","nueva","historial","agenda","taller","almacen"].forEach(t=>{
+  ["inicio","nueva","historial","agenda","taller","almacen","estadisticas"].forEach(t=>{
     document.getElementById(t).classList.toggle("hidden", t!==id);
   });
   document.getElementById("tabs").style.display = (id==="inicio"||id==="almacen") ? "none" : "flex";
@@ -551,11 +577,13 @@ function showTab(id){
   else if(id==="agenda"){ document.querySelectorAll("#tabs button")[1].classList.add("activo"); titulo.style.background="#2196f3"; titulo.style.color="white"; }
   else if(id==="taller"){ document.querySelectorAll("#tabs button")[2].classList.add("activo"); titulo.style.background="#9c27b0"; titulo.style.color="white"; }
   else if(id==="historial"){ document.querySelectorAll("#tabs button")[3].classList.add("activo"); titulo.style.background="#28a745"; titulo.style.color="white"; }
+  else if(id==="estadisticas"){ document.querySelectorAll("#tabs button")[4].classList.add("activo"); titulo.style.background="#9c27b0"; titulo.style.color="white"; }
   else { titulo.style.background="#0f1728"; titulo.style.color="#ff7a1a"; }
   if(id==="historial") setFiltro(filtroActivo);
   if(id==="agenda") renderAgenda();
   if(id==="taller") renderTaller();
   if(id==="almacen") renderAlmacen();
+  if(id==="estadisticas") renderEstadisticas();
   if(id==="inicio") actualizarAvisoCopia();
 }
 
@@ -563,6 +591,9 @@ function mostrarVersion(){
   alert(APP_VERSION+"\n"+APP_FECHA+"\n"+APP_NOTAS);
 }
 
+// ============================================================
+// 6. FUNCIONES DE TARJETA DE OT (MEJORADA CON LÍNEAS Y TOTALES)
+// ============================================================
 function crearTarjetaOT(ot){
   const ficha=buscarFichaCliente(ot.cliente)||{};
   const nif=ot.nif||ficha.nif||"";
@@ -593,6 +624,19 @@ function crearTarjetaOT(ot){
     bloqueTotales=`<br>${bloqueTotales}`;
   }
 
+  // Mostrar líneas o trabajos
+  let bloqueTrabajos = "";
+  if(ot.lineas && ot.lineas.length>0){
+    let lineasHtml = "<b>LÍNEAS:</b><br>";
+    ot.lineas.forEach(l=>{
+      const totalLinea = (l.cantidad||0)*(l.precio||0);
+      lineasHtml += `${htmlSeguro(l.descripcion||"")} x ${l.cantidad} → ${totalLinea.toFixed(2)} €<br>`;
+    });
+    bloqueTrabajos = lineasHtml;
+  } else {
+    bloqueTrabajos = `<b>TRABAJOS:</b><br>${htmlSeguro(ot.trabajos||"SIN TRABAJOS")}`;
+  }
+
   let botones="";
   if(esFactura){
     botones=`<button class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>
@@ -618,13 +662,16 @@ function crearTarjetaOT(ot){
     ${ot.estado==="FINALIZADO" ? "Fecha FAC" : "Fecha"}: ${formatearFecha(fechaDocumento(ot))}<br>
     ${bloqueTotales}
     <br>
-    <b>TRABAJOS:</b><br>${htmlSeguro(ot.trabajos||"SIN TRABAJOS")}<br><br>
+    ${bloqueTrabajos}<br><br>
     <b>OBSERVACIONES:</b><br>${htmlSeguro(ot.observaciones||"SIN OBSERVACIONES")}
     <br><br>
     <div class="acciones">${botones}</div>
   </div>`;
 }
 
+// ============================================================
+// 7. RENDERIZADO DE LISTAS
+// ============================================================
 function renderHistorial(){
   const texto=document.getElementById("buscar").value.trim().toUpperCase();
   const lista=document.getElementById("lista");
@@ -722,6 +769,9 @@ function renderTaller(){
   taller.innerHTML=enTaller.map(ot=>crearTarjetaOT(ot)).join("");
 }
 
+// ============================================================
+// 8. ALMACÉN
+// ============================================================
 function renderAlmacen(){
   const lista=document.getElementById("almacenLista");
   const texto=document.getElementById("buscarArticulo").value.trim().toUpperCase();
@@ -770,6 +820,9 @@ function renderAlmacen(){
   lista.innerHTML=html;
 }
 
+// ============================================================
+// 9. FUNCIONES DE ARTÍCULOS (MODAL)
+// ============================================================
 function abrirModalNuevoArticulo(){
   document.getElementById("modalArticuloTitulo").textContent="➕ NUEVO ARTÍCULO";
   document.getElementById("maRef").value="";
@@ -880,6 +933,9 @@ function cerrarModalArticulo(){
   document.getElementById("modalArticulo").style.display="none";
 }
 
+// ============================================================
+// 10. IMPORTACIÓN CSV
+// ============================================================
 function importarClientesCSVDesdeInicio(){
   document.getElementById("importClientesFile").onchange=function(e){
     procesarClientesCSV(e.target.files[0]);
@@ -1012,6 +1068,9 @@ function procesarArticulosCSV(file){
   reader.readAsText(file,"UTF-8");
 }
 
+// ============================================================
+// 11. FUNCIONES DE BÚSQUEDA Y GUARDADO DE OT
+// ============================================================
 function normalizar(t){ return (t||"").toUpperCase(); }
 
 function mostrarMarcas(){
@@ -1425,6 +1484,9 @@ function renderConceptosRectificativa(original){
   panel.style.display="block";
 }
 
+// ============================================================
+// 12. FUNCIONES DE LÍNEAS DE FACTURA (NUEVO)
+// ============================================================
 function renderLineas(){
   const tbody=document.getElementById("cuerpoLineas");
   const vacio=document.getElementById("lineasVacio");
@@ -1558,6 +1620,9 @@ function seleccionarArticulo(referencia, proveedor){
   }
 }
 
+// ============================================================
+// 13. FUNCIONES DE CLIENTE (MODAL FICHA)
+// ============================================================
 function abrirModalCliente(nombreCliente, fichaExistente){
   const ficha=fichaExistente || buscarFichaCliente(nombreCliente) || {};
   document.getElementById("modalCliente").dataset.clienteEdicion=nombreCliente;
@@ -1672,6 +1737,9 @@ function cancelarFicha(){
   _otPendienteGuardar=null;
 }
 
+// ============================================================
+// 14. FUNCIONES DE EXPORTACIÓN/IMPORTACIÓN DE COPIA
+// ============================================================
 function exportarCopia(){
   const copia={
     version:COPIA_VERSION,
@@ -1800,6 +1868,9 @@ function actualizarAvisoCopia(){
   }
 }
 
+// ============================================================
+// 15. FUNCIONES WHATSAPP E IMPRESIÓN (MEJORADA)
+// ============================================================
 function limpiarTelefonoWhatsApp(telefono){
   let numero=(telefono||"").replace(/\D/g,"");
   if(numero.startsWith("00")) numero=numero.substring(2);
@@ -1932,6 +2003,9 @@ function imprimir(id){
   setTimeout(()=>{ window.print(); },1000);
 }
 
+// ============================================================
+// 16. FUNCIONES DE FILTRO
+// ============================================================
 function setFiltro(tipo){
   filtroActivo=tipo;
   ["matricula","cliente","fecha","factura","frec"].forEach(t=>{
@@ -1952,6 +2026,9 @@ function setFiltro(tipo){
   renderHistorial();
 }
 
+// ============================================================
+// 17. MÓDULO OCR (PLATE RECOGNIZER)
+// ============================================================
 const PLATE_TOKEN="0fe93fa4d4ed7ad906d040fb28eb36c3ee4cdc8f";
 let _ocrMatriculaDetectada=null;
 
@@ -2067,6 +2144,9 @@ function cerrarCamara(){
   _ocrMatriculaDetectada=null;
 }
 
+// ============================================================
+// 18. VALIDACIÓN NIF
+// ============================================================
 function calcularLetraNif(input){
   const LETRAS="TRWAGMYFPDXBNJZSQVHLCKE";
   let val=input.value.toUpperCase().replace(/\s/g,"");
@@ -2091,6 +2171,99 @@ function calcularLetraNif(input){
   }
 }
 
+// ============================================================
+// 19. ESTADÍSTICAS
+// ============================================================
+function calcularEstadisticas(){
+  const facturas = ots.filter(ot => ot.estado === "FINALIZADO");
+  const totalFacturas = facturas.length;
+  let totalFacturado = 0;
+  let totalBeneficio = 0;
+  let totalCoste = 0;
+  let consumoArticulos = {};
+
+  facturas.forEach(ot => {
+    if (ot.total) totalFacturado += ot.total;
+    if (ot.beneficio) totalBeneficio += ot.beneficio;
+    if (ot.coste_total_ot) totalCoste += ot.coste_total_ot;
+
+    if (ot.lineas) {
+      ot.lineas.forEach(linea => {
+        if (linea.tipo === "articulo" && linea.referencia) {
+          const ref = linea.referencia;
+          if (!consumoArticulos[ref]) {
+            const art = articulos.find(a => a.referencia === ref && a.proveedor === linea.proveedor);
+            consumoArticulos[ref] = {
+              descripcion: linea.descripcion || ref,
+              proveedor: linea.proveedor || "",
+              cantidad: 0,
+              totalVenta: 0,
+              totalCoste: 0,
+              stockActual: art ? (art.stock || 0) : 0
+            };
+          }
+          consumoArticulos[ref].cantidad += (linea.cantidad || 0);
+          consumoArticulos[ref].totalVenta += (linea.cantidad || 0) * (linea.precio || 0);
+          consumoArticulos[ref].totalCoste += (linea.cantidad || 0) * (linea.coste_unitario || 0);
+        }
+      });
+    }
+  });
+
+  const articulosConsumo = Object.values(consumoArticulos)
+    .sort((a, b) => b.cantidad - a.cantidad);
+  const top5 = articulosConsumo.slice(0, 5);
+  const margenMedio = totalFacturado > 0 ? (totalBeneficio / totalFacturado) * 100 : 0;
+
+  return { totalFacturas, totalFacturado, totalBeneficio, totalCoste, margenMedio, articulosConsumo, top5 };
+}
+
+function renderEstadisticas(){
+  const contenedor = document.getElementById("estadisticasContenido");
+  if (!contenedor) return;
+  const stats = calcularEstadisticas();
+
+  let html = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div class="item" style="border-left-color:#ff7a1a;"><b>📄 Facturas emitidas</b><br>${stats.totalFacturas}</div>
+      <div class="item" style="border-left-color:#28a745;"><b>💰 Total facturado</b><br>${stats.totalFacturado.toFixed(2)} €</div>
+      <div class="item" style="border-left-color:#ff7a1a;"><b>📈 Beneficio total</b><br>${stats.totalBeneficio.toFixed(2)} €</div>
+      <div class="item" style="border-left-color:#2196f3;"><b>📊 Margen medio</b><br>${stats.margenMedio.toFixed(1)} %</div>
+    </div>
+  `;
+
+  if (stats.top5.length > 0) {
+    html += `<h3 style="color:#ff7a1a;">🏆 TOP 5 ARTÍCULOS MÁS VENDIDOS</h3><div class="item" style="border-left-color:#ff7a1a;">`;
+    stats.top5.forEach((a, i) => {
+      html += `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #2a3a55;padding:6px 0;">
+        <span><b>#${i+1}</b> ${htmlSeguro(a.descripcion)}</span>
+        <span>${a.cantidad} uds · ${a.totalVenta.toFixed(2)} €</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (stats.articulosConsumo.length > 0) {
+    html += `<h3 style="color:#ff7a1a;margin-top:16px;">📦 CONSUMO DE ARTÍCULOS</h3>
+      <div class="item" style="border-left-color:#ff7a1a;max-height:300px;overflow-y:auto;">`;
+    stats.articulosConsumo.forEach(a => {
+      const stockActual = a.stockActual !== undefined ? a.stockActual : "?";
+      html += `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #2a3a55;padding:6px 0;font-size:13px;">
+        <span><b>${htmlSeguro(a.descripcion)}</b> (${a.proveedor})</span>
+        <span>${a.cantidad} uds · ${a.totalVenta.toFixed(2)} € · Stock: ${stockActual}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  } else {
+    html += `<p style="color:#aab4c8;">No hay artículos vendidos todavía.</p>`;
+  }
+
+  contenedor.innerHTML = html;
+}
+
+// ============================================================
+// 20. INICIALIZACIÓN
+// ============================================================
 function inicializarPrueba(){
   if(ots.length>0) return;
   ots.push({
