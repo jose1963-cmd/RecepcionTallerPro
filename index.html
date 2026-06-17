@@ -6,16 +6,349 @@
 <title>Autoborja</title>
 <link rel="apple-touch-icon" href="icono.png">
 <style>
-/* (mismo CSS que el original, no lo repito por brevedad, pero se mantiene intacto) */
+body{font-family:Arial,sans-serif;background:#0f1728;margin:0;padding:16px;color:#e8edf7}
+.card{background:#1c2940;padding:18px;border-radius:18px;max-width:700px;margin:0 auto 18px;box-shadow:0 2px 10px #0004;border:2px solid #ff7a1a}
+h1{text-align:center;color:#ff7a1a;background:#0b1220;margin:-16px -16px 16px;padding:22px 10px;font-size:26px}
+h2{margin:8px 0 14px;color:#ffffff}
+.tabs{display:flex;gap:8px;max-width:700px;margin:0 auto 14px}
+.tabs button{flex:1;background:#1c2940;color:#e8edf7;border:1px solid #ff7a1a;transition:0.15s}
+.tabs button.activo{border:4px solid white;transform:scale(1.08);box-shadow:0 0 12px white}
+input,textarea,select,button{width:100%;box-sizing:border-box;padding:13px;margin:6px 0 12px;border-radius:12px;border:1px solid #3b4a63;font-size:16px;background:#101827;color:#e8edf7}
+button{background:#ff7a1a;color:#0f1728;font-weight:bold;border:none}
+button.secondary{background:#344d7a;color:white}
+button.green{background:#28a745;color:white}
+button.danger{background:#b00020;color:white}
+.acciones{display:flex;gap:6px;margin-top:10px}
+.acciones button{margin:0;padding:10px 6px;font-size:13px;flex:1}
+label{font-weight:bold;color:#ff7a1a}
+.hidden{display:none}
+.item{background:#101827;color:#e8edf7;padding:12px;margin-top:10px;border-radius:12px;border-left:5px solid #ff7a1a}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+.row input{width:100%;max-width:100%}
+.results button{background:#101827;color:#e8edf7;text-align:left;border-radius:0;margin:0;border-bottom:1px solid #3b4a63}
+.notice{background:#10281d;border-left:5px solid #28a745;padding:10px;border-radius:10px;margin-bottom:12px;font-weight:bold;color:#e8edf7}
+input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+#estado{font-weight:bold}
+#estado option{font-weight:bold}
+.estado-citado{background:#2196f3;color:white}
+.estado-entaller{background:#ff7a1a;color:white}
+.estado-finalizado{background:#28a745;color:white}
+#modalCamara{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000d;z-index:10000;overflow-y:auto;padding:16px}
+#modalCamaraBox{background:#0f1728;border:2px solid #ff7a1a;border-radius:18px;padding:16px;max-width:500px;margin:20px auto}
+#modalCamaraBox h2{color:#ff7a1a;margin-top:0;text-align:center}
+#videoOCR{width:100%;border-radius:12px;border:2px solid #3b4a63;background:#000;display:block;max-height:260px;object-fit:cover}
+#overlayMat{text-align:center;font-size:28px;font-weight:bold;letter-spacing:6px;color:#ff7a1a;background:#0f1728;border-radius:10px;padding:12px 6px;margin:10px 0;min-height:54px;border:2px solid #ff7a1a}
+#estadoOCR{text-align:center;font-size:14px;color:#aab4c8;margin-bottom:10px;min-height:20px}
+#panelHistorialCamara{background:#101827;border-radius:12px;padding:10px;margin-top:10px;border:1px solid #3b4a63;display:none}
+#panelHistorialCamara h3{color:#ff7a1a;margin:0 0 8px;font-size:15px}
+#listadoHistCamara{font-size:13px;color:#e8edf7;max-height:160px;overflow-y:auto}
+.item-hist-cam{border-left:3px solid #ff7a1a;padding:6px 8px;margin-bottom:6px;background:#1c2940;border-radius:8px}
+#botoneraCamara{display:flex;gap:10px;margin-top:12px}
+#modalCliente{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000a;z-index:9999;overflow-y:auto;padding:20px}
+#modalClienteBox{background:#1c2940;border:2px solid #ff7a1a;border-radius:18px;padding:20px;max-width:500px;margin:40px auto}
+#modalClienteBox h2{color:#ff7a1a;margin-top:0}
+#modalClienteBox label{font-weight:bold;color:#ff7a1a;display:block;margin-top:10px}
+#modalClienteBox input{margin:4px 0 10px}
+.version-app{position:absolute;top:8px;right:12px;font-size:12px;color:#aab4c8;font-weight:bold;background:#0b1220;border:1px solid #3b4a63;border-radius:8px;padding:4px 8px;z-index:10}
+.version-app button{all:unset;cursor:pointer}
+.resumen-frec{background:#101827;border:2px solid #ff7a1a;border-radius:14px;padding:12px;margin-bottom:12px;color:#e8edf7}
+.resumen-frec h3{margin:0 0 10px;color:#ff7a1a;font-size:17px}
+.resumen-frec .mini{background:#0b1220;border:1px solid #3b4a63;border-radius:10px;padding:10px;margin:8px 0;white-space:pre-wrap;line-height:1.35}
+.resumen-frec .aviso{background:#16233a;border-left:4px solid #2196f3;padding:9px;border-radius:8px;font-size:13px;color:#cfe3ff;margin-bottom:10px}
+.aviso-modal{background:#2a1a00;border-left:4px solid #ff7a1a;padding:10px;border-radius:8px;font-size:14px;margin-bottom:14px;color:#ffd580}
+.lineas-panel{background:#101827;border:1px solid #3b4a63;border-radius:12px;padding:12px;margin-top:16px}
+.lineas-panel h3{color:#ff7a1a;margin:0 0 8px}
+.lineas-tabla{width:100%;border-collapse:collapse;font-size:14px}
+.lineas-tabla th{text-align:left;color:#aab4c8;font-weight:normal;border-bottom:1px solid #3b4a63;padding:6px 4px}
+.lineas-tabla td{padding:6px 4px;border-bottom:1px solid #2a3a55}
+.lineas-tabla .eliminar{background:none;border:none;color:#b00020;font-size:18px;cursor:pointer;padding:0 4px;width:auto;margin:0}
+.lineas-totales{display:flex;gap:20px;flex-wrap:wrap;margin-top:10px;font-weight:bold}
+.lineas-totales span{background:#0b1220;padding:6px 12px;border-radius:8px}
+.btn-anadir{background:#344d7a;color:white;margin:4px 4px 4px 0;padding:8px 14px;font-size:14px;width:auto;display:inline-block}
+#modalSeleccionArticulo{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000a;z-index:9999;padding:20px;overflow-y:auto}
+#modalSeleccionArticuloBox{background:#1c2940;border:2px solid #ff7a1a;border-radius:18px;padding:20px;max-width:600px;margin:40px auto}
+#modalSeleccionArticuloBox h2{color:#ff7a1a;margin-top:0}
+.lista-articulos-modal{max-height:300px;overflow-y:auto}
+.lista-articulos-modal button{background:#101827;color:#e8edf7;border-bottom:1px solid #3b4a63;border-radius:0;margin:0;text-align:left;padding:10px}
 </style>
 </head>
 <body>
 
-<!-- Todo el HTML es idéntico al original, no lo repito aquí para no alargar, pero se mantiene exactamente igual -->
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R98</button></div>
+
+<h1 id="tituloApp">TALLERES AUTOBORJA</h1>
+
+<div id="tabs" class="tabs">
+<button onclick="showTab('nueva')">NUEVA OT</button>
+<button onclick="showTab('agenda')">AGENDA</button>
+<button onclick="showTab('taller')">TALLER</button>
+<button onclick="showTab('historial')">FACTURAS</button>
+<button onclick="showTab('estadisticas')">📊 ESTADÍSTICAS</button>
+<button onclick="showTab('ganancias')">💰 GANANCIAS</button>
+</div>
+
+<div id="inicio" class="card hidden">
+<h1 style="text-align:center;font-size:30px;color:#ff7a1a;margin-bottom:6px;letter-spacing:1px;">
+BIENVENIDO A GESTIÓN
+</h1>
+<button class="green" onclick="showTab('nueva')" style="width:100%;font-size:24px;padding:20px;margin-top:18px;">NUEVA OT</button>
+<div id="avisoCopia" style="background:#2a1a00;border-left:4px solid #ff7a1a;padding:10px 14px;border-radius:10px;margin-bottom:6px;font-size:13px;color:#ffd580;"></div>
+<button class="secondary" onclick="exportarCopia()" type="button">EXPORTAR COPIA</button>
+<input type="file" id="backupFile" accept=".json" style="display:none" onchange="importarCopia(event)">
+<button class="secondary" onclick="document.getElementById('backupFile').click()" type="button">IMPORTAR COPIA</button>
+<input type="file" id="importClientesFile" accept=".csv" style="display:none">
+<button class="secondary" onclick="importarClientesCSVDesdeInicio()" type="button">IMPORTAR CLIENTES CSV</button>
+<input type="file" id="importVehiculosFile" accept=".csv" style="display:none">
+<button class="secondary" onclick="importarVehiculosCSVDesdeInicio()" type="button">IMPORTAR VEHÍCULOS CSV</button>
+<input type="file" id="importArticulosFile" accept=".csv" style="display:none">
+<button class="secondary" onclick="importarArticulosCSVDesdeInicio()" type="button">IMPORTAR ARTÍCULOS CSV</button>
+<button class="secondary" onclick="showTab('almacen')" type="button">📦 ALMACÉN</button>
+<button class="danger" onclick="resetearPrograma()" type="button">BORRAR PRUEBAS / EMPEZAR DE CERO</button>
+</div>
+
+<div id="nueva" class="card hidden">
+<h2 id="tituloFormulario">Nueva Orden</h2>
+<div id="bannerEdicion" style="display:none;background:#7b2fff;color:white;font-weight:bold;font-size:15px;padding:12px 14px;border-radius:12px;margin-bottom:12px;text-align:center;">
+✏️ MODO EDICIÓN — <span id="bannerEdicionRef"></span>
+<button type="button" onclick="cancelarEdicion()" style="width:auto;padding:6px 14px;margin:0 0 0 12px;font-size:13px;background:white;color:#7b2fff;border-radius:8px;">✕ CANCELAR</button>
+</div>
+<div id="panelRectificativa" style="display:none;background:#2a0015;border:2px solid #b00020;border-radius:14px;padding:12px;margin-bottom:12px;color:#ffd6e7;">
+<div id="tituloRectificativa" style="font-weight:bold;font-size:18px;color:white;margin-bottom:8px;">FACTURA RECTIFICATIVA</div>
+<div id="datosFacturaOriginal" style="font-size:14px;line-height:1.45;margin-bottom:10px;"></div>
+<label style="color:#ff9cff;">Motivo de rectificación *</label>
+<textarea id="motivoRectificativa" rows="3" placeholder="Ej: Corrección de importe, abono de pieza, corrección de concepto..." style="border:1px solid #b00020;"></textarea>
+</div>
+<div id="panelConceptosRectificativa" class="resumen-frec" style="display:none;"></div>
+<label>Matrícula *</label>
+<div style="display:flex;gap:8px;align-items:flex-start;">
+<input id="matricula" placeholder="0000ABC" style="flex:1;margin:6px 0 12px;">
+<button type="button" onclick="abrirCamara()" style="flex:0 0 auto;width:auto;padding:13px 16px;margin:6px 0 12px;font-size:20px;line-height:1;" title="Seleccionar foto de matrícula">📷</button>
+</div>
+<button onclick="buscarMatricula()" type="button">BUSCAR MATRÍCULA</button>
+<div id="aviso" class="notice hidden"></div>
+<label>Cliente *</label>
+<input id="cliente" placeholder="Nombre y apellidos">
+<label>Teléfono</label>
+<input id="telefono" type="tel" inputmode="numeric" maxlength="9" placeholder="Teléfono">
+<label>Marca</label>
+<input id="marca" placeholder="Escribe marca">
+<div id="marcaResultados" class="results"></div>
+<label>Modelo</label>
+<input id="modelo" placeholder="Escribe modelo">
+<div id="modeloResultados" class="results"></div>
+<div class="row">
+<div><label>KM</label><input id="km" type="number" inputmode="numeric" placeholder="KM"></div>
+<div><label>Fecha / cita</label><input id="fecha" type="datetime-local"></div>
+</div>
+<label>Estado</label>
+<select id="estado" onchange="irGuardar();actualizarTextoBotonGuardar();">
+<option>CITADO</option>
+<option>EN TALLER</option>
+<option>FINALIZADO</option>
+</select>
+<label>Trabajos *</label>
+<textarea id="trabajos" rows="5"></textarea>
+<label>Observaciones</label>
+<textarea id="observaciones" rows="4"></textarea>
+
+<!-- NUEVO PANEL DE LÍNEAS -->
+<div class="lineas-panel">
+  <h3>🧾 LÍNEAS DE FACTURA</h3>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+    <button type="button" class="btn-anadir green" onclick="abrirModalSeleccionArticulo()">➕ AÑADIR ARTÍCULO</button>
+    <button type="button" class="btn-anadir secondary" onclick="anadirLineaManoObra()">➕ AÑADIR MANO DE OBRA</button>
+  </div>
+  <div id="contenedorLineas">
+    <table class="lineas-tabla" id="tablaLineas">
+      <thead><tr><th>Concepto</th><th>Cantidad</th><th>Precio</th><th>Total</th><th style="width:30px"></th></tr></thead>
+      <tbody id="cuerpoLineas"></tbody>
+    </table>
+  </div>
+  <div id="lineasVacio" style="color:#aab4c8;font-size:14px;padding:8px 0;">No hay líneas añadidas.</div>
+  <div class="lineas-totales" id="totalesLineas">
+    <span>Base: <b id="totalBase">0,00 €</b></span>
+    <span>IVA (21%): <b id="totalIva">0,00 €</b></span>
+    <span>Total: <b id="totalFactura">0,00 €</b></span>
+  </div>
+</div>
+
+<button id="btnGuardar" class="green" onclick="guardarOT()" type="button">GUARDAR OT</button>
+</div>
+
+<div id="historial" class="card hidden">
+<h2>Facturas</h2>
+<div id="filtroTabs" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+<button type="button" id="ftbMatricula" onclick="setFiltro('matricula')" style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">MATRÍCULA</button>
+<button type="button" id="ftbCliente"   onclick="setFiltro('cliente')"   style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">CLIENTE</button>
+<button type="button" id="ftbFecha"     onclick="setFiltro('fecha')"     style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">FECHA</button>
+<button type="button" id="ftbFactura"   onclick="setFiltro('factura')"   style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">Nº FACTURA</button>
+<button type="button" id="ftbFrec"      onclick="setFiltro('frec')"      style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">FREC</button>
+</div>
+<input id="buscar" placeholder="Buscar matrícula..." oninput="renderHistorial()" style="display:block;">
+<div id="lista"></div>
+<div id="paginacionHistorial" style="display:flex;justify-content:center;gap:10px;margin-top:12px;"></div>
+</div>
+
+<div id="agenda" class="card hidden">
+<h2>Agenda</h2>
+<div id="agendaLista"></div>
+</div>
+<div id="taller" class="card hidden">
+<h2>Taller</h2>
+<div id="tallerLista"><p>No hay vehículos en taller.</p></div>
+</div>
+<div id="almacen" class="card hidden">
+<h2>📦 Almacén</h2>
+<div style="display:flex;gap:8px;margin-bottom:10px;">
+<button type="button" class="secondary" onclick="showTab('inicio')" style="margin:0;flex:1;">⬅️ INICIO</button>
+<button type="button" class="green" onclick="abrirModalNuevoArticulo()" style="margin:0;flex:1;">➕ NUEVO ARTÍCULO</button>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:0;">
+<select id="campoBusquedaArticulo" onchange="renderAlmacen()" style="flex:0 0 auto;width:auto;margin:6px 0 12px;padding:13px 10px;font-size:15px;background:#101827;color:#ff7a1a;border:1px solid #ff7a1a;border-radius:12px;font-weight:bold;">
+<option value="referencia">REFERENCIA</option>
+<option value="descripcion">DESCRIPCIÓN</option>
+<option value="proveedor">PROVEEDOR</option>
+<option value="familia">FAMILIA</option>
+</select>
+<input id="buscarArticulo" placeholder="Buscar..." oninput="renderAlmacen()" style="flex:1;margin:6px 0 12px;">
+</div>
+<div id="almacenLista"></div>
+</div>
+
+<!-- PESTAÑA ESTADÍSTICAS -->
+<div id="estadisticas" class="card hidden">
+<h2>📊 ESTADÍSTICAS DE TALLER</h2>
+<div id="estadisticasContenido"></div>
+</div>
+
+<!-- NUEVA PESTAÑA GANANCIAS -->
+<div id="ganancias" class="card hidden">
+<h2>💰 GANANCIAS</h2>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
+  <div style="flex:1;min-width:120px;">
+    <label>Período</label>
+    <select id="periodoGanancias" onchange="cambiarPeriodo()">
+      <option value="semana">Semana actual</option>
+      <option value="mes">Mes actual</option>
+      <option value="personalizado">Personalizado</option>
+    </select>
+  </div>
+  <div style="flex:1;min-width:120px;display:none;" id="fechasPersonalizadas">
+    <label>Desde</label>
+    <input type="date" id="fechaInicioG">
+    <label>Hasta</label>
+    <input type="date" id="fechaFinG">
+  </div>
+  <div style="flex:1;min-width:120px;">
+    <label>Familia de recambio</label>
+    <select id="familiaGanancias">
+      <option value="">Todas</option>
+    </select>
+  </div>
+  <button class="green" onclick="renderGanancias()" style="width:auto;padding:8px 20px;align-self:flex-end;">📊 CALCULAR</button>
+</div>
+<div id="resultadoGanancias"></div>
+</div>
+
+<!-- Modal cámara OCR -->
+<input type="file" id="inputFotoCamara" accept="image/*" style="display:none" onchange="procesarFotoMatricula(event)">
+<div id="modalCamara">
+<div id="modalCamaraBox">
+<h2>📷 ESCÁNER DE MATRÍCULA</h2>
+<div id="overlayMat">— — — — — —</div>
+<div id="estadoOCR">Procesando imagen...</div>
+<div id="previewFoto" style="display:none;margin:10px 0;">
+<img id="imgPreview" style="width:100%;border-radius:10px;border:2px solid #3b4a63;">
+</div>
+<div id="panelHistorialCamara">
+<h3>📁 HISTORIAL DEL VEHÍCULO</h3>
+<div id="listadoHistCamara"></div>
+</div>
+<div id="botoneraCamara">
+<button type="button" class="green" id="btnAceptarCamara" onclick="aceptarMatriculaEscaneada()" style="margin:0;display:none;">✅ ACEPTAR</button>
+<button type="button" id="btnRepetirFoto" onclick="repetirFoto()" style="margin:0;display:none;background:#344d7a;color:white;">🔄 REPETIR</button>
+<button type="button" class="danger" onclick="cerrarCamara()" style="margin:0;">❌ CERRAR</button>
+</div>
+</div>
+</div>
+
+<!-- Modal artículos -->
+<div id="modalArticulo" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000a;z-index:9999;overflow-y:auto;padding:20px;">
+<div style="background:#1c2940;border:2px solid #ff7a1a;border-radius:18px;padding:20px;max-width:500px;margin:40px auto;">
+<h2 id="modalArticuloTitulo" style="color:#ff7a1a;margin-top:0;">✏️ ARTÍCULO</h2>
+<label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Referencia *</label>
+<input id="maRef" placeholder="REF-001" style="margin:4px 0 10px;">
+<label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Descripción *</label>
+<input id="maDesc" placeholder="Descripción del artículo">
+<label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Proveedor *</label>
+<input id="maProv" placeholder="Nombre del proveedor">
+<label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Familia</label>
+<input id="maFam" placeholder="Filtros, Aceites, Frenos...">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+<div><label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Precio compra (€)</label><input id="maPcomp" type="number" step="0.01" min="0" placeholder="0.00" oninput="calcularPVP()"></div>
+<div><label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Margen (%)</label><input id="maMargen" type="number" step="0.1" min="0" placeholder="30" oninput="calcularPVP()"></div>
+</div>
+<label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Precio venta (€)</label>
+<input id="maPventa" type="number" step="0.01" min="0" placeholder="0.00">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+<div><label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">IVA (%)</label><input id="maIva" type="number" step="1" min="0" value="21" placeholder="21"></div>
+<div><label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Stock</label><input id="maStock" type="number" step="1" min="0" placeholder="0"></div>
+<div><label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Stock mín.</label><input id="maStockMin" type="number" step="1" min="0" placeholder="0"></div>
+</div>
+<label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Observaciones</label>
+<textarea id="maObs" rows="2" placeholder="Notas..." style="width:100%;box-sizing:border-box;resize:vertical;"></textarea>
+<input type="hidden" id="maClaveOriginal">
+<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+<button type="button" class="green" onclick="guardarArticuloModal()" style="margin:0;flex:2;">💾 GUARDAR</button>
+<button type="button" class="danger" onclick="eliminarArticuloModal()" style="margin:0;flex:1;">🗑 ELIMINAR</button>
+<button type="button" class="secondary" onclick="cerrarModalArticulo()" style="margin:0;flex:1;">CANCELAR</button>
+</div>
+</div>
+</div>
+
+<!-- Modal selección de artículo -->
+<div id="modalSeleccionArticulo">
+<div id="modalSeleccionArticuloBox">
+<h2>🔍 SELECCIONAR ARTÍCULO</h2>
+<input id="buscarArticuloModal" placeholder="Buscar por referencia o descripción..." oninput="renderListaArticulosModal()">
+<div id="listaArticulosModal" class="lista-articulos-modal"></div>
+<div style="display:flex;gap:10px;margin-top:16px;">
+<button type="button" class="danger" onclick="cerrarModalSeleccionArticulo()" style="margin:0;">CANCELAR</button>
+</div>
+</div>
+</div>
+
+<!-- Modal ficha cliente -->
+<div id="modalCliente">
+<div id="modalClienteBox">
+<h2>📋 FICHA DE CLIENTE</h2>
+<div class="aviso-modal">⚠️ Para emitir una factura válida es obligatorio completar el NIF/NIE y la dirección del cliente.<br>Estos datos quedan guardados para futuras facturas.</div>
+<div id="modalClienteNombre" style="font-weight:bold;font-size:17px;color:#fff;margin-bottom:10px;"></div>
+<label>NIF / NIE *</label>
+<input id="mcNif" placeholder="12345678A" maxlength="20" oninput="calcularLetraNif(this)">
+<label>Dirección *</label>
+<input id="mcDireccion" placeholder="Calle, número, piso...">
+<label>C. Postal - Ciudad</label>
+<input id="mcPoblacion" placeholder="50540 - Borja">
+<div style="display:flex;gap:10px;">
+<div style="flex:1;"><label>Móvil</label><input id="mcMovil" type="tel" inputmode="numeric" maxlength="9" placeholder="600000000"></div>
+<div style="flex:1;"><label>Tfno</label><input id="mcTfno" type="tel" inputmode="numeric" maxlength="9" placeholder="976000000"></div>
+</div>
+<label>E-mail</label>
+<input id="mcEmail" type="email" placeholder="cliente@correo.com">
+<label>Observaciones</label>
+<textarea id="mcObservaciones" placeholder="Notas sobre el cliente..." rows="3" style="width:100%;box-sizing:border-box;resize:vertical;"></textarea>
+<div style="display:flex;gap:10px;margin-top:14px;">
+<button type="button" class="green" onclick="confirmarFicha()" style="margin:0;">GUARDAR Y CONTINUAR</button>
+<button type="button" class="danger" onclick="cancelarFicha()" style="margin:0;flex:0.5;">CANCELAR</button>
+</div>
+</div>
+</div>
 
 <script>
 // ============================================================
-// 1. FUNCIONES GLOBALES (sin cambios)
+// 1. FUNCIONES GLOBALES
 // ============================================================
 function numero(valor){
   if(valor===undefined || valor===null || valor==="") return null;
@@ -41,12 +374,12 @@ function colorEstado(estado){
 }
 
 // ============================================================
-// 2. CONSTANTES Y VARIABLES GLOBALES (sin cambios)
+// 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R98"; // actualizo versión
+const APP_VERSION="R98";
 const COPIA_VERSION=4;
 const APP_FECHA="17/06/2026";
-const APP_NOTAS="R98: Corrección de NIF, restauración de stock al editar, y mejoras en estadísticas y ganancias.";
+const APP_NOTAS="R98: Corrección de NIF/NIE (soporte X/Y/Z), restauración de stock al editar/cancelar/eliminar OT, corrección de doble descuento de stock al seleccionar artículo.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -99,7 +432,7 @@ const MODELOS={
 };
 
 // ============================================================
-// 3. CARGA DE DATOS (sin cambios)
+// 3. CARGA DE DATOS
 // ============================================================
 try{
   const guardado=JSON.parse(localStorage.getItem(STORAGE)||"[]");
@@ -119,7 +452,7 @@ try{
 }
 
 // ============================================================
-// 4. FUNCIONES AUXILIARES (sin cambios)
+// 4. FUNCIONES AUXILIARES
 // ============================================================
 function formatearFecha(fecha){
   if(!fecha) return "SIN CITA";
@@ -261,7 +594,7 @@ function sincronizarFiscalDesdeFicha(ot){
 }
 
 // ============================================================
-// 5. FUNCIONES DE INTERFAZ (sin cambios)
+// 5. FUNCIONES DE INTERFAZ
 // ============================================================
 function showTab(id){
   ["inicio","nueva","historial","agenda","taller","almacen","estadisticas","ganancias"].forEach(t=>{
@@ -291,7 +624,7 @@ function mostrarVersion(){
 }
 
 // ============================================================
-// 6. FUNCIONES DE TARJETA DE OT (sin cambios)
+// 6. FUNCIONES DE TARJETA DE OT (MEJORADA CON LÍNEAS Y TOTALES)
 // ============================================================
 function crearTarjetaOT(ot){
   const ficha=buscarFichaCliente(ot.cliente)||{};
@@ -323,6 +656,7 @@ function crearTarjetaOT(ot){
     bloqueTotales=`<br>${bloqueTotales}`;
   }
 
+  // Mostrar líneas o trabajos
   let bloqueTrabajos = "";
   if(ot.lineas && ot.lineas.length>0){
     let lineasHtml = "<b>LÍNEAS:</b><br>";
@@ -368,7 +702,7 @@ function crearTarjetaOT(ot){
 }
 
 // ============================================================
-// 7. RENDERIZADO DE LISTAS (sin cambios)
+// 7. RENDERIZADO DE LISTAS
 // ============================================================
 function renderHistorial(){
   const texto=document.getElementById("buscar").value.trim().toUpperCase();
@@ -468,7 +802,7 @@ function renderTaller(){
 }
 
 // ============================================================
-// 8. ALMACÉN (sin cambios, solo añado corrección en estadísticas)
+// 8. ALMACÉN
 // ============================================================
 function renderAlmacen(){
   const lista=document.getElementById("almacenLista");
@@ -519,7 +853,7 @@ function renderAlmacen(){
 }
 
 // ============================================================
-// 9. FUNCIONES DE ARTÍCULOS (MODAL) - sin cambios
+// 9. FUNCIONES DE ARTÍCULOS (MODAL)
 // ============================================================
 function abrirModalNuevoArticulo(){
   document.getElementById("modalArticuloTitulo").textContent="➕ NUEVO ARTÍCULO";
@@ -632,7 +966,7 @@ function cerrarModalArticulo(){
 }
 
 // ============================================================
-// 10. IMPORTACIÓN CSV (sin cambios)
+// 10. IMPORTACIÓN CSV
 // ============================================================
 function importarClientesCSVDesdeInicio(){
   document.getElementById("importClientesFile").onchange=function(e){
@@ -767,7 +1101,7 @@ function procesarArticulosCSV(file){
 }
 
 // ============================================================
-// 11. FUNCIONES DE BÚSQUEDA Y GUARDADO DE OT (CORREGIDAS)
+// 11. FUNCIONES DE BÚSQUEDA Y GUARDADO DE OT
 // ============================================================
 function normalizar(t){ return (t||"").toUpperCase(); }
 
@@ -831,7 +1165,7 @@ function buscarMatricula(){
   document.getElementById("aviso").innerText="MATRÍCULA NO ENCONTRADA";
 }
 
-// --- NUEVAS FUNCIONES PARA CONTROL DE STOCK AL EDITAR ---
+// --- CONTROL DE STOCK AL EDITAR/ELIMINAR ---
 function restaurarStockOT(ot){
   if(!ot || !ot.lineas) return;
   ot.lineas.forEach(linea => {
@@ -850,13 +1184,12 @@ function descontarStockOT(ot){
     if(linea.tipo === "articulo" && linea.referencia){
       const art = articulos.find(a => a.referencia === linea.referencia && a.proveedor === linea.proveedor);
       if(art){
-        const cantidad = linea.cantidad || 0;
-        art.stock = Math.max(0, (art.stock || 0) - cantidad);
+        art.stock = Math.max(0, (art.stock || 0) - (linea.cantidad || 0));
       }
     }
   });
 }
-// ---------------------------------------------------------
+// ------------------------------------------
 
 function guardarOT(){
   const ot={
@@ -953,8 +1286,7 @@ function _completarGuardadoOT(ot){
     if(!ot.email && anterior.email) ot.email=anterior.email;
     sincronizarFiscalDesdeFicha(ot);
     asegurarNumeracion(ot);
-    // Descontar stock de la OT editada (ya se restauró al entrar en edición)
-    descontarStockOT(ot);
+    descontarStockOT(ot); // Descontar stock de la OT editada (se restauró al entrar en edición)
     ots=ots.map(x=>x.id===editandoId ? ot : x);
     editandoId=null;
     rectificandoId=null;
@@ -978,7 +1310,7 @@ function _completarGuardadoOT(ot){
     ot.motivoRectificativa=ot.motivoRectificativa || (document.getElementById("motivoRectificativa") ? document.getElementById("motivoRectificativa").value.trim().toUpperCase() : "");
     sincronizarFiscalDesdeFicha(ot);
     asegurarNumeracion(ot);
-    descontarStockOT(ot); // Descontar stock de la nueva factura rectificativa
+    descontarStockOT(ot); // Descontar stock de la factura rectificativa
     ots.push(ot);
     alert("FACTURA RECTIFICATIVA CREADA: "+referenciaOT(ot)+" sobre "+ot.facturaRectificada);
     rectificandoId=null;
@@ -988,7 +1320,7 @@ function _completarGuardadoOT(ot){
     }
     sincronizarFiscalDesdeFicha(ot);
     asegurarNumeracion(ot);
-    descontarStockOT(ot); // Descontar stock de la nueva OT
+    descontarStockOT(ot); // Descontar stock de la nueva OT (artículos ya en lineasTemp pero stock NO descontado aún)
     ots.push(ot);
     alert("OT GUARDADA: "+referenciaOT(ot));
   }
@@ -1020,8 +1352,9 @@ function editarOT(id){
     sincronizarFiscalDesdeFicha(ot);
     guardar();
   }
-  // Restaurar stock de los artículos de esta OT antes de modificarla
+  // Restaurar stock antes de editar (se volverá a descontar al guardar)
   restaurarStockOT(ot);
+  guardar();
   editandoId=id;
   document.getElementById("matricula").value=ot.matricula||"";
   document.getElementById("cliente").value=ot.cliente||"";
@@ -1055,7 +1388,7 @@ function eliminarOT(id){
     return;
   }
   if(!confirm("¿ELIMINAR "+ref+" — "+ot.matricula+" ("+ot.cliente+")? Esta acción no se puede deshacer.")) return;
-  // Restaurar stock si la OT tenía líneas de artículos
+  // Restaurar stock de artículos antes de eliminar
   restaurarStockOT(ot);
   ots=ots.filter(x=>x.id!==id);
   guardar();
@@ -1126,13 +1459,10 @@ function rectificarFactura(id){
 }
 
 function cancelarEdicion(){
-  // Si estábamos editando, restauramos el stock de la OT que se había devuelto
+  // Si estábamos editando, el stock fue restaurado al entrar; hay que volver a descontarlo
   if(editandoId){
     const ot=ots.find(x=>x.id===editandoId);
-    if(ot){
-      // Como al editar se restauró el stock, al cancelar debemos volver a descontarlo
-      descontarStockOT(ot);
-    }
+    if(ot){ descontarStockOT(ot); guardar(); }
   }
   editandoId=null;
   rectificandoId=null;
@@ -1226,7 +1556,7 @@ function renderConceptosRectificativa(original){
 }
 
 // ============================================================
-// 12. FUNCIONES DE LÍNEAS DE FACTURA (sin cambios)
+// 12. FUNCIONES DE LÍNEAS DE FACTURA (NUEVO)
 // ============================================================
 function renderLineas(){
   const tbody=document.getElementById("cuerpoLineas");
@@ -1340,11 +1670,7 @@ function seleccionarArticulo(referencia, proveedor){
   if(stock < cantidad){
     if(!confirm(`Stock insuficiente (${stock} disponibles). ¿Añadir igualmente?`)) return;
   }
-  const idxArt=articulos.indexOf(a);
-  if(idxArt>=0){
-    articulos[idxArt].stock = Math.max(0, stock - cantidad);
-    guardar();
-  }
+  // NO descontamos stock aquí: se descuenta en _completarGuardadoOT al guardar la OT
   lineasTemp.push({
     tipo: "articulo",
     descripcion: a.descripcion,
@@ -1362,7 +1688,7 @@ function seleccionarArticulo(referencia, proveedor){
 }
 
 // ============================================================
-// 13. FUNCIONES DE CLIENTE (MODAL FICHA) - sin cambios
+// 13. FUNCIONES DE CLIENTE (MODAL FICHA)
 // ============================================================
 function abrirModalCliente(nombreCliente, fichaExistente){
   const ficha=fichaExistente || buscarFichaCliente(nombreCliente) || {};
@@ -1479,7 +1805,7 @@ function cancelarFicha(){
 }
 
 // ============================================================
-// 14. FUNCIONES DE EXPORTACIÓN/IMPORTACIÓN DE COPIA (sin cambios)
+// 14. FUNCIONES DE EXPORTACIÓN/IMPORTACIÓN DE COPIA
 // ============================================================
 function exportarCopia(){
   const copia={
@@ -1610,7 +1936,7 @@ function actualizarAvisoCopia(){
 }
 
 // ============================================================
-// 15. FUNCIONES WHATSAPP E IMPRESIÓN (sin cambios)
+// 15. FUNCIONES WHATSAPP E IMPRESIÓN (MEJORADA)
 // ============================================================
 function limpiarTelefonoWhatsApp(telefono){
   let numero=(telefono||"").replace(/\D/g,"");
@@ -1670,6 +1996,7 @@ function imprimir(id){
   let tablaLineas="";
   let totalBase=0, totalIVA=0, total=0;
   if(ot.lineas && ot.lineas.length>0){
+    // NUEVO ORDEN: Cantidad | Concepto | Precio | Descuento | Base imponible
     tablaLineas=`<table style="width:100%;border-collapse:collapse;margin:12px 0;">
       <thead><tr style="border-bottom:2px solid #333;">
         <th style="text-align:center;padding:4px;">Cantidad</th>
@@ -1681,7 +2008,7 @@ function imprimir(id){
     ot.lineas.forEach(l=>{
       const subtotal = (l.cantidad||0)*(l.precio||0);
       totalBase += subtotal;
-      const descuento = l.descuento || 0;
+      const descuento = l.descuento || 0; // Campo para futuro
       tablaLineas+=`<tr>
         <td style="text-align:center;padding:4px;">${l.cantidad}</td>
         <td style="text-align:left;padding:4px;">${htmlSeguro(l.descripcion||"")}</td>
@@ -1754,7 +2081,7 @@ function imprimir(id){
 }
 
 // ============================================================
-// 16. FUNCIONES DE FILTRO (sin cambios)
+// 16. FUNCIONES DE FILTRO
 // ============================================================
 function setFiltro(tipo){
   filtroActivo=tipo;
@@ -1777,7 +2104,7 @@ function setFiltro(tipo){
 }
 
 // ============================================================
-// 17. MÓDULO OCR (PLATE RECOGNIZER) - sin cambios, se mantiene
+// 17. MÓDULO OCR (PLATE RECOGNIZER)
 // ============================================================
 const PLATE_TOKEN="0fe93fa4d4ed7ad906d040fb28eb36c3ee4cdc8f";
 let _ocrMatriculaDetectada=null;
@@ -1895,29 +2222,34 @@ function cerrarCamara(){
 }
 
 // ============================================================
-// 18. VALIDACIÓN NIF (CORREGIDA)
+// 18. VALIDACIÓN NIF
 // ============================================================
 function calcularLetraNif(input){
   const LETRAS="TRWAGMYFPDXBNJZSQVHLCKE";
-  let val = input.value.toUpperCase().replace(/\s/g, "").slice(0, 9); // limitar a 9
-  let soloNumeros = val.replace(/[^0-9]/g, "");
-  if(soloNumeros.length === 8){
-    const letra = LETRAS[parseInt(soloNumeros,10) % 23];
-    // Si ya tiene letra, la reemplazamos; si no, la añadimos
-    if(val.length === 9 && /[A-Z]$/.test(val)){
-      input.value = soloNumeros + letra;
-    } else if(val.length === 8){
-      input.value = soloNumeros + letra;
-    } else {
-      input.value = val;
+  let val=input.value.toUpperCase().replace(/\s/g,"");
+  let nifOriginal=val;
+  if(/[A-Z]$/.test(val)) val=val.slice(0,-1);
+  let numeros=val;
+  if(/^[XYZ]/.test(numeros)){
+    numeros=numeros.replace("X","0").replace("Y","1").replace("Z","2");
+  }
+  const soloNumeros=numeros.replace(/[^0-9]/g,"");
+  if(soloNumeros.length===8){
+    const letra=LETRAS[parseInt(soloNumeros,10)%23];
+    let nuevoVal=nifOriginal;
+    if(/^[XYZ]/.test(val)){
+      nuevoVal=val.charAt(0)+soloNumeros+letra;
+    }else{
+      nuevoVal=soloNumeros+letra;
     }
-  } else {
-    input.value = val;
+    input.value=nuevoVal;
+  }else{
+    input.value=input.value.toUpperCase();
   }
 }
 
 // ============================================================
-// 19. ESTADÍSTICAS (CORREGIDO: manejo de artículos no encontrados)
+// 19. ESTADÍSTICAS (YA EXISTENTE)
 // ============================================================
 function calcularEstadisticas(){
   const facturas = ots.filter(ot => ot.estado === "FINALIZADO");
@@ -2007,7 +2339,7 @@ function renderEstadisticas(){
 }
 
 // ============================================================
-// 20. GANANCIAS (sin cambios, ya funciona)
+// 20. NUEVA FUNCIÓN: GANANCIAS
 // ============================================================
 function cambiarPeriodo(){
   const val = document.getElementById("periodoGanancias").value;
@@ -2039,6 +2371,7 @@ function obtenerRangoFechas(){
 }
 
 function renderGanancias(){
+  // Rellenar selector de familias si está vacío
   const selFam = document.getElementById("familiaGanancias");
   if(selFam.options.length <= 1){
     const familias = new Set();
@@ -2054,12 +2387,14 @@ function renderGanancias(){
   const rango = obtenerRangoFechas();
   const familiaFiltro = document.getElementById("familiaGanancias").value;
   
+  // Filtrar facturas en el rango
   const facturas = ots.filter(ot => {
     if(ot.estado !== "FINALIZADO") return false;
     const fecha = new Date(ot.fechaFinalizacion || ot.fecha);
     return fecha >= rango.inicio && fecha <= rango.fin;
   });
 
+  // Calcular acumulados
   let totalFacturado = 0, totalBeneficio = 0;
   let beneficioManoObra = 0, beneficioRecambios = 0;
   let detalleOTs = [];
@@ -2080,6 +2415,7 @@ function renderGanancias(){
           beneficioMO_OT += beneficioLinea;
         } else if(linea.tipo === "articulo"){
           beneficioRec_OT += beneficioLinea;
+          // Buscar familia del artículo
           const art = articulos.find(a => a.referencia === linea.referencia && a.proveedor === linea.proveedor);
           if(art && art.familia){
             if(!beneficioPorFamilia[art.familia]) beneficioPorFamilia[art.familia] = 0;
@@ -2093,6 +2429,7 @@ function renderGanancias(){
     beneficioManoObra += beneficioMO_OT;
     beneficioRecambios += beneficioRec_OT;
 
+    // Solo añadir al detalle si no hay filtro de familia o si tiene líneas de esa familia
     let incluir = true;
     if(familiaFiltro){
       const tieneFamilia = (ot.lineas || []).some(linea => {
@@ -2116,10 +2453,14 @@ function renderGanancias(){
     }
   });
 
+  // Si hay filtro de familia, recalcular los totales de recambios para ese filtro
   if(familiaFiltro){
-    beneficioRecambios = beneficioPorFamilia[familiaFiltro] || 0;
+    const beneficioFam = beneficioPorFamilia[familiaFiltro] || 0;
+    // Reemplazamos el beneficio de recambios por el de la familia seleccionada
+    beneficioRecambios = beneficioFam;
   }
 
+  // Mostrar resultados
   const contenedor = document.getElementById("resultadoGanancias");
   let html = `
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
@@ -2133,6 +2474,7 @@ function renderGanancias(){
     </div>
   `;
 
+  // Desglose por familia (solo si no hay filtro)
   if(!familiaFiltro && Object.keys(beneficioPorFamilia).length > 0){
     html += `<h3 style="color:#ff7a1a;">📦 Beneficio por familia de recambios</h3><div class="item" style="border-left-color:#ff7a1a;">`;
     const familiasOrdenadas = Object.keys(beneficioPorFamilia).sort((a,b) => beneficioPorFamilia[b] - beneficioPorFamilia[a]);
@@ -2148,6 +2490,7 @@ function renderGanancias(){
     html += `</div>`;
   }
 
+  // Tabla de detalle por OT
   html += `<h3 style="color:#ff7a1a;margin-top:16px;">📄 Detalle por OT</h3>
     <div style="max-height:400px;overflow-y:auto;background:#101827;border-radius:12px;padding:8px;">
       <table style="width:100%;border-collapse:collapse;font-size:13px;">
