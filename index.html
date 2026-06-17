@@ -75,7 +75,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R96</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R97</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -85,6 +85,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <button onclick="showTab('taller')">TALLER</button>
 <button onclick="showTab('historial')">FACTURAS</button>
 <button onclick="showTab('estadisticas')">📊 ESTADÍSTICAS</button>
+<button onclick="showTab('ganancias')">💰 GANANCIAS</button>
 </div>
 
 <div id="inicio" class="card hidden">
@@ -221,6 +222,35 @@ BIENVENIDO A GESTIÓN
 <div id="estadisticasContenido"></div>
 </div>
 
+<!-- NUEVA PESTAÑA GANANCIAS -->
+<div id="ganancias" class="card hidden">
+<h2>💰 GANANCIAS</h2>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
+  <div style="flex:1;min-width:120px;">
+    <label>Período</label>
+    <select id="periodoGanancias" onchange="cambiarPeriodo()">
+      <option value="semana">Semana actual</option>
+      <option value="mes">Mes actual</option>
+      <option value="personalizado">Personalizado</option>
+    </select>
+  </div>
+  <div style="flex:1;min-width:120px;display:none;" id="fechasPersonalizadas">
+    <label>Desde</label>
+    <input type="date" id="fechaInicioG">
+    <label>Hasta</label>
+    <input type="date" id="fechaFinG">
+  </div>
+  <div style="flex:1;min-width:120px;">
+    <label>Familia de recambio</label>
+    <select id="familiaGanancias">
+      <option value="">Todas</option>
+    </select>
+  </div>
+  <button class="green" onclick="renderGanancias()" style="width:auto;padding:8px 20px;align-self:flex-end;">📊 CALCULAR</button>
+</div>
+<div id="resultadoGanancias"></div>
+</div>
+
 <!-- Modal cámara OCR -->
 <input type="file" id="inputFotoCamara" accept="image/*" style="display:none" onchange="procesarFotoMatricula(event)">
 <div id="modalCamara">
@@ -346,10 +376,10 @@ function colorEstado(estado){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R96";
+const APP_VERSION="R97";
 const COPIA_VERSION=4;
 const APP_FECHA="17/06/2026";
-const APP_NOTAS="R96: Añadido sistema de líneas de factura (artículos + MO), vinculación con almacén, descuento de stock, totales, P&L por OT, impresión con tabla, y pestaña de estadísticas con consumo y top 5.";
+const APP_NOTAS="R97: Mejora en impresión de factura (orden Cantidad, Concepto, Precio, Descuento, Base) y nueva pestaña GANANCIAS con filtros por período y familia, desglose MO/Recambios y detalle por OT.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -567,17 +597,19 @@ function sincronizarFiscalDesdeFicha(ot){
 // 5. FUNCIONES DE INTERFAZ
 // ============================================================
 function showTab(id){
-  ["inicio","nueva","historial","agenda","taller","almacen","estadisticas"].forEach(t=>{
+  ["inicio","nueva","historial","agenda","taller","almacen","estadisticas","ganancias"].forEach(t=>{
     document.getElementById(t).classList.toggle("hidden", t!==id);
   });
   document.getElementById("tabs").style.display = (id==="inicio"||id==="almacen") ? "none" : "flex";
   document.querySelectorAll("#tabs button").forEach(btn=>btn.classList.remove("activo"));
   const titulo=document.getElementById("tituloApp");
-  if(id==="nueva"){ document.querySelectorAll("#tabs button")[0].classList.add("activo"); titulo.style.background="#ff7a1a"; titulo.style.color="#0f1728"; }
-  else if(id==="agenda"){ document.querySelectorAll("#tabs button")[1].classList.add("activo"); titulo.style.background="#2196f3"; titulo.style.color="white"; }
-  else if(id==="taller"){ document.querySelectorAll("#tabs button")[2].classList.add("activo"); titulo.style.background="#9c27b0"; titulo.style.color="white"; }
-  else if(id==="historial"){ document.querySelectorAll("#tabs button")[3].classList.add("activo"); titulo.style.background="#28a745"; titulo.style.color="white"; }
-  else if(id==="estadisticas"){ document.querySelectorAll("#tabs button")[4].classList.add("activo"); titulo.style.background="#9c27b0"; titulo.style.color="white"; }
+  const botones=document.querySelectorAll("#tabs button");
+  if(id==="nueva"){ botones[0].classList.add("activo"); titulo.style.background="#ff7a1a"; titulo.style.color="#0f1728"; }
+  else if(id==="agenda"){ botones[1].classList.add("activo"); titulo.style.background="#2196f3"; titulo.style.color="white"; }
+  else if(id==="taller"){ botones[2].classList.add("activo"); titulo.style.background="#9c27b0"; titulo.style.color="white"; }
+  else if(id==="historial"){ botones[3].classList.add("activo"); titulo.style.background="#28a745"; titulo.style.color="white"; }
+  else if(id==="estadisticas"){ botones[4].classList.add("activo"); titulo.style.background="#9c27b0"; titulo.style.color="white"; }
+  else if(id==="ganancias"){ botones[5].classList.add("activo"); titulo.style.background="#ff7a1a"; titulo.style.color="#0f1728"; renderGanancias(); }
   else { titulo.style.background="#0f1728"; titulo.style.color="#ff7a1a"; }
   if(id==="historial") setFiltro(filtroActivo);
   if(id==="agenda") renderAgenda();
@@ -1929,23 +1961,34 @@ function imprimir(id){
   let tablaLineas="";
   let totalBase=0, totalIVA=0, total=0;
   if(ot.lineas && ot.lineas.length>0){
+    // NUEVO ORDEN: Cantidad | Concepto | Precio | Descuento | Base imponible
     tablaLineas=`<table style="width:100%;border-collapse:collapse;margin:12px 0;">
-      <thead><tr style="border-bottom:1px solid #333;"><th style="text-align:left;padding:4px;">Concepto</th><th style="text-align:right;padding:4px;">Cant</th><th style="text-align:right;padding:4px;">Precio</th><th style="text-align:right;padding:4px;">Total</th></tr></thead><tbody>`;
+      <thead><tr style="border-bottom:2px solid #333;">
+        <th style="text-align:center;padding:4px;">Cantidad</th>
+        <th style="text-align:left;padding:4px;">Concepto</th>
+        <th style="text-align:right;padding:4px;">Precio (€)</th>
+        <th style="text-align:right;padding:4px;">Dto. (€)</th>
+        <th style="text-align:right;padding:4px;">Base imponible</th>
+      </tr></thead><tbody>`;
     ot.lineas.forEach(l=>{
       const subtotal = (l.cantidad||0)*(l.precio||0);
       totalBase += subtotal;
-      tablaLineas+=`<tr><td style="padding:4px;">${htmlSeguro(l.descripcion||"")}</td>
-        <td style="text-align:right;padding:4px;">${l.cantidad}</td>
+      const descuento = l.descuento || 0; // Campo para futuro
+      tablaLineas+=`<tr>
+        <td style="text-align:center;padding:4px;">${l.cantidad}</td>
+        <td style="text-align:left;padding:4px;">${htmlSeguro(l.descripcion||"")}</td>
         <td style="text-align:right;padding:4px;">${(l.precio||0).toFixed(2)}</td>
-        <td style="text-align:right;padding:4px;">${subtotal.toFixed(2)}</td></tr>`;
+        <td style="text-align:right;padding:4px;">${descuento.toFixed(2)}</td>
+        <td style="text-align:right;padding:4px;">${subtotal.toFixed(2)}</td>
+      </tr>`;
     });
     totalIVA = totalBase * 0.21;
     total = totalBase + totalIVA;
     tablaLineas+=`</tbody></table>
-      <div style="margin-top:8px;border-top:1px solid #999;padding-top:8px;">
+      <div style="margin-top:12px;border-top:2px solid #999;padding-top:10px;">
         <span style="font-weight:bold;">Base imponible: ${totalBase.toFixed(2)} €</span><br>
         <span style="font-weight:bold;">IVA (21%): ${totalIVA.toFixed(2)} €</span><br>
-        <span style="font-weight:bold;font-size:1.1em;">TOTAL FACTURA: ${total.toFixed(2)} €</span>
+        <span style="font-weight:bold;font-size:1.2em;">TOTAL FACTURA: ${total.toFixed(2)} €</span>
       </div>`;
   }
 
@@ -1977,7 +2020,6 @@ function imprimir(id){
       #zonaImpresion{display:block!important;font-family:Arial;padding:20px;color:black}
       #zonaImpresion h1{text-align:center;color:black;background:white}
       .box{border:1px solid #333;padding:10px;margin:10px 0}
-      .linea-fiscal{border-top:1px solid #999;padding-top:8px;margin-top:8px}
       table{width:100%;border-collapse:collapse}
       th,td{padding:6px;text-align:left;border-bottom:1px solid #ddd}
       th{background:#f5f5f5}
@@ -2172,7 +2214,7 @@ function calcularLetraNif(input){
 }
 
 // ============================================================
-// 19. ESTADÍSTICAS
+// 19. ESTADÍSTICAS (YA EXISTENTE)
 // ============================================================
 function calcularEstadisticas(){
   const facturas = ots.filter(ot => ot.estado === "FINALIZADO");
@@ -2262,7 +2304,189 @@ function renderEstadisticas(){
 }
 
 // ============================================================
-// 20. INICIALIZACIÓN
+// 20. NUEVA FUNCIÓN: GANANCIAS
+// ============================================================
+function cambiarPeriodo(){
+  const val = document.getElementById("periodoGanancias").value;
+  document.getElementById("fechasPersonalizadas").style.display = (val === "personalizado") ? "block" : "none";
+}
+
+function obtenerRangoFechas(){
+  const periodo = document.getElementById("periodoGanancias").value;
+  const hoy = new Date();
+  let inicio, fin;
+  if(periodo === "semana"){
+    const diaSemana = hoy.getDay();
+    const diff = diaSemana === 0 ? 6 : diaSemana - 1;
+    inicio = new Date(hoy);
+    inicio.setDate(hoy.getDate() - diff);
+    inicio.setHours(0,0,0,0);
+    fin = new Date(inicio);
+    fin.setDate(inicio.getDate() + 6);
+    fin.setHours(23,59,59,999);
+  } else if(periodo === "mes"){
+    inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    fin = new Date(hoy.getFullYear(), hoy.getMonth()+1, 0);
+    fin.setHours(23,59,59,999);
+  } else {
+    inicio = new Date(document.getElementById("fechaInicioG").value+"T00:00:00");
+    fin = new Date(document.getElementById("fechaFinG").value+"T23:59:59");
+  }
+  return { inicio, fin };
+}
+
+function renderGanancias(){
+  // Rellenar selector de familias si está vacío
+  const selFam = document.getElementById("familiaGanancias");
+  if(selFam.options.length <= 1){
+    const familias = new Set();
+    articulos.forEach(a => { if(a.familia) familias.add(a.familia); });
+    familias.forEach(f => {
+      const opt = document.createElement("option");
+      opt.value = f;
+      opt.textContent = f;
+      selFam.appendChild(opt);
+    });
+  }
+
+  const rango = obtenerRangoFechas();
+  const familiaFiltro = document.getElementById("familiaGanancias").value;
+  
+  // Filtrar facturas en el rango
+  const facturas = ots.filter(ot => {
+    if(ot.estado !== "FINALIZADO") return false;
+    const fecha = new Date(ot.fechaFinalizacion || ot.fecha);
+    return fecha >= rango.inicio && fecha <= rango.fin;
+  });
+
+  // Calcular acumulados
+  let totalFacturado = 0, totalBeneficio = 0;
+  let beneficioManoObra = 0, beneficioRecambios = 0;
+  let detalleOTs = [];
+  let beneficioPorFamilia = {};
+
+  facturas.forEach(ot => {
+    let beneficioOT = 0;
+    let beneficioMO_OT = 0;
+    let beneficioRec_OT = 0;
+    if(ot.lineas){
+      ot.lineas.forEach(linea => {
+        const cantidad = linea.cantidad || 0;
+        const precio = linea.precio || 0;
+        const coste = linea.coste_unitario || 0;
+        const beneficioLinea = (precio - coste) * cantidad;
+        beneficioOT += beneficioLinea;
+        if(linea.tipo === "mano_obra"){
+          beneficioMO_OT += beneficioLinea;
+        } else if(linea.tipo === "articulo"){
+          beneficioRec_OT += beneficioLinea;
+          // Buscar familia del artículo
+          const art = articulos.find(a => a.referencia === linea.referencia && a.proveedor === linea.proveedor);
+          if(art && art.familia){
+            if(!beneficioPorFamilia[art.familia]) beneficioPorFamilia[art.familia] = 0;
+            beneficioPorFamilia[art.familia] += beneficioLinea;
+          }
+        }
+      });
+    }
+    totalFacturado += ot.total || 0;
+    totalBeneficio += beneficioOT;
+    beneficioManoObra += beneficioMO_OT;
+    beneficioRecambios += beneficioRec_OT;
+
+    // Solo añadir al detalle si no hay filtro de familia o si tiene líneas de esa familia
+    let incluir = true;
+    if(familiaFiltro){
+      const tieneFamilia = (ot.lineas || []).some(linea => {
+        if(linea.tipo !== "articulo") return false;
+        const art = articulos.find(a => a.referencia === linea.referencia && a.proveedor === linea.proveedor);
+        return art && art.familia === familiaFiltro;
+      });
+      incluir = tieneFamilia;
+    }
+    if(incluir){
+      detalleOTs.push({
+        ref: referenciaOT(ot),
+        matricula: ot.matricula,
+        cliente: ot.cliente,
+        fecha: ot.fechaFinalizacion || ot.fecha,
+        total: ot.total || 0,
+        beneficio: beneficioOT,
+        beneficioMO: beneficioMO_OT,
+        beneficioRec: beneficioRec_OT
+      });
+    }
+  });
+
+  // Si hay filtro de familia, recalcular los totales de recambios para ese filtro
+  if(familiaFiltro){
+    const beneficioFam = beneficioPorFamilia[familiaFiltro] || 0;
+    // Reemplazamos el beneficio de recambios por el de la familia seleccionada
+    beneficioRecambios = beneficioFam;
+  }
+
+  // Mostrar resultados
+  const contenedor = document.getElementById("resultadoGanancias");
+  let html = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div class="item" style="border-left-color:#28a745;"><b>💰 Total facturado</b><br>${totalFacturado.toFixed(2)} €</div>
+      <div class="item" style="border-left-color:#ff7a1a;"><b>📈 Beneficio total</b><br>${totalBeneficio.toFixed(2)} €</div>
+      <div class="item" style="border-left-color:#2196f3;"><b>📊 Margen</b><br>${totalFacturado>0 ? (totalBeneficio/totalFacturado*100).toFixed(1) : 0} %</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div class="item" style="border-left-color:#9c27b0;"><b>🔧 Mano de obra</b><br>Beneficio: ${beneficioManoObra.toFixed(2)} €</div>
+      <div class="item" style="border-left-color:#ff9800;"><b>🧩 Recambios</b><br>Beneficio: ${beneficioRecambios.toFixed(2)} €</div>
+    </div>
+  `;
+
+  // Desglose por familia (solo si no hay filtro)
+  if(!familiaFiltro && Object.keys(beneficioPorFamilia).length > 0){
+    html += `<h3 style="color:#ff7a1a;">📦 Beneficio por familia de recambios</h3><div class="item" style="border-left-color:#ff7a1a;">`;
+    const familiasOrdenadas = Object.keys(beneficioPorFamilia).sort((a,b) => beneficioPorFamilia[b] - beneficioPorFamilia[a]);
+    familiasOrdenadas.forEach(f => {
+      const val = beneficioPorFamilia[f];
+      if(val !== 0) {
+        html += `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #2a3a55;padding:4px 0;">
+          <span>${htmlSeguro(f)}</span>
+          <span>${val.toFixed(2)} €</span>
+        </div>`;
+      }
+    });
+    html += `</div>`;
+  }
+
+  // Tabla de detalle por OT
+  html += `<h3 style="color:#ff7a1a;margin-top:16px;">📄 Detalle por OT</h3>
+    <div style="max-height:400px;overflow-y:auto;background:#101827;border-radius:12px;padding:8px;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead><tr style="border-bottom:2px solid #ff7a1a;">
+          <th style="text-align:left;padding:6px;">Ref.</th>
+          <th style="text-align:left;padding:6px;">Matrícula</th>
+          <th style="text-align:left;padding:6px;">Cliente</th>
+          <th style="text-align:center;padding:6px;">Total</th>
+          <th style="text-align:center;padding:6px;">Beneficio</th>
+          <th style="text-align:center;padding:6px;">MO</th>
+          <th style="text-align:center;padding:6px;">Rec.</th>
+        </tr></thead>
+        <tbody>`;
+  detalleOTs.forEach(d => {
+    html += `<tr style="border-bottom:1px solid #2a3a55;">
+      <td style="padding:6px;">${htmlSeguro(d.ref)}</td>
+      <td style="padding:6px;">${htmlSeguro(d.matricula)}</td>
+      <td style="padding:6px;">${htmlSeguro(d.cliente)}</td>
+      <td style="text-align:center;padding:6px;">${d.total.toFixed(2)}</td>
+      <td style="text-align:center;padding:6px;color:#28a745;">${d.beneficio.toFixed(2)}</td>
+      <td style="text-align:center;padding:6px;color:#9c27b0;">${d.beneficioMO.toFixed(2)}</td>
+      <td style="text-align:center;padding:6px;color:#ff9800;">${d.beneficioRec.toFixed(2)}</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>`;
+
+  contenedor.innerHTML = html;
+}
+
+// ============================================================
+// 21. INICIALIZACIÓN
 // ============================================================
 function inicializarPrueba(){
   if(ots.length>0) return;
