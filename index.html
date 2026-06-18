@@ -75,7 +75,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R101</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R102</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -397,10 +397,10 @@ function colorEstado(estado){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R101";
+const APP_VERSION="R102";
 const COPIA_VERSION=4;
 const APP_FECHA="18/06/2026";
-const APP_NOTAS="R101: añade botón ⬅️ INICIO en Facturas, Agenda, Taller, Estadísticas y Rentabilidad para volver directamente a la pantalla principal.";
+const APP_NOTAS="R102: refuerzo de stock en edición. Ya no se toca el stock al abrir o cancelar una OT; se recalcula de forma segura solo al guardar cambios o eliminar.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -1187,29 +1187,39 @@ function buscarMatricula(){
   document.getElementById("aviso").innerText="MATRÍCULA NO ENCONTRADA";
 }
 
-// --- CONTROL DE STOCK AL EDITAR/ELIMINAR ---
+// --- CONTROL DE STOCK REFORZADO ---
+function buscarArticuloLinea(linea){
+  if(!linea || linea.tipo!=="articulo" || !linea.referencia) return null;
+  return articulos.find(a=>a.referencia===linea.referencia && a.proveedor===linea.proveedor) || null;
+}
+
 function restaurarStockOT(ot){
-  if(!ot || !ot.lineas) return;
-  ot.lineas.forEach(linea => {
-    if(linea.tipo === "articulo" && linea.referencia){
-      const art = articulos.find(a => a.referencia === linea.referencia && a.proveedor === linea.proveedor);
-      if(art){
-        art.stock = (art.stock || 0) + (linea.cantidad || 0);
-      }
+  if(!ot || !Array.isArray(ot.lineas)) return;
+  ot.lineas.forEach(linea=>{
+    const art=buscarArticuloLinea(linea);
+    if(art){
+      art.stock=(Number(art.stock)||0)+(Number(linea.cantidad)||0);
     }
   });
 }
 
 function descontarStockOT(ot){
-  if(!ot || !ot.lineas) return;
-  ot.lineas.forEach(linea => {
-    if(linea.tipo === "articulo" && linea.referencia){
-      const art = articulos.find(a => a.referencia === linea.referencia && a.proveedor === linea.proveedor);
-      if(art){
-        art.stock = Math.max(0, (art.stock || 0) - (linea.cantidad || 0));
-      }
+  if(!ot || !Array.isArray(ot.lineas)) return;
+  ot.lineas.forEach(linea=>{
+    const art=buscarArticuloLinea(linea);
+    if(art){
+      const actual=Number(art.stock)||0;
+      const cantidad=Number(linea.cantidad)||0;
+      art.stock=Math.max(0, actual-cantidad);
     }
   });
+}
+
+function recalcularStockAlEditar(anterior,nuevo){
+  // Movimiento atómico: primero devuelve el stock de la OT anterior,
+  // después descuenta las líneas nuevas. Así no hay doble descuento si se abre/cancela.
+  restaurarStockOT(anterior);
+  descontarStockOT(nuevo);
 }
 // ------------------------------------------
 
@@ -1308,7 +1318,7 @@ function _completarGuardadoOT(ot){
     if(!ot.email && anterior.email) ot.email=anterior.email;
     sincronizarFiscalDesdeFicha(ot);
     asegurarNumeracion(ot);
-    descontarStockOT(ot); // Descontar stock de la OT editada (se restauró al entrar en edición)
+    recalcularStockAlEditar(anterior,ot);
     ots=ots.map(x=>x.id===editandoId ? ot : x);
     editandoId=null;
     rectificandoId=null;
@@ -1374,9 +1384,7 @@ function editarOT(id){
     sincronizarFiscalDesdeFicha(ot);
     guardar();
   }
-  // Restaurar stock antes de editar (se volverá a descontar al guardar)
-  restaurarStockOT(ot);
-  guardar();
+  // R102: al abrir edición NO se toca el stock. Solo se recalcula al guardar.
   editandoId=id;
   document.getElementById("matricula").value=ot.matricula||"";
   document.getElementById("cliente").value=ot.cliente||"";
@@ -1481,11 +1489,7 @@ function rectificarFactura(id){
 }
 
 function cancelarEdicion(){
-  // Si estábamos editando, el stock fue restaurado al entrar; hay que volver a descontarlo
-  if(editandoId){
-    const ot=ots.find(x=>x.id===editandoId);
-    if(ot){ descontarStockOT(ot); guardar(); }
-  }
+  // R102: cancelar edición no toca stock porque abrir edición tampoco lo modifica.
   editandoId=null;
   rectificandoId=null;
   document.getElementById("bannerEdicion").style.display="none";
