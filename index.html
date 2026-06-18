@@ -75,7 +75,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R102</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R103</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -397,10 +397,10 @@ function colorEstado(estado){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R102";
+const APP_VERSION="R103";
 const COPIA_VERSION=4;
 const APP_FECHA="18/06/2026";
-const APP_NOTAS="R102: refuerzo de stock en edición. Ya no se toca el stock al abrir o cancelar una OT; se recalcula de forma segura solo al guardar cambios o eliminar.";
+const APP_NOTAS="R103: seguridad reforzada: control de tamaño localStorage, validación de copias, IVA por línea, bloqueo de doble guardado, ID único, cantidad sin prompt y marcas/modelos ampliados.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -416,8 +416,9 @@ let filtroActivo="matricula";
 let paginaHistorial=1;
 const POR_PAGINA=20;
 let lineasTemp=[];
+let guardandoOT=false;
 
-const MARCAS=["SEAT","VOLKSWAGEN","AUDI","SKODA","BMW","MERCEDES","PEUGEOT","RENAULT","CITROEN","OPEL","FORD","TOYOTA","NISSAN","KIA","HYUNDAI","DACIA","FIAT","MAZDA"];
+const MARCAS=["ABARTH","ALFA ROMEO","ALPINE","AUDI","BMW","BYD","CITROEN","CUPRA","DACIA","DAIHATSU","DS AUTOMOBILES","FIAT","FORD","GENESIS","HONDA","HYUNDAI","INFINITI","ISUZU","JAGUAR","JAECOO","KGM","KIA","LAND ROVER","LEXUS","LYNK & CO","MAZDA","MERCEDES","MG","MINI","MITSUBISHI","NISSAN","OPEL","PEUGEOT","POLESTAR","PORSCHE","RENAULT","SEAT","SKODA","SMART","SSANGYONG","SUBARU","SUZUKI","TESLA","TOYOTA","VOLKSWAGEN","VOLVO"];
 
 const MODELOS={
 "ABARTH":["500","595","695"],
@@ -450,6 +451,22 @@ const MODELOS={
 "TOYOTA":["AURIS","AVENSIS","AYGO","C-HR","COROLLA","HILUX","LAND CRUISER","PRIUS","PROACE","RAV4","VERSO","YARIS","YARIS CROSS"],
 "VOLKSWAGEN":["AMAROK","BEETLE","CADDY","CRAFTER","GOLF","PASSAT","POLO","T-CROSS","T-ROC","TIGUAN","TOUAREG","TOURAN","TRANSPORTER"],
 "VOLVO":["C30","S40","S60","S80","V40","V50","V60","V70","XC40","XC60","XC90"]
+,"ALPINE":["A110"]
+,"BYD":["ATTO 2","ATTO 3","DOLPHIN","HAN","SEAL","SEAL U","TANG"]
+,"DAIHATSU":["CHARADE","CUORE","FEROZA","SIRION","TERIOS"]
+,"DS AUTOMOBILES":["DS 3","DS 4","DS 5","DS 7","DS 9"]
+,"GENESIS":["G70","G80","GV60","GV70","GV80"]
+,"INFINITI":["EX","FX","G","M","Q30","Q50","Q60","Q70","QX30","QX50","QX70"]
+,"ISUZU":["D-MAX","TROOPER"]
+,"JAGUAR":["E-PACE","F-PACE","F-TYPE","I-PACE","XE","XF","XJ"]
+,"JAECOO":["J7"]
+,"KGM":["KORANDO","MUSSO","REXTON","TIVOLI","TORRES"]
+,"LAND ROVER":["DEFENDER","DISCOVERY","DISCOVERY SPORT","FREELANDER","RANGE ROVER","RANGE ROVER EVOQUE","RANGE ROVER SPORT","RANGE ROVER VELAR"]
+,"LEXUS":["CT","ES","GS","IS","LBX","LS","NX","RC","RX","UX"]
+,"LYNK & CO":["01"]
+,"MG":["HS","MG3","MG4","MG5","MARVEL R","ZS"]
+,"POLESTAR":["2","3","4"]
+,"SSANGYONG":["ACTYON","KORANDO","KYRON","MUSSO","REXTON","RODIUS","TIVOLI","TORRES"]
 };
 
 // ============================================================
@@ -500,21 +517,100 @@ function fechaDocumento(ot){
   return ot.estado==="FINALIZADO" ? (ot.fechaFinalizacion || ot.fecha) : ot.fecha;
 }
 
+function tamanoBytesTexto(texto){
+  try{return new Blob([texto]).size;}catch(e){return texto.length*2;}
+}
+
+function paqueteDatos(){
+  return {
+    version:APP_VERSION,
+    copiaVersion:COPIA_VERSION,
+    fechaGuardado:new Date().toISOString(),
+    ots:ots,
+    contadores:contadores,
+    clientes:clientes,
+    vehiculos:vehiculos,
+    articulos:articulos
+  };
+}
+
+function normalizarContadores(c){
+  c=(c && typeof c==="object") ? c : {};
+  return {
+    agenda:Number.isFinite(Number(c.agenda)) ? Number(c.agenda) : 0,
+    ot:Number.isFinite(Number(c.ot)) ? Number(c.ot) : 0,
+    factura:Number.isFinite(Number(c.factura)) ? Number(c.factura) : 0,
+    rectificativa:Number.isFinite(Number(c.rectificativa)) ? Number(c.rectificativa) : 0
+  };
+}
+
+function validarCopia(datos){
+  if(Array.isArray(datos)){
+    return {ok:true,tipo:"antigua",ots:datos,contadores:{agenda:0,ot:0,factura:0,rectificativa:0},clientes:{},vehiculos:{},articulos:[]};
+  }
+  if(!datos || typeof datos!=="object" || !Array.isArray(datos.ots)) return {ok:false,msg:"COPIA NO VÁLIDA: no contiene lista de OTs."};
+  if(datos.contadores!==undefined && typeof datos.contadores!=="object") return {ok:false,msg:"COPIA NO VÁLIDA: contadores dañados."};
+  if(datos.clientes!==undefined && (typeof datos.clientes!=="object" || Array.isArray(datos.clientes))) return {ok:false,msg:"COPIA NO VÁLIDA: clientes dañado."};
+  if(datos.vehiculos!==undefined && (typeof datos.vehiculos!=="object" || Array.isArray(datos.vehiculos))) return {ok:false,msg:"COPIA NO VÁLIDA: vehículos dañado."};
+  if(datos.articulos!==undefined && !Array.isArray(datos.articulos)) return {ok:false,msg:"COPIA NO VÁLIDA: artículos dañado."};
+  const otsValidas=datos.ots.every(o=>o && typeof o==="object");
+  if(!otsValidas) return {ok:false,msg:"COPIA NO VÁLIDA: hay OTs dañadas."};
+  return {ok:true,tipo:"v4",ots:datos.ots,contadores:normalizarContadores(datos.contadores),clientes:datos.clientes||{},vehiculos:datos.vehiculos||{},articulos:datos.articulos||[]};
+}
+
+function generarIdUnico(){
+  let id;
+  do{
+    id=Date.now()+Math.floor(Math.random()*1000000);
+  }while(ots.some(x=>x.id===id));
+  return id;
+}
+
+function calcularTotalesLineas(lineas){
+  let base=0, iva=0, costeTotal=0;
+  (lineas||[]).forEach(l=>{
+    const cantidad=Number(l.cantidad)||0;
+    const precio=Number(l.precio)||0;
+    const ivaPct=Number(l.iva!==undefined ? l.iva : 21);
+    const subtotal=cantidad*precio;
+    base+=subtotal;
+    iva+=subtotal*(ivaPct/100);
+    costeTotal+=cantidad*(Number(l.coste_unitario)||0);
+  });
+  const total=base+iva;
+  return {base,iva,total,costeTotal,beneficio:base-costeTotal,margen:base>0?((base-costeTotal)/base)*100:0};
+}
+
+function nifNieValido(valor){
+  const v=(valor||"").toUpperCase().replace(/\s|-/g,"");
+  const letras="TRWAGMYFPDXBNJZSQVHLCKE";
+  if(/^\d{8}[A-Z]$/.test(v)) return letras[Number(v.slice(0,8))%23]===v[8];
+  if(/^[XYZ]\d{7}[A-Z]$/.test(v)){
+    const mapa={X:"0",Y:"1",Z:"2"};
+    const num=Number(mapa[v[0]]+v.slice(1,8));
+    return letras[num%23]===v[8];
+  }
+  if(/^[A-Z]\d{7}[0-9A-J]$/.test(v)) return true;
+  return false;
+}
+
+function leerArchivoTexto(file,callback){
+  const reader=new FileReader();
+  reader.onload=function(e){ callback(e.target.result); };
+  reader.readAsText(file,"UTF-8");
+}
+
 function guardar(){
   try{
-    localStorage.setItem(STORAGE,JSON.stringify({
-      version:APP_VERSION,
-      copiaVersion:COPIA_VERSION,
-      fechaGuardado:new Date().toISOString(),
-      ots:ots,
-      contadores:contadores,
-      clientes:clientes,
-      vehiculos:vehiculos,
-      articulos:articulos
-    }));
+    const datos=JSON.stringify(paqueteDatos());
+    const bytes=tamanoBytesTexto(datos);
+    if(bytes>4200000){
+      alert("AVISO IMPORTANTE: la base de datos se acerca al límite del iPhone. Exporta una copia y conviene aligerar datos antiguos.");
+    }
+    localStorage.setItem(STORAGE,datos);
     return true;
   }catch(e){
-    alert("ERROR CRÍTICO: NO SE HAN PODIDO GUARDAR LOS DATOS.");
+    alert("ERROR CRÍTICO: NO SE HAN PODIDO GUARDAR LOS DATOS. EXPORTA COPIA ANTES DE CERRAR LA APP.");
     console.error(e);
     return false;
   }
@@ -1224,8 +1320,10 @@ function recalcularStockAlEditar(anterior,nuevo){
 // ------------------------------------------
 
 function guardarOT(){
+  if(guardandoOT){ alert("GUARDADO EN CURSO. ESPERA UN MOMENTO."); return; }
+  guardandoOT=true;
   const ot={
-    id:Date.now(),
+    id:generarIdUnico(),
     matricula:document.getElementById("matricula").value.trim().toUpperCase(),
     cliente:document.getElementById("cliente").value.trim().toUpperCase(),
     telefono:document.getElementById("telefono").value.trim(),
@@ -1239,12 +1337,14 @@ function guardarOT(){
     lineas: lineasTemp.map(l=> ({...l}))
   };
   if(!ot.matricula||!ot.cliente||!ot.trabajos){
+    guardandoOT=false;
     alert("FALTAN DATOS OBLIGATORIOS");
     return;
   }
   if(rectificandoId){
     const motivo=(document.getElementById("motivoRectificativa") ? document.getElementById("motivoRectificativa").value.trim().toUpperCase() : "");
     if(!motivo){
+      guardandoOT=false;
       alert("FALTA EL MOTIVO DE RECTIFICACIÓN");
       return;
     }
@@ -1254,6 +1354,13 @@ function guardarOT(){
     const fichaExistente=buscarFichaCliente(ot.cliente);
     if(!fichaExistente || !fichaExistente.nif || !fichaExistente.direccion){
       _otPendienteGuardar=ot;
+      guardandoOT=false;
+      abrirModalCliente(ot.cliente, fichaExistente);
+      return;
+    }
+    if(!nifNieValido(fichaExistente.nif)){
+      guardandoOT=false;
+      alert("NIF/NIE NO VÁLIDO. REVISA LA FICHA DEL CLIENTE ANTES DE FACTURAR.");
       abrirModalCliente(ot.cliente, fichaExistente);
       return;
     }
@@ -1268,22 +1375,13 @@ function guardarOT(){
 
 function _completarGuardadoOT(ot){
   if(ot.estado==="FINALIZADO" && ot.lineas && ot.lineas.length>0){
-    let base=0;
-    let costeTotal=0;
-    ot.lineas.forEach(l=>{
-      const totalLinea = (l.cantidad || 0) * (l.precio || 0);
-      base += totalLinea;
-      const costeLinea = (l.cantidad || 0) * (l.coste_unitario || 0);
-      costeTotal += costeLinea;
-    });
-    const iva = base * 0.21;
-    const total = base + iva;
-    ot.total_base = base;
-    ot.total_iva = iva;
-    ot.total = total;
-    ot.coste_total_ot = costeTotal;
-    ot.beneficio = total - costeTotal;
-    ot.margen = total > 0 ? (ot.beneficio / total) * 100 : 0;
+    const t=calcularTotalesLineas(ot.lineas);
+    ot.total_base = t.base;
+    ot.total_iva = t.iva;
+    ot.total = t.total;
+    ot.coste_total_ot = t.costeTotal;
+    ot.beneficio = t.beneficio;
+    ot.margen = t.margen;
   } else {
     ot.total_base = ot.total_base || 0;
     ot.total_iva = ot.total_iva || 0;
@@ -1331,9 +1429,10 @@ function _completarGuardadoOT(ot){
     if(!original){
       alert("NO SE ENCUENTRA LA FACTURA ORIGINAL");
       rectificandoId=null;
+      guardandoOT=false;
       return;
     }
-    ot.id=Date.now();
+    ot.id=generarIdUnico();
     ot.estado="FINALIZADO";
     ot.esRectificativa=true;
     ot.facturaRectificada=referenciaOT(original);
@@ -1356,7 +1455,7 @@ function _completarGuardadoOT(ot){
     ots.push(ot);
     alert("OT GUARDADA: "+referenciaOT(ot));
   }
-  if(!guardar()) return;
+  if(!guardar()){ guardandoOT=false; return; }
   document.getElementById("matricula").value="";
   document.getElementById("cliente").value="";
   document.getElementById("telefono").value="";
@@ -1374,6 +1473,7 @@ function _completarGuardadoOT(ot){
   prepararFormularioNormal();
   showTab('inicio');
   window.scrollTo({top:0,behavior:"smooth"});
+  guardandoOT=false;
 }
 
 function editarOT(id){
@@ -1600,16 +1700,15 @@ function renderLineas(){
     return;
   }
   vacio.style.display="none";
-  let base=0;
   let html="";
   lineasTemp.forEach((l,idx)=>{
-    const totalLinea = (l.cantidad || 0) * (l.precio || 0);
-    base += totalLinea;
+    const totalLinea = (Number(l.cantidad)||0) * (Number(l.precio)||0);
     const desc = htmlSeguro(l.descripcion || "Sin descripción");
-    const cant = l.cantidad || 0;
-    const precio = l.precio || 0;
+    const cant = Number(l.cantidad)||0;
+    const precio = Number(l.precio)||0;
+    const ivaPct = Number(l.iva!==undefined ? l.iva : 21);
     html+=`<tr>
-      <td>${desc}</td>
+      <td>${desc}<br><span style="color:#aab4c8;font-size:12px;">IVA ${ivaPct}%</span></td>
       <td>${cant}</td>
       <td>${precio.toFixed(2)} €</td>
       <td>${totalLinea.toFixed(2)} €</td>
@@ -1617,11 +1716,10 @@ function renderLineas(){
     </tr>`;
   });
   tbody.innerHTML=html;
-  const iva = base * 0.21;
-  const total = base + iva;
-  totalBase.textContent=base.toFixed(2)+" €";
-  totalIva.textContent=iva.toFixed(2)+" €";
-  totalFactura.textContent=total.toFixed(2)+" €";
+  const t=calcularTotalesLineas(lineasTemp);
+  totalBase.textContent=t.base.toFixed(2)+" €";
+  totalIva.textContent=t.iva.toFixed(2)+" €";
+  totalFactura.textContent=t.total.toFixed(2)+" €";
 }
 
 function eliminarLinea(idx){
@@ -1705,7 +1803,9 @@ function confirmarLineaManoObra(){
     operario: operario,
     cantidad: horas,
     precio: precioHora,
-    coste_unitario: costeHora
+    coste_unitario: costeHora,
+    iva: 21,
+    familia: "MANO DE OBRA"
   });
   document.getElementById("modalManoObra").style.display="none";
   renderLineas();
@@ -1748,32 +1848,64 @@ function renderListaArticulosModal(){
   contenedor.innerHTML=html;
 }
 
+function pedirCantidadArticulo(a,callback){
+  let m=document.getElementById("modalCantidadArticulo");
+  if(!m){
+    m=document.createElement("div");
+    m.id="modalCantidadArticulo";
+    m.style.cssText="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000a;z-index:10001;overflow-y:auto;padding:20px;";
+    m.innerHTML=`<div style="background:#1c2940;border:2px solid #ff7a1a;border-radius:18px;padding:20px;max-width:420px;margin:80px auto;">
+      <h2 style="color:#ff7a1a;margin-top:0;">Cantidad</h2>
+      <div id="mcArticuloInfo" style="margin-bottom:10px;color:#e8edf7;"></div>
+      <label>Cantidad *</label>
+      <input id="mcArticuloCantidad" type="number" min="1" step="1" inputmode="numeric" value="1">
+      <div style="display:flex;gap:10px;margin-top:14px;">
+        <button type="button" class="green" id="mcArticuloAceptar" style="margin:0;">AÑADIR</button>
+        <button type="button" class="danger" onclick="document.getElementById('modalCantidadArticulo').style.display='none'" style="margin:0;">CANCELAR</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  document.getElementById("mcArticuloInfo").innerHTML=`${htmlSeguro(a.descripcion||"")}<br><span style="color:#aab4c8;">Stock disponible: ${a.stock!==null?a.stock:"—"}</span>`;
+  const input=document.getElementById("mcArticuloCantidad");
+  input.value="1";
+  document.getElementById("mcArticuloAceptar").onclick=function(){
+    const cantidad=parseInt(input.value,10);
+    if(isNaN(cantidad)||cantidad<=0){ alert("INTRODUCE UNA CANTIDAD VÁLIDA"); return; }
+    m.style.display="none";
+    callback(cantidad);
+  };
+  m.style.display="block";
+  setTimeout(()=>input.focus(),100);
+}
+
 function seleccionarArticulo(referencia, proveedor){
   const a=articulos.find(x=>x.referencia===referencia && x.proveedor===proveedor);
   if(!a){ alert("Artículo no encontrado"); return; }
-  const stock = a.stock!==null ? a.stock : 0;
-  const pvp = a.precio_venta!==null ? a.precio_venta : 0;
-  const coste = a.precio_compra!==null ? a.precio_compra : 0;
-  const cantidad = parseInt(prompt(`Cantidad (stock disponible: ${stock}):`, "1"));
-  if(isNaN(cantidad) || cantidad<=0) return;
-  if(stock < cantidad){
-    if(!confirm(`Stock insuficiente (${stock} disponibles). ¿Añadir igualmente?`)) return;
-  }
-  // NO descontamos stock aquí: se descuenta en _completarGuardadoOT al guardar la OT
-  lineasTemp.push({
-    tipo: "articulo",
-    descripcion: a.descripcion,
-    referencia: a.referencia,
-    proveedor: a.proveedor,
-    cantidad: cantidad,
-    precio: pvp,
-    coste_unitario: coste
+  pedirCantidadArticulo(a,function(cantidad){
+    const stock = a.stock!==null ? Number(a.stock)||0 : 0;
+    const pvp = a.precio_venta!==null ? Number(a.precio_venta)||0 : 0;
+    const coste = a.precio_compra!==null ? Number(a.precio_compra)||0 : 0;
+    if(stock < cantidad){
+      if(!confirm(`Stock insuficiente (${stock} disponibles). ¿Añadir igualmente?`)) return;
+    }
+    lineasTemp.push({
+      tipo: "articulo",
+      descripcion: a.descripcion,
+      referencia: a.referencia,
+      proveedor: a.proveedor,
+      familia: a.familia||"SIN FAMILIA",
+      cantidad: cantidad,
+      precio: pvp,
+      coste_unitario: coste,
+      iva: a.iva!==undefined ? Number(a.iva)||21 : 21
+    });
+    renderLineas();
+    cerrarModalSeleccionArticulo();
+    if(!document.getElementById("almacen").classList.contains("hidden")){
+      renderAlmacen();
+    }
   });
-  renderLineas();
-  cerrarModalSeleccionArticulo();
-  if(!document.getElementById("almacen").classList.contains("hidden")){
-    renderAlmacen();
-  }
 }
 
 // ============================================================
@@ -1864,6 +1996,10 @@ function confirmarFicha(){
     alert("NIF/NIE Y DIRECCIÓN SON OBLIGATORIOS PARA EMITIR FACTURA");
     return;
   }
+  if(!nifNieValido(nif)){
+    alert("NIF/NIE NO VÁLIDO. REVISA EL DATO ANTES DE CONTINUAR.");
+    return;
+  }
   const ot=_otPendienteGuardar;
   if(!ot){
     const nombreEdicion=document.getElementById("modalCliente").dataset.clienteEdicion||"";
@@ -1934,59 +2070,49 @@ function exportarCopia(){
 function importarCopia(event){
   const file=event.target.files[0];
   if(!file)return;
-  const reader=new FileReader();
-  reader.onload=function(e){
+  leerArchivoTexto(file,function(texto){
     try{
-      const datos=JSON.parse(e.target.result);
+      const datos=JSON.parse(texto);
+      const validada=validarCopia(datos);
+      if(!validada.ok){
+        alert(validada.msg || "COPIA NO VÁLIDA");
+        event.target.value="";
+        return;
+      }
       if(!confirm("Vas a sustituir los datos actuales por esta copia. Antes se descargará una copia de seguridad del estado actual. ¿Continuar?")){
         event.target.value="";
         return;
       }
       exportarCopia();
-      if(Array.isArray(datos)){
-        ots=datos;
-        contadores={agenda:0,ot:0,factura:0,rectificativa:0};
-        clientes={};
-        vehiculos={};
-        articulos=[];
-        completarNumeracionExistente();
-      }else if(datos && Array.isArray(datos.ots)){
-        ots=Array.isArray(datos.ots) ? datos.ots : [];
-        contadores={
-          agenda: datos.contadores?.agenda || 0,
-          ot: datos.contadores?.ot || 0,
-          factura: datos.contadores?.factura || 0,
-          rectificativa: datos.contadores?.rectificativa || 0
-        };
-        clientes=(datos.clientes && typeof datos.clientes==="object") ? datos.clientes : {};
-        vehiculos=(datos.vehiculos && typeof datos.vehiculos==="object") ? datos.vehiculos : {};
-        articulos=Array.isArray(datos.articulos) ? datos.articulos : [];
-        completarNumeracionExistente();
-      }else{
-        alert("COPIA NO VÁLIDA");
-        event.target.value="";
-        return;
-      }
+      ots=validada.ots;
+      contadores=validada.contadores;
+      clientes=validada.clientes;
+      vehiculos=validada.vehiculos;
+      articulos=validada.articulos;
+      completarNumeracionExistente();
       if(guardar()){
         alert("COPIA IMPORTADA CORRECTAMENTE");
         showTab('inicio');
       }
     }catch(error){
-      alert("ERROR AL IMPORTAR COPIA");
+      alert("ERROR AL IMPORTAR COPIA: archivo no legible o JSON incorrecto");
       console.error(error);
     }
     event.target.value="";
-  };
-  reader.readAsText(file,"UTF-8");
+  });
 }
 
 function resetearPrograma(){
-  const texto=prompt("PELIGRO: esto borra OTs, clientes, vehículos y almacén, y reinicia A, OT, FAC y FREC desde 0001. Se descargará antes una copia. Para confirmar escribe BORRAR TODO");
+  const texto=prompt("PELIGRO: esto borra OTs, clientes, vehículos y almacén, y reinicia A, OT, FAC y FREC desde 0001. Para confirmar escribe BORRAR TODO");
   if(texto!=="BORRAR TODO"){
     alert("OPERACIÓN CANCELADA");
     return;
   }
   exportarCopia();
+  if(!confirm("CONFIRMA QUE HAS DESCARGADO LA COPIA ANTES DE BORRAR TODO.")){
+    alert("OPERACIÓN CANCELADA");
+    return;
+  }
   ots=[];
   contadores={agenda:0,ot:0,factura:0,rectificativa:0};
   clientes={};
@@ -2094,9 +2220,12 @@ function imprimir(id){
         <th style="text-align:right;padding:4px;">Dto. (€)</th>
         <th style="text-align:right;padding:4px;">Base imponible</th>
       </tr></thead><tbody>`;
+    const ivaGrupos={};
     ot.lineas.forEach(l=>{
       const subtotal = (l.cantidad||0)*(l.precio||0);
+      const ivaPct=Number(l.iva!==undefined ? l.iva : 21);
       totalBase += subtotal;
+      ivaGrupos[ivaPct]=(ivaGrupos[ivaPct]||0)+subtotal*(ivaPct/100);
       const descuento = l.descuento || 0; // Campo para futuro
       tablaLineas+=`<tr>
         <td style="text-align:center;padding:4px;">${l.cantidad}</td>
@@ -2106,12 +2235,13 @@ function imprimir(id){
         <td style="text-align:right;padding:4px;">${subtotal.toFixed(2)}</td>
       </tr>`;
     });
-    totalIVA = totalBase * 0.21;
+    totalIVA = Object.values(ivaGrupos).reduce((a,b)=>a+b,0);
     total = totalBase + totalIVA;
+    const detalleIva=Object.keys(ivaGrupos).sort((a,b)=>Number(a)-Number(b)).map(k=>`<span style="font-weight:bold;">IVA (${k}%): ${ivaGrupos[k].toFixed(2)} €</span><br>`).join("");
     tablaLineas+=`</tbody></table>
       <div style="margin-top:12px;border-top:2px solid #999;padding-top:10px;">
         <span style="font-weight:bold;">Base imponible: ${totalBase.toFixed(2)} €</span><br>
-        <span style="font-weight:bold;">IVA (21%): ${totalIVA.toFixed(2)} €</span><br>
+        ${detalleIva}
         <span style="font-weight:bold;font-size:1.2em;">TOTAL FACTURA: ${total.toFixed(2)} €</span>
       </div>`;
   }
