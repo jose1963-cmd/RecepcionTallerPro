@@ -78,7 +78,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R105</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R106</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -338,12 +338,12 @@ BIENVENIDO A GESTIÓN
 <div id="modalArticulo" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000a;z-index:9999;overflow-y:auto;padding:20px;">
 <div style="background:#1c2940;border:2px solid #ff7a1a;border-radius:18px;padding:20px;max-width:500px;margin:40px auto;">
 <h2 id="modalArticuloTitulo" style="color:#ff7a1a;margin-top:0;">✏️ ARTÍCULO</h2>
-<label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Referencia *</label>
-<input id="maRef" placeholder="REF-001" style="margin:4px 0 10px;">
+<label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Referencia</label>
+<input id="maRef" placeholder="REF-001 / vacío = ART automático" style="margin:4px 0 10px;">
 <label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Descripción *</label>
 <input id="maDesc" placeholder="Descripción del artículo">
-<label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Proveedor *</label>
-<input id="maProv" placeholder="Nombre del proveedor">
+<label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Proveedor</label>
+<input id="maProv" placeholder="Nombre del proveedor / opcional">
 <label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Familia</label>
 <input id="maFam" placeholder="Filtros, Aceites, Frenos...">
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -360,6 +360,7 @@ BIENVENIDO A GESTIÓN
 <label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Observaciones</label>
 <textarea id="maObs" rows="2" placeholder="Notas..." style="width:100%;box-sizing:border-box;resize:vertical;"></textarea>
 <input type="hidden" id="maClaveOriginal">
+<input type="hidden" id="maContextoOrigen">
 <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
 <button type="button" class="green" onclick="guardarArticuloModal()" style="margin:0;flex:2;">💾 GUARDAR</button>
 <button type="button" class="danger" onclick="eliminarArticuloModal()" style="margin:0;flex:1;">🗑 ELIMINAR</button>
@@ -373,6 +374,10 @@ BIENVENIDO A GESTIÓN
 <div id="modalSeleccionArticuloBox">
 <h2>🔍 SELECCIONAR ARTÍCULO</h2>
 <input id="buscarArticuloModal" placeholder="Buscar por referencia o descripción..." oninput="renderListaArticulosModal()">
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px;">
+<button type="button" class="green" onclick="abrirModalNuevoArticuloDesdeOT()" style="margin:0;flex:1;">➕ CREAR ARTÍCULO</button>
+<button type="button" class="secondary" onclick="anadirArticuloManualSinReferencia()" style="margin:0;flex:1;">➕ ARTÍCULO MANUAL INT</button>
+</div>
 <div id="listaArticulosModal" class="lista-articulos-modal"></div>
 <div style="display:flex;gap:10px;margin-top:16px;">
 <button type="button" class="danger" onclick="cerrarModalSeleccionArticulo()" style="margin:0;">CANCELAR</button>
@@ -437,14 +442,14 @@ function colorEstado(estado){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R105";
+const APP_VERSION="R106";
 const COPIA_VERSION=4;
 const APP_FECHA="18/06/2026";
-const APP_NOTAS="R105: mano de obra con concepto multilínea y líneas de factura con columnas Ref., Concepto, Uds, Precio, Dto, Base, IVA y Total.";
+const APP_NOTAS="R106 definitiva: crear artículos desde OT; referencia vacía genera ART automático; artículo manual genera INT solo para venta puntual; permite guardar artículos incompletos.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
-let contadores={agenda:0,ot:0,factura:0,rectificativa:0};
+let contadores={agenda:0,ot:0,factura:0,rectificativa:0,articuloInterno:0};
 let clientes={};
 let vehiculos={};
 let articulos=[];
@@ -520,12 +525,13 @@ try{
     ots=Array.isArray(guardado.ots) ? guardado.ots : [];
     contadores=guardado.contadores || {agenda:0,ot:0,factura:0,rectificativa:0};
     if(contadores.rectificativa===undefined) contadores.rectificativa=0;
+    if(contadores.articuloInterno===undefined) contadores.articuloInterno=0;
     clientes=guardado.clientes || {};
     vehiculos=guardado.vehiculos || {};
     articulos=Array.isArray(guardado.articulos) ? guardado.articulos : [];
   }
 }catch(e){
-  ots=[]; contadores={agenda:0,ot:0,factura:0,rectificativa:0};
+  ots=[]; contadores={agenda:0,ot:0,factura:0,rectificativa:0,articuloInterno:0};
   clientes={}; vehiculos={}; articulos=[];
 }
 
@@ -580,13 +586,14 @@ function normalizarContadores(c){
     agenda:Number.isFinite(Number(c.agenda)) ? Number(c.agenda) : 0,
     ot:Number.isFinite(Number(c.ot)) ? Number(c.ot) : 0,
     factura:Number.isFinite(Number(c.factura)) ? Number(c.factura) : 0,
-    rectificativa:Number.isFinite(Number(c.rectificativa)) ? Number(c.rectificativa) : 0
+    rectificativa:Number.isFinite(Number(c.rectificativa)) ? Number(c.rectificativa) : 0,
+    articuloInterno:Number.isFinite(Number(c.articuloInterno)) ? Number(c.articuloInterno) : 0
   };
 }
 
 function validarCopia(datos){
   if(Array.isArray(datos)){
-    return {ok:true,tipo:"antigua",ots:datos,contadores:{agenda:0,ot:0,factura:0,rectificativa:0},clientes:{},vehiculos:{},articulos:[]};
+    return {ok:true,tipo:"antigua",ots:datos,contadores:{agenda:0,ot:0,factura:0,rectificativa:0,articuloInterno:0},clientes:{},vehiculos:{},articulos:[]};
   }
   if(!datos || typeof datos!=="object" || !Array.isArray(datos.ots)) return {ok:false,msg:"COPIA NO VÁLIDA: no contiene lista de OTs."};
   if(datos.contadores!==undefined && typeof datos.contadores!=="object") return {ok:false,msg:"COPIA NO VÁLIDA: contadores dañados."};
@@ -665,6 +672,25 @@ function siguienteNumero(tipo){
 function formatearNumero(prefijo,numero){
   if(!numero) return "SIN Nº";
   return prefijo+"-"+String(numero).padStart(4,"0");
+}
+
+function generarReferenciaArticulo(prefijo){
+  prefijo=prefijo||"ART";
+  let max=0;
+  articulos.forEach(a=>{
+    const m=String(a.referencia||"").match(new RegExp("^"+prefijo+"-(\\d+)$"));
+    if(m){ const n=parseInt(m[1],10); if(n>max) max=n; }
+  });
+  return prefijo+"-"+String(max+1).padStart(4,"0");
+}
+
+function generarReferenciaInterna(){
+  contadores.articuloInterno=(contadores.articuloInterno||0)+1;
+  return "INT-"+String(contadores.articuloInterno).padStart(4,"0");
+}
+
+function jsSeguro(texto){
+  return String(texto||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/"/g,'&quot;');
 }
 
 function referenciaOT(ot){
@@ -1036,6 +1062,7 @@ function abrirModalNuevoArticulo(){
   document.getElementById("maStockMin").value="0";
   document.getElementById("maObs").value="";
   document.getElementById("maClaveOriginal").value="";
+  document.getElementById("maContextoOrigen").value="almacen";
   document.querySelector("#modalArticulo button.danger").style.display="none";
   document.getElementById("modalArticulo").style.display="block";
   setTimeout(()=>document.getElementById("maRef").focus(),200);
@@ -1058,6 +1085,7 @@ function abrirModalEditarArticulo(clave){
   document.getElementById("maStockMin").value=a.stock_minimo!==null?a.stock_minimo:0;
   document.getElementById("maObs").value=a.observaciones||"";
   document.getElementById("maClaveOriginal").value=clave;
+  document.getElementById("maContextoOrigen").value="almacen";
   document.querySelector("#modalArticulo button.danger").style.display="block";
   document.getElementById("modalArticulo").style.display="block";
 }
@@ -1072,13 +1100,16 @@ function calcularPVP(){
 }
 
 function guardarArticuloModal(){
-  const ref=(document.getElementById("maRef").value||"").trim().toUpperCase();
+  let ref=(document.getElementById("maRef").value||"").trim().toUpperCase();
   const desc=(document.getElementById("maDesc").value||"").trim().toUpperCase();
-  const prov=(document.getElementById("maProv").value||"").trim().toUpperCase();
-  if(!ref||!desc||!prov){
-    alert("REFERENCIA, DESCRIPCIÓN Y PROVEEDOR SON OBLIGATORIOS");
+  let prov=(document.getElementById("maProv").value||"").trim().toUpperCase();
+  const contexto=(document.getElementById("maContextoOrigen").value||"almacen");
+  if(!desc){
+    alert("LA DESCRIPCIÓN ES OBLIGATORIA");
     return;
   }
+  if(!ref) ref=generarReferenciaArticulo("ART");
+  if(!prov) prov="SIN PROVEEDOR";
   const precioCompra=numero(document.getElementById("maPcomp").value);
   const margenPct=numero(document.getElementById("maMargen").value);
   let precioVenta=numero(document.getElementById("maPventa").value);
@@ -1089,7 +1120,7 @@ function guardarArticuloModal(){
     referencia:ref,
     descripcion:desc,
     proveedor:prov,
-    familia:(document.getElementById("maFam").value||"").trim().toUpperCase(),
+    familia:(document.getElementById("maFam").value||"").trim().toUpperCase() || "SIN FAMILIA",
     precio_compra:precioCompra,
     margen_pct:margenPct,
     precio_venta:precioVenta,
@@ -1113,7 +1144,11 @@ function guardarArticuloModal(){
   guardar();
   cerrarModalArticulo();
   renderAlmacen();
-  alert("ARTÍCULO GUARDADO: "+ref+" / "+prov);
+  if(contexto==="ot"){
+    seleccionarArticulo(art.referencia,art.proveedor);
+  }else{
+    alert("ARTÍCULO GUARDADO: "+ref+" / "+prov);
+  }
 }
 
 function eliminarArticuloModal(){
@@ -1334,7 +1369,7 @@ function buscarMatricula(){
 
 // --- CONTROL DE STOCK REFORZADO ---
 function buscarArticuloLinea(linea){
-  if(!linea || linea.tipo!=="articulo" || !linea.referencia) return null;
+  if(!linea || linea.no_stock || linea.tipo!=="articulo" || !linea.referencia) return null;
   return articulos.find(a=>a.referencia===linea.referencia && a.proveedor===linea.proveedor) || null;
 }
 
@@ -1908,7 +1943,7 @@ function renderListaArticulosModal(){
     );
   }
   if(filtrados.length===0){
-    contenedor.innerHTML="<p style='color:#aab4c8;padding:12px;'>No hay artículos.</p>";
+    contenedor.innerHTML="<p style='color:#aab4c8;padding:12px;'>No hay artículos. Puedes crear uno nuevo o añadir una línea manual INT.</p>";
     return;
   }
   let html="";
@@ -1916,12 +1951,65 @@ function renderListaArticulosModal(){
     const stock = a.stock!==null ? a.stock : 0;
     const pvp = a.precio_venta!==null ? a.precio_venta.toFixed(2) : "—";
     const coste = a.precio_compra!==null ? a.precio_compra.toFixed(2) : "0";
-    html+=`<button onclick="seleccionarArticulo('${a.referencia}','${a.proveedor}')" style="display:block;width:100%;text-align:left;border-bottom:1px solid #3b4a63;padding:10px;background:#101827;color:#e8edf7;border-radius:0;margin:0;">
+    html+=`<button onclick="seleccionarArticulo('${jsSeguro(a.referencia)}','${jsSeguro(a.proveedor)}')" style="display:block;width:100%;text-align:left;border-bottom:1px solid #3b4a63;padding:10px;background:#101827;color:#e8edf7;border-radius:0;margin:0;">
       <b>${htmlSeguro(a.referencia)}</b> — ${htmlSeguro(a.descripcion)}<br>
       <span style="font-size:13px;color:#aab4c8;">Stock: ${stock} | PVP: ${pvp} € | Coste: ${coste} €</span>
     </button>`;
   });
   contenedor.innerHTML=html;
+}
+
+function abrirModalNuevoArticuloDesdeOT(){
+  const busqueda=(document.getElementById("buscarArticuloModal").value||"").trim().toUpperCase();
+  document.getElementById("modalArticuloTitulo").textContent="➕ CREAR ARTÍCULO DESDE OT";
+  document.getElementById("maRef").value="";
+  document.getElementById("maDesc").value=busqueda;
+  document.getElementById("maProv").value="";
+  document.getElementById("maFam").value="";
+  document.getElementById("maPcomp").value="";
+  document.getElementById("maMargen").value="";
+  document.getElementById("maPventa").value="";
+  document.getElementById("maIva").value="21";
+  document.getElementById("maStock").value="0";
+  document.getElementById("maStockMin").value="0";
+  document.getElementById("maObs").value="CREADO DESDE OT";
+  document.getElementById("maClaveOriginal").value="";
+  document.getElementById("maContextoOrigen").value="ot";
+  document.querySelector("#modalArticulo button.danger").style.display="none";
+  document.getElementById("modalArticulo").style.display="block";
+  setTimeout(()=>document.getElementById(busqueda ? "maPventa" : "maDesc").focus(),150);
+}
+
+function anadirArticuloManualSinReferencia(){
+  let desc=prompt("DESCRIPCIÓN DEL ARTÍCULO / PIEZA MANUAL");
+  if(desc===null) return;
+  desc=desc.trim().toUpperCase();
+  if(!desc){ alert("LA DESCRIPCIÓN ES OBLIGATORIA"); return; }
+  let pvp=prompt("PRECIO DE VENTA SIN IVA (€)","0");
+  if(pvp===null) return;
+  pvp=numero(pvp);
+  if(pvp===null || pvp<0){ alert("PRECIO NO VÁLIDO"); return; }
+  let cantidad=prompt("UNIDADES", "1");
+  if(cantidad===null) return;
+  cantidad=numero(cantidad);
+  if(cantidad===null || cantidad<=0){ alert("CANTIDAD NO VÁLIDA"); return; }
+  const ref=generarReferenciaInterna();
+  lineasTemp.push({
+    tipo:"articulo_manual",
+    referencia:ref,
+    descripcion:desc,
+    proveedor:"INTERNO",
+    familia:"VENTA MANUAL",
+    cantidad:cantidad,
+    precio:pvp,
+    coste_unitario:0,
+    descuento:0,
+    iva:21,
+    no_stock:true
+  });
+  guardar();
+  renderLineas();
+  cerrarModalSeleccionArticulo();
 }
 
 function pedirCantidadArticulo(a,callback){
