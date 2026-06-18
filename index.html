@@ -75,7 +75,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R100</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R101</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -175,7 +175,10 @@ BIENVENIDO A GESTIÓN
 </div>
 
 <div id="historial" class="card hidden">
-<h2>Facturas</h2>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+<button type="button" class="secondary" onclick="showTab('inicio')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ INICIO</button>
+<h2 style="margin:0;color:#ffffff;">Facturas</h2>
+</div>
 <div id="filtroTabs" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
 <button type="button" id="ftbMatricula" onclick="setFiltro('matricula')" style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">MATRÍCULA</button>
 <button type="button" id="ftbCliente"   onclick="setFiltro('cliente')"   style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">CLIENTE</button>
@@ -189,11 +192,17 @@ BIENVENIDO A GESTIÓN
 </div>
 
 <div id="agenda" class="card hidden">
-<h2>Agenda</h2>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+<button type="button" class="secondary" onclick="showTab('inicio')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ INICIO</button>
+<h2 style="margin:0;color:#ffffff;">Agenda</h2>
+</div>
 <div id="agendaLista"></div>
 </div>
 <div id="taller" class="card hidden">
-<h2>Taller</h2>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+<button type="button" class="secondary" onclick="showTab('inicio')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ INICIO</button>
+<h2 style="margin:0;color:#ffffff;">Taller</h2>
+</div>
 <div id="tallerLista"><p>No hay vehículos en taller.</p></div>
 </div>
 
@@ -225,7 +234,7 @@ BIENVENIDO A GESTIÓN
 <!-- PESTAÑA ESTADÍSTICAS -->
 <div id="estadisticas" class="card hidden">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-<button type="button" class="secondary" onclick="showTab('mas')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ VOLVER</button>
+<button type="button" class="secondary" onclick="showTab('inicio')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ INICIO</button>
 <h2 style="margin:0;color:#ffffff;">📊 ESTADÍSTICAS</h2>
 </div>
 <div id="estadisticasContenido"></div>
@@ -234,7 +243,7 @@ BIENVENIDO A GESTIÓN
 <!-- NUEVA PESTAÑA RENTABILIDAD -->
 <div id="ganancias" class="card hidden">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-<button type="button" class="secondary" onclick="showTab('mas')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ VOLVER</button>
+<button type="button" class="secondary" onclick="showTab('inicio')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ INICIO</button>
 <h2 style="margin:0;color:#ffffff;">💰 RENTABILIDAD</h2>
 </div>
 <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
@@ -388,10 +397,10 @@ function colorEstado(estado){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R100";
+const APP_VERSION="R101";
 const COPIA_VERSION=4;
 const APP_FECHA="18/06/2026";
-const APP_NOTAS="R100: añade MANO DE OBRA como familia propia en RENTABILIDAD y corrige la etiqueta visible de versión.";
+const APP_NOTAS="R101: añade botón ⬅️ INICIO en Facturas, Agenda, Taller, Estadísticas y Rentabilidad para volver directamente a la pantalla principal.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
