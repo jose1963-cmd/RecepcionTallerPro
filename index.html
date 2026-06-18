@@ -75,7 +75,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R103</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R104</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -212,6 +212,7 @@ BIENVENIDO A GESTIÓN
 <button onclick="showTab('historial')" style="font-size:18px;padding:24px;margin-bottom:14px;background:#28a745;color:white;">🧾 FACTURAS</button>
 <button onclick="showTab('estadisticas')" style="font-size:18px;padding:24px;margin-bottom:14px;background:#2196f3;color:white;">📊 ESTADÍSTICAS</button>
 <button onclick="showTab('ganancias')" style="font-size:18px;padding:24px;margin-bottom:14px;background:#9c27b0;color:white;">💰 RENTABILIDAD</button>
+<button onclick="showTab('inventario')" style="font-size:18px;padding:24px;margin-bottom:14px;background:#ff7a1a;color:#0f1728;">📦 INVENTARIO</button>
 </div>
 <div id="almacen" class="card hidden">
 <h2>📦 Almacén</h2>
@@ -270,6 +271,42 @@ BIENVENIDO A GESTIÓN
   <button class="green" onclick="renderGanancias()" style="width:auto;padding:8px 20px;align-self:flex-end;">📊 CALCULAR</button>
 </div>
 <div id="resultadoGanancias"></div>
+</div>
+
+<!-- NUEVA PESTAÑA INVENTARIO -->
+<div id="inventario" class="card hidden">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+<button type="button" class="secondary" onclick="showTab('inicio')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ INICIO</button>
+<h2 style="margin:0;color:#ffffff;">📦 INVENTARIO</h2>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+  <div style="flex:1;min-width:130px;">
+    <label>Familia</label>
+    <select id="familiaInventario" onchange="renderInventario()">
+      <option value="">Todas</option>
+    </select>
+  </div>
+  <div style="flex:1;min-width:130px;">
+    <label>Proveedor</label>
+    <select id="proveedorInventario" onchange="renderInventario()">
+      <option value="">Todos</option>
+    </select>
+  </div>
+  <div style="flex:1;min-width:130px;">
+    <label>Vista</label>
+    <select id="vistaInventario" onchange="renderInventario()">
+      <option value="familias">Por familias</option>
+      <option value="bajo">Stock bajo mínimo</option>
+      <option value="cero">Stock cero</option>
+      <option value="completo">Inventario completo</option>
+    </select>
+  </div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+<button type="button" class="green" onclick="imprimirInventario('actual')" style="width:auto;padding:10px 14px;margin:0;">📄 IMPRIMIR VISTA</button>
+<button type="button" class="secondary" onclick="imprimirInventario('bajo')" style="width:auto;padding:10px 14px;margin:0;">📄 IMPRIMIR STOCK BAJO</button>
+</div>
+<div id="inventarioContenido"></div>
 </div>
 
 <!-- Modal cámara OCR -->
@@ -397,10 +434,10 @@ function colorEstado(estado){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R103";
+const APP_VERSION="R104";
 const COPIA_VERSION=4;
 const APP_FECHA="18/06/2026";
-const APP_NOTAS="R103: seguridad reforzada: control de tamaño localStorage, validación de copias, IVA por línea, bloqueo de doble guardado, ID único, cantidad sin prompt y marcas/modelos ampliados.";
+const APP_NOTAS="R104: inventario por familia con valor compra, valor venta, beneficio potencial, stock bajo/cero e impresión de inventario.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -714,7 +751,7 @@ function sincronizarFiscalDesdeFicha(ot){
 // 5. FUNCIONES DE INTERFAZ
 // ============================================================
 function showTab(id){
-  ["inicio","nueva","historial","agenda","taller","almacen","estadisticas","ganancias","mas"].forEach(t=>{
+  ["inicio","nueva","historial","agenda","taller","almacen","estadisticas","ganancias","inventario","mas"].forEach(t=>{
     document.getElementById(t).classList.toggle("hidden", t!==id);
   });
   document.getElementById("tabs").style.display = (id==="inicio"||id==="almacen") ? "none" : "flex";
@@ -728,12 +765,14 @@ function showTab(id){
   else if(id==="historial"){ botones[3].classList.add("activo"); titulo.style.background="#28a745"; titulo.style.color="white"; }
   else if(id==="estadisticas"){ botones[3].classList.add("activo"); titulo.style.background="#2196f3"; titulo.style.color="white"; }
   else if(id==="ganancias"){ botones[3].classList.add("activo"); titulo.style.background="#9c27b0"; titulo.style.color="white"; renderGanancias(); }
+  else if(id==="inventario"){ botones[3].classList.add("activo"); titulo.style.background="#ff7a1a"; titulo.style.color="#0f1728"; renderInventario(); }
   else { titulo.style.background="#0f1728"; titulo.style.color="#ff7a1a"; }
   if(id==="historial") setFiltro(filtroActivo);
   if(id==="agenda") renderAgenda();
   if(id==="taller") renderTaller();
   if(id==="almacen") renderAlmacen();
   if(id==="estadisticas") renderEstadisticas();
+  if(id==="inventario") renderInventario();
   if(id==="inicio") actualizarAvisoCopia();
 }
 
@@ -2629,6 +2668,182 @@ function renderEstadisticas(){
   }
 
   contenedor.innerHTML = html;
+}
+
+
+// ============================================================
+// 20. INVENTARIO
+// ============================================================
+function euros(v){
+  return (Number(v)||0).toFixed(2).replace(".",",")+" €";
+}
+
+function normalizarFamiliaArticulo(a){
+  const fam=(a && a.familia ? String(a.familia).trim().toUpperCase() : "");
+  return fam || "SIN FAMILIA";
+}
+
+function actualizarSelectInventario(){
+  const selFam=document.getElementById("familiaInventario");
+  const selProv=document.getElementById("proveedorInventario");
+  if(!selFam || !selProv) return;
+  const famActual=selFam.value;
+  const provActual=selProv.value;
+  const familias=new Set();
+  const proveedores=new Set();
+  articulos.forEach(a=>{
+    familias.add(normalizarFamiliaArticulo(a));
+    const p=(a.proveedor||"").trim().toUpperCase();
+    if(p) proveedores.add(p);
+  });
+  selFam.innerHTML='<option value="">Todas</option>'+Array.from(familias).sort().map(f=>`<option value="${htmlSeguro(f)}">${htmlSeguro(f)}</option>`).join("");
+  selProv.innerHTML='<option value="">Todos</option>'+Array.from(proveedores).sort().map(p=>`<option value="${htmlSeguro(p)}">${htmlSeguro(p)}</option>`).join("");
+  if(Array.from(familias).includes(famActual)) selFam.value=famActual;
+  if(Array.from(proveedores).includes(provActual)) selProv.value=provActual;
+}
+
+function obtenerArticulosInventario(modoForzado){
+  const selFam=document.getElementById("familiaInventario");
+  const selProv=document.getElementById("proveedorInventario");
+  const vista=document.getElementById("vistaInventario");
+  const fam=selFam ? selFam.value : "";
+  const prov=selProv ? selProv.value : "";
+  const modo=modoForzado || (vista ? vista.value : "familias");
+  return articulos.filter(a=>{
+    const familia=normalizarFamiliaArticulo(a);
+    const proveedor=(a.proveedor||"").trim().toUpperCase();
+    const stock=Number(a.stock)||0;
+    const minimo=Number(a.stock_minimo)||0;
+    if(fam && familia!==fam) return false;
+    if(prov && proveedor!==prov) return false;
+    if(modo==="bajo" && !(stock>0 && minimo>0 && stock<=minimo)) return false;
+    if(modo==="cero" && stock!==0) return false;
+    return true;
+  });
+}
+
+function calcularResumenInventario(lista){
+  const r={referencias:lista.length, unidades:0, compra:0, venta:0, beneficio:0};
+  lista.forEach(a=>{
+    const stock=Number(a.stock)||0;
+    const compra=Number(a.precio_compra)||0;
+    const venta=Number(a.precio_venta)||0;
+    r.unidades+=stock;
+    r.compra+=stock*compra;
+    r.venta+=stock*venta;
+  });
+  r.beneficio=r.venta-r.compra;
+  return r;
+}
+
+function tarjetaResumenInventario(titulo,resumen,color){
+  return `<div class="item" style="border-left-color:${color||"#ff7a1a"}">
+    <b style="font-size:17px;">${htmlSeguro(titulo)}</b><br><br>
+    <span style="color:#ffd580;font-weight:bold;">Valor compra: ${euros(resumen.compra)}</span><br>
+    <span style="color:#28a745;font-weight:bold;">Valor venta: ${euros(resumen.venta)}</span><br>
+    <span style="color:#ff7a1a;font-weight:bold;">Beneficio potencial: ${euros(resumen.beneficio)}</span><br>
+    Referencias: ${resumen.referencias}<br>
+    Unidades: ${resumen.unidades}
+  </div>`;
+}
+
+function renderInventario(){
+  actualizarSelectInventario();
+  const cont=document.getElementById("inventarioContenido");
+  if(!cont) return;
+  if(!Array.isArray(articulos) || articulos.length===0){
+    cont.innerHTML='<p style="color:#aab4c8;">No hay artículos en almacén.</p>';
+    return;
+  }
+  const vista=document.getElementById("vistaInventario").value;
+  const lista=obtenerArticulosInventario();
+  const resumen=calcularResumenInventario(lista);
+  let html=tarjetaResumenInventario("RESUMEN ALMACÉN",resumen,"#28a745");
+
+  if(vista==="familias"){
+    const grupos={};
+    lista.forEach(a=>{
+      const fam=normalizarFamiliaArticulo(a);
+      if(!grupos[fam]) grupos[fam]=[];
+      grupos[fam].push(a);
+    });
+    Object.keys(grupos).sort().forEach(fam=>{
+      html+=tarjetaResumenInventario("📦 "+fam,calcularResumenInventario(grupos[fam]),"#ff7a1a");
+    });
+  }else{
+    const titulo = vista==="bajo" ? "⚠️ STOCK BAJO MÍNIMO" : (vista==="cero" ? "⛔ STOCK CERO" : "📋 INVENTARIO COMPLETO");
+    html+=`<h3 style="color:#ff7a1a;margin-top:16px;">${titulo}</h3>`;
+    if(lista.length===0){
+      html+='<p style="color:#aab4c8;">No hay artículos en esta vista.</p>';
+    }else{
+      html+=`<div class="item" style="border-left-color:#ff7a1a;max-height:500px;overflow-y:auto;">`;
+      lista.slice().sort((a,b)=>normalizarFamiliaArticulo(a).localeCompare(normalizarFamiliaArticulo(b)) || (a.referencia||"").localeCompare(b.referencia||"")).forEach(a=>{
+        const stock=Number(a.stock)||0;
+        const minimo=Number(a.stock_minimo)||0;
+        const compra=(Number(a.precio_compra)||0)*stock;
+        const venta=(Number(a.precio_venta)||0)*stock;
+        const aviso=stock===0 ? "⛔" : (minimo>0 && stock<=minimo ? "⚠️" : "");
+        html+=`<div style="border-bottom:1px solid #2a3a55;padding:7px 0;font-size:13px;">
+          <b>${aviso} ${htmlSeguro(a.referencia||"")}</b> — ${htmlSeguro(a.descripcion||"")}<br>
+          <span style="color:#aab4c8;">${htmlSeguro(normalizarFamiliaArticulo(a))} · ${htmlSeguro(a.proveedor||"")}</span><br>
+          Stock: <b>${stock}</b> · Mín: ${minimo} · Compra: ${euros(compra)} · Venta: ${euros(venta)}
+        </div>`;
+      });
+      html+=`</div>`;
+    }
+  }
+  cont.innerHTML=html;
+}
+
+function construirHTMLInventarioParaImprimir(modo){
+  const vistaActual=document.getElementById("vistaInventario") ? document.getElementById("vistaInventario").value : "familias";
+  const modoLista = modo==="bajo" ? "bajo" : vistaActual;
+  const lista=obtenerArticulosInventario(modoLista);
+  const resumen=calcularResumenInventario(lista);
+  let html=`<h1>INVENTARIO ALMACÉN</h1><p><b>Fecha:</b> ${formatearFecha(new Date().toISOString())}</p>`;
+  html+=`<h2>Resumen</h2><table><tr><th>Valor compra</th><th>Valor venta</th><th>Beneficio potencial</th><th>Referencias</th><th>Unidades</th></tr>
+    <tr><td>${euros(resumen.compra)}</td><td>${euros(resumen.venta)}</td><td>${euros(resumen.beneficio)}</td><td>${resumen.referencias}</td><td>${resumen.unidades}</td></tr></table>`;
+
+  if(modoLista==="familias"){
+    const grupos={};
+    lista.forEach(a=>{ const fam=normalizarFamiliaArticulo(a); if(!grupos[fam]) grupos[fam]=[]; grupos[fam].push(a); });
+    html+=`<h2>Inventario por familia</h2><table><tr><th>Familia</th><th>Valor compra</th><th>Valor venta</th><th>Beneficio</th><th>Referencias</th><th>Unidades</th></tr>`;
+    Object.keys(grupos).sort().forEach(fam=>{
+      const r=calcularResumenInventario(grupos[fam]);
+      html+=`<tr><td>${htmlSeguro(fam)}</td><td>${euros(r.compra)}</td><td>${euros(r.venta)}</td><td>${euros(r.beneficio)}</td><td>${r.referencias}</td><td>${r.unidades}</td></tr>`;
+    });
+    html+=`</table>`;
+  }else{
+    const titulo=modoLista==="bajo" ? "Stock bajo mínimo" : (modoLista==="cero" ? "Stock cero" : "Inventario completo");
+    html+=`<h2>${titulo}</h2><table><tr><th>Referencia</th><th>Descripción</th><th>Familia</th><th>Proveedor</th><th>Stock</th><th>Mín.</th><th>Valor compra</th><th>Valor venta</th></tr>`;
+    lista.slice().sort((a,b)=>normalizarFamiliaArticulo(a).localeCompare(normalizarFamiliaArticulo(b)) || (a.referencia||"").localeCompare(b.referencia||"")).forEach(a=>{
+      const stock=Number(a.stock)||0;
+      html+=`<tr><td>${htmlSeguro(a.referencia||"")}</td><td>${htmlSeguro(a.descripcion||"")}</td><td>${htmlSeguro(normalizarFamiliaArticulo(a))}</td><td>${htmlSeguro(a.proveedor||"")}</td><td>${stock}</td><td>${Number(a.stock_minimo)||0}</td><td>${euros(stock*(Number(a.precio_compra)||0))}</td><td>${euros(stock*(Number(a.precio_venta)||0))}</td></tr>`;
+    });
+    html+=`</table>`;
+  }
+  return html;
+}
+
+function imprimirInventario(modo){
+  const anterior=document.getElementById("zonaImpresion");
+  if(anterior) anterior.remove();
+  const zona=document.createElement("div");
+  zona.id="zonaImpresion";
+  zona.innerHTML=`<style>
+    #zonaImpresion{display:none}
+    @media print{
+      body > *:not(#zonaImpresion){display:none!important}
+      #zonaImpresion{display:block!important;font-family:Arial;padding:18px;color:black;background:white}
+      #zonaImpresion h1{text-align:center;color:black;background:white;margin:0 0 12px;padding:0;font-size:22px}
+      #zonaImpresion h2{color:black;margin:18px 0 8px;font-size:16px}
+      #zonaImpresion table{width:100%;border-collapse:collapse;font-size:11px}
+      #zonaImpresion th,#zonaImpresion td{border:1px solid #999;padding:5px;text-align:left;vertical-align:top}
+      #zonaImpresion th{background:#eee}
+    }
+  </style>${construirHTMLInventarioParaImprimir(modo)}`;
+  document.body.appendChild(zona);
+  window.print();
 }
 
 // ============================================================
