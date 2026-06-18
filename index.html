@@ -78,7 +78,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R106</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R107</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -335,7 +335,7 @@ BIENVENIDO A GESTIÓN
 </div>
 
 <!-- Modal artículos -->
-<div id="modalArticulo" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000a;z-index:9999;overflow-y:auto;padding:20px;">
+<div id="modalArticulo" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000a;z-index:10002;overflow-y:auto;padding:20px;">
 <div style="background:#1c2940;border:2px solid #ff7a1a;border-radius:18px;padding:20px;max-width:500px;margin:40px auto;">
 <h2 id="modalArticuloTitulo" style="color:#ff7a1a;margin-top:0;">✏️ ARTÍCULO</h2>
 <label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Referencia</label>
@@ -376,7 +376,7 @@ BIENVENIDO A GESTIÓN
 <input id="buscarArticuloModal" placeholder="Buscar por referencia o descripción..." oninput="renderListaArticulosModal()">
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px;">
 <button type="button" class="green" onclick="abrirModalNuevoArticuloDesdeOT()" style="margin:0;flex:1;">➕ CREAR ARTÍCULO</button>
-<button type="button" class="secondary" onclick="anadirArticuloManualSinReferencia()" style="margin:0;flex:1;">➕ ARTÍCULO MANUAL INT</button>
+<button type="button" class="secondary" onclick="anadirArticuloManualSinReferencia()" style="margin:0;flex:1;">➕ VENTA PUNTUAL INT</button>
 </div>
 <div id="listaArticulosModal" class="lista-articulos-modal"></div>
 <div style="display:flex;gap:10px;margin-top:16px;">
@@ -442,10 +442,10 @@ function colorEstado(estado){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R106";
+const APP_VERSION="R107";
 const COPIA_VERSION=4;
 const APP_FECHA="18/06/2026";
-const APP_NOTAS="R106 definitiva: crear artículos desde OT; referencia vacía genera ART automático; artículo manual genera INT solo para venta puntual; permite guardar artículos incompletos.";
+const APP_NOTAS="R107: corregido modal de crear artículo desde OT; ART automático visible; VENTA PUNTUAL INT separada para no confundir con almacén.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -1147,7 +1147,7 @@ function guardarArticuloModal(){
   if(contexto==="ot"){
     seleccionarArticulo(art.referencia,art.proveedor);
   }else{
-    alert("ARTÍCULO GUARDADO: "+ref+" / "+prov);
+    alert("ARTÍCULO GUARDADO EN ALMACÉN: "+ref+" / "+prov);
   }
 }
 
@@ -1961,7 +1961,9 @@ function renderListaArticulosModal(){
 
 function abrirModalNuevoArticuloDesdeOT(){
   const busqueda=(document.getElementById("buscarArticuloModal").value||"").trim().toUpperCase();
-  document.getElementById("modalArticuloTitulo").textContent="➕ CREAR ARTÍCULO DESDE OT";
+  // R107: cerramos el selector para que el formulario de artículo quede arriba y no se tape en iPhone.
+  cerrarModalSeleccionArticulo();
+  document.getElementById("modalArticuloTitulo").textContent="➕ CREAR ARTÍCULO DE ALMACÉN";
   document.getElementById("maRef").value="";
   document.getElementById("maDesc").value=busqueda;
   document.getElementById("maProv").value="";
@@ -1981,7 +1983,8 @@ function abrirModalNuevoArticuloDesdeOT(){
 }
 
 function anadirArticuloManualSinReferencia(){
-  let desc=prompt("DESCRIPCIÓN DEL ARTÍCULO / PIEZA MANUAL");
+  // R107: venta puntual INT. No crea artículo de almacén ni controla stock.
+  let desc=prompt("DESCRIPCIÓN DE LA VENTA PUNTUAL INT");
   if(desc===null) return;
   desc=desc.trim().toUpperCase();
   if(!desc){ alert("LA DESCRIPCIÓN ES OBLIGATORIA"); return; }
