@@ -75,7 +75,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R98</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R100</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -253,7 +253,7 @@ BIENVENIDO A GESTIÓN
     <input type="date" id="fechaFinG">
   </div>
   <div style="flex:1;min-width:120px;">
-    <label>Familia de recambio</label>
+    <label>Familia</label>
     <select id="familiaGanancias">
       <option value="">Todas</option>
     </select>
@@ -388,10 +388,10 @@ function colorEstado(estado){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R99";
+const APP_VERSION="R100";
 const COPIA_VERSION=4;
 const APP_FECHA="18/06/2026";
-const APP_NOTAS="R99: Barra de navegación rediseñada (4 botones + ⋯), pantalla MÁS con FACTURAS/ESTADÍSTICAS/RENTABILIDAD, mano de obra con referencias predefinidas y operario, estadísticas con consumo por familia y rentabilidad por operario.";
+const APP_NOTAS="R100: añade MANO DE OBRA como familia propia en RENTABILIDAD y corrige la etiqueta visible de versión.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -2524,9 +2524,17 @@ function renderGanancias(){
   // Rellenar selector de familias si está vacío
   const selFam = document.getElementById("familiaGanancias");
   if(selFam.options.length <= 1){
+    const optMO = document.createElement("option");
+    optMO.value = "MANO DE OBRA";
+    optMO.textContent = "MANO DE OBRA";
+    selFam.appendChild(optMO);
+
     const familias = new Set();
-    articulos.forEach(a => { if(a.familia) familias.add(a.familia); });
-    familias.forEach(f => {
+    articulos.forEach(a => {
+      const fam = (a.familia || "").trim().toUpperCase();
+      if(fam && fam !== "MANO DE OBRA") familias.add(fam);
+    });
+    Array.from(familias).sort().forEach(f => {
       const opt = document.createElement("option");
       opt.value = f;
       opt.textContent = f;
@@ -2563,6 +2571,8 @@ function renderGanancias(){
         beneficioOT += beneficioLinea;
         if(linea.tipo === "mano_obra"){
           beneficioMO_OT += beneficioLinea;
+          if(!beneficioPorFamilia["MANO DE OBRA"]) beneficioPorFamilia["MANO DE OBRA"] = 0;
+          beneficioPorFamilia["MANO DE OBRA"] += beneficioLinea;
         } else if(linea.tipo === "articulo"){
           beneficioRec_OT += beneficioLinea;
           // Buscar familia del artículo
@@ -2583,9 +2593,10 @@ function renderGanancias(){
     let incluir = true;
     if(familiaFiltro){
       const tieneFamilia = (ot.lineas || []).some(linea => {
+        if(familiaFiltro === "MANO DE OBRA") return linea.tipo === "mano_obra";
         if(linea.tipo !== "articulo") return false;
         const art = articulos.find(a => a.referencia === linea.referencia && a.proveedor === linea.proveedor);
-        return art && art.familia === familiaFiltro;
+        return art && (art.familia || "").toUpperCase() === familiaFiltro;
       });
       incluir = tieneFamilia;
     }
@@ -2606,8 +2617,14 @@ function renderGanancias(){
   // Si hay filtro de familia, recalcular los totales de recambios para ese filtro
   if(familiaFiltro){
     const beneficioFam = beneficioPorFamilia[familiaFiltro] || 0;
-    // Reemplazamos el beneficio de recambios por el de la familia seleccionada
-    beneficioRecambios = beneficioFam;
+    if(familiaFiltro === "MANO DE OBRA"){
+      beneficioManoObra = beneficioFam;
+      beneficioRecambios = 0;
+    }else{
+      beneficioRecambios = beneficioFam;
+      beneficioManoObra = 0;
+    }
+    totalBeneficio = beneficioFam;
   }
 
   // Mostrar resultados
@@ -2626,7 +2643,7 @@ function renderGanancias(){
 
   // Desglose por familia (solo si no hay filtro)
   if(!familiaFiltro && Object.keys(beneficioPorFamilia).length > 0){
-    html += `<h3 style="color:#ff7a1a;">📦 Beneficio por familia de recambios</h3><div class="item" style="border-left-color:#ff7a1a;">`;
+    html += `<h3 style="color:#ff7a1a;">📦 Beneficio por familia</h3><div class="item" style="border-left-color:#ff7a1a;">`;
     const familiasOrdenadas = Object.keys(beneficioPorFamilia).sort((a,b) => beneficioPorFamilia[b] - beneficioPorFamilia[a]);
     familiasOrdenadas.forEach(f => {
       const val = beneficioPorFamilia[f];
