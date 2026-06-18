@@ -83,9 +83,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <button onclick="showTab('nueva')">NUEVA OT</button>
 <button onclick="showTab('agenda')">AGENDA</button>
 <button onclick="showTab('taller')">TALLER</button>
-<button onclick="showTab('historial')">FACTURAS</button>
-<button onclick="showTab('estadisticas')">📊 ESTADÍSTICAS</button>
-<button onclick="showTab('ganancias')">💰 GANANCIAS</button>
+<button onclick="showTab('mas')" style="font-size:22px;letter-spacing:2px;">⋯</button>
 </div>
 
 <div id="inicio" class="card hidden">
@@ -198,6 +196,14 @@ BIENVENIDO A GESTIÓN
 <h2>Taller</h2>
 <div id="tallerLista"><p>No hay vehículos en taller.</p></div>
 </div>
+
+<!-- PANTALLA MÁS OPCIONES -->
+<div id="mas" class="card hidden">
+<h2 style="text-align:center;color:#ff7a1a;margin-bottom:24px;">MÁS OPCIONES</h2>
+<button onclick="showTab('historial')" style="font-size:18px;padding:24px;margin-bottom:14px;background:#28a745;color:white;">🧾 FACTURAS</button>
+<button onclick="showTab('estadisticas')" style="font-size:18px;padding:24px;margin-bottom:14px;background:#2196f3;color:white;">📊 ESTADÍSTICAS</button>
+<button onclick="showTab('ganancias')" style="font-size:18px;padding:24px;margin-bottom:14px;background:#9c27b0;color:white;">💰 RENTABILIDAD</button>
+</div>
 <div id="almacen" class="card hidden">
 <h2>📦 Almacén</h2>
 <div style="display:flex;gap:8px;margin-bottom:10px;">
@@ -218,13 +224,19 @@ BIENVENIDO A GESTIÓN
 
 <!-- PESTAÑA ESTADÍSTICAS -->
 <div id="estadisticas" class="card hidden">
-<h2>📊 ESTADÍSTICAS DE TALLER</h2>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+<button type="button" class="secondary" onclick="showTab('mas')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ VOLVER</button>
+<h2 style="margin:0;color:#ffffff;">📊 ESTADÍSTICAS</h2>
+</div>
 <div id="estadisticasContenido"></div>
 </div>
 
-<!-- NUEVA PESTAÑA GANANCIAS -->
+<!-- NUEVA PESTAÑA RENTABILIDAD -->
 <div id="ganancias" class="card hidden">
-<h2>💰 GANANCIAS</h2>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+<button type="button" class="secondary" onclick="showTab('mas')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ VOLVER</button>
+<h2 style="margin:0;color:#ffffff;">💰 RENTABILIDAD</h2>
+</div>
 <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
   <div style="flex:1;min-width:120px;">
     <label>Período</label>
@@ -376,10 +388,10 @@ function colorEstado(estado){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R98";
+const APP_VERSION="R99";
 const COPIA_VERSION=4;
-const APP_FECHA="17/06/2026";
-const APP_NOTAS="R98: Corrección de NIF/NIE (soporte X/Y/Z), restauración de stock al editar/cancelar/eliminar OT, corrección de doble descuento de stock al seleccionar artículo.";
+const APP_FECHA="18/06/2026";
+const APP_NOTAS="R99: Barra de navegación rediseñada (4 botones + ⋯), pantalla MÁS con FACTURAS/ESTADÍSTICAS/RENTABILIDAD, mano de obra con referencias predefinidas y operario, estadísticas con consumo por familia y rentabilidad por operario.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -597,7 +609,7 @@ function sincronizarFiscalDesdeFicha(ot){
 // 5. FUNCIONES DE INTERFAZ
 // ============================================================
 function showTab(id){
-  ["inicio","nueva","historial","agenda","taller","almacen","estadisticas","ganancias"].forEach(t=>{
+  ["inicio","nueva","historial","agenda","taller","almacen","estadisticas","ganancias","mas"].forEach(t=>{
     document.getElementById(t).classList.toggle("hidden", t!==id);
   });
   document.getElementById("tabs").style.display = (id==="inicio"||id==="almacen") ? "none" : "flex";
@@ -607,9 +619,10 @@ function showTab(id){
   if(id==="nueva"){ botones[0].classList.add("activo"); titulo.style.background="#ff7a1a"; titulo.style.color="#0f1728"; }
   else if(id==="agenda"){ botones[1].classList.add("activo"); titulo.style.background="#2196f3"; titulo.style.color="white"; }
   else if(id==="taller"){ botones[2].classList.add("activo"); titulo.style.background="#9c27b0"; titulo.style.color="white"; }
+  else if(id==="mas"){ botones[3].classList.add("activo"); titulo.style.background="#344d7a"; titulo.style.color="white"; }
   else if(id==="historial"){ botones[3].classList.add("activo"); titulo.style.background="#28a745"; titulo.style.color="white"; }
-  else if(id==="estadisticas"){ botones[4].classList.add("activo"); titulo.style.background="#9c27b0"; titulo.style.color="white"; }
-  else if(id==="ganancias"){ botones[5].classList.add("activo"); titulo.style.background="#ff7a1a"; titulo.style.color="#0f1728"; renderGanancias(); }
+  else if(id==="estadisticas"){ botones[3].classList.add("activo"); titulo.style.background="#2196f3"; titulo.style.color="white"; }
+  else if(id==="ganancias"){ botones[3].classList.add("activo"); titulo.style.background="#9c27b0"; titulo.style.color="white"; renderGanancias(); }
   else { titulo.style.background="#0f1728"; titulo.style.color="#ff7a1a"; }
   if(id==="historial") setFiltro(filtroActivo);
   if(id==="agenda") renderAgenda();
@@ -1604,21 +1617,84 @@ function eliminarLinea(idx){
 }
 
 function anadirLineaManoObra(){
-  const desc = prompt("Descripción de la mano de obra (ej: Cambio de aceite):");
-  if(desc===null) return;
-  const horas = parseFloat(prompt("Nº de horas:","1"));
-  if(isNaN(horas) || horas<=0) return;
-  const precioHora = parseFloat(prompt("Precio por hora (€):","45"));
-  if(isNaN(precioHora) || precioHora<=0) return;
-  const costeHora = parseFloat(prompt("Coste por hora (€) para P&L (opcional):", "0"));
-  const costeUnit = isNaN(costeHora) ? 0 : costeHora;
+  // Crear modal de mano de obra si no existe
+  if(!document.getElementById("modalManoObra")){
+    const m=document.createElement("div");
+    m.id="modalManoObra";
+    m.style.cssText="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000a;z-index:9999;overflow-y:auto;padding:20px;";
+    m.innerHTML=`
+      <div style="background:#1c2940;border:2px solid #ff7a1a;border-radius:18px;padding:20px;max-width:500px;margin:40px auto;">
+        <h2 style="color:#ff7a1a;margin-top:0;">🔧 MANO DE OBRA</h2>
+        <label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Tipo de trabajo *</label>
+        <select id="moTipo" style="width:100%;box-sizing:border-box;padding:13px;margin:6px 0 12px;border-radius:12px;border:1px solid #3b4a63;font-size:16px;background:#101827;color:#e8edf7;">
+          <option value="">-- Selecciona tipo --</option>
+          <option value="M">M — Mecánica</option>
+          <option value="CH">CH — Chapa / Pintura</option>
+          <option value="ML">ML — Revisión / Mantenimiento</option>
+        </select>
+        <label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Descripción *</label>
+        <input id="moDesc" placeholder="Ej: Cambio de aceite y filtro" style="width:100%;box-sizing:border-box;padding:13px;margin:6px 0 12px;border-radius:12px;border:1px solid #3b4a63;font-size:16px;background:#101827;color:#e8edf7;">
+        <label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Operario *</label>
+        <select id="moOperario" style="width:100%;box-sizing:border-box;padding:13px;margin:6px 0 12px;border-radius:12px;border:1px solid #3b4a63;font-size:16px;background:#101827;color:#e8edf7;">
+          <option value="">-- Selecciona operario --</option>
+          <option value="JOSE AGOIZ">JOSE AGOIZ</option>
+          <option value="JAVIER PABLO HAUET">JAVIER PABLO HAUET</option>
+          <option value="JOSE DOMINGO TENA">JOSE DOMINGO TENA</option>
+          <option value="JORGE RUISNO">JORGE RUISNO</option>
+          <option value="RUBÉN MOGA">RUBÉN MOGA</option>
+        </select>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Horas *</label>
+            <input id="moHoras" type="number" step="0.25" min="0.25" placeholder="1" style="width:100%;box-sizing:border-box;padding:13px;margin:6px 0 12px;border-radius:12px;border:1px solid #3b4a63;font-size:16px;background:#101827;color:#e8edf7;">
+          </div>
+          <div>
+            <label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Precio/hora (€) *</label>
+            <input id="moPrecioHora" type="number" step="0.01" min="0" placeholder="45" style="width:100%;box-sizing:border-box;padding:13px;margin:6px 0 12px;border-radius:12px;border:1px solid #3b4a63;font-size:16px;background:#101827;color:#e8edf7;">
+          </div>
+        </div>
+        <label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Coste/hora (€) — para P&L</label>
+        <input id="moCosteHora" type="number" step="0.01" min="0" placeholder="0" style="width:100%;box-sizing:border-box;padding:13px;margin:6px 0 12px;border-radius:12px;border:1px solid #3b4a63;font-size:16px;background:#101827;color:#e8edf7;">
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button type="button" class="green" onclick="confirmarLineaManoObra()" style="margin:0;flex:2;">✅ AÑADIR</button>
+          <button type="button" class="danger" onclick="document.getElementById('modalManoObra').style.display='none'" style="margin:0;flex:1;">CANCELAR</button>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+  }
+  // Limpiar campos
+  document.getElementById("moTipo").value="";
+  document.getElementById("moDesc").value="";
+  document.getElementById("moOperario").value="";
+  document.getElementById("moHoras").value="";
+  document.getElementById("moPrecioHora").value="45";
+  document.getElementById("moCosteHora").value="0";
+  document.getElementById("modalManoObra").style.display="block";
+}
+
+function confirmarLineaManoObra(){
+  const tipo=document.getElementById("moTipo").value;
+  const desc=(document.getElementById("moDesc").value||"").trim().toUpperCase();
+  const operario=document.getElementById("moOperario").value;
+  const horas=parseFloat(document.getElementById("moHoras").value);
+  const precioHora=parseFloat(document.getElementById("moPrecioHora").value);
+  const costeHora=parseFloat(document.getElementById("moCosteHora").value)||0;
+  if(!tipo){ alert("SELECCIONA EL TIPO DE TRABAJO"); return; }
+  if(!desc){ alert("INTRODUCE UNA DESCRIPCIÓN"); return; }
+  if(!operario){ alert("SELECCIONA UN OPERARIO"); return; }
+  if(isNaN(horas)||horas<=0){ alert("INTRODUCE UN NÚMERO DE HORAS VÁLIDO"); return; }
+  if(isNaN(precioHora)||precioHora<=0){ alert("INTRODUCE UN PRECIO POR HORA VÁLIDO"); return; }
+  const descripcionFinal = "["+tipo+"] "+desc;
   lineasTemp.push({
     tipo: "mano_obra",
-    descripcion: desc.trim().toUpperCase(),
+    codigo_mo: tipo,
+    descripcion: descripcionFinal,
+    operario: operario,
     cantidad: horas,
     precio: precioHora,
-    coste_unitario: costeUnit
+    coste_unitario: costeHora
   });
+  document.getElementById("modalManoObra").style.display="none";
   renderLineas();
 }
 
@@ -2249,7 +2325,7 @@ function calcularLetraNif(input){
 }
 
 // ============================================================
-// 19. ESTADÍSTICAS (YA EXISTENTE)
+// 19. ESTADÍSTICAS
 // ============================================================
 function calcularEstadisticas(){
   const facturas = ots.filter(ot => ot.estado === "FINALIZADO");
@@ -2258,6 +2334,8 @@ function calcularEstadisticas(){
   let totalBeneficio = 0;
   let totalCoste = 0;
   let consumoArticulos = {};
+  let consumoFamilias = {};
+  let operarios = {};
 
   facturas.forEach(ot => {
     if (ot.total) totalFacturado += ot.total;
@@ -2268,11 +2346,15 @@ function calcularEstadisticas(){
       ot.lineas.forEach(linea => {
         if (linea.tipo === "articulo" && linea.referencia) {
           const ref = linea.referencia;
+          const art = articulos.find(a => a.referencia === ref && a.proveedor === linea.proveedor);
+          const familia = (art && art.familia) ? art.familia.toUpperCase() : "SIN FAMILIA";
+
+          // Consumo por artículo
           if (!consumoArticulos[ref]) {
-            const art = articulos.find(a => a.referencia === ref && a.proveedor === linea.proveedor);
             consumoArticulos[ref] = {
               descripcion: linea.descripcion || ref,
               proveedor: linea.proveedor || "",
+              familia: familia,
               cantidad: 0,
               totalVenta: 0,
               totalCoste: 0,
@@ -2282,17 +2364,30 @@ function calcularEstadisticas(){
           consumoArticulos[ref].cantidad += (linea.cantidad || 0);
           consumoArticulos[ref].totalVenta += (linea.cantidad || 0) * (linea.precio || 0);
           consumoArticulos[ref].totalCoste += (linea.cantidad || 0) * (linea.coste_unitario || 0);
+
+          // Consumo por familia
+          if (!consumoFamilias[familia]) consumoFamilias[familia] = { cantidad: 0, totalVenta: 0, totalCoste: 0 };
+          consumoFamilias[familia].cantidad += (linea.cantidad || 0);
+          consumoFamilias[familia].totalVenta += (linea.cantidad || 0) * (linea.precio || 0);
+          consumoFamilias[familia].totalCoste += (linea.cantidad || 0) * (linea.coste_unitario || 0);
+        }
+
+        if (linea.tipo === "mano_obra" && linea.operario) {
+          const op = linea.operario;
+          if (!operarios[op]) operarios[op] = { horas: 0, facturado: 0, coste: 0 };
+          operarios[op].horas += (linea.cantidad || 0);
+          operarios[op].facturado += (linea.cantidad || 0) * (linea.precio || 0);
+          operarios[op].coste += (linea.cantidad || 0) * (linea.coste_unitario || 0);
         }
       });
     }
   });
 
-  const articulosConsumo = Object.values(consumoArticulos)
-    .sort((a, b) => b.cantidad - a.cantidad);
+  const articulosConsumo = Object.values(consumoArticulos).sort((a, b) => b.cantidad - a.cantidad);
   const top5 = articulosConsumo.slice(0, 5);
   const margenMedio = totalFacturado > 0 ? (totalBeneficio / totalFacturado) * 100 : 0;
 
-  return { totalFacturas, totalFacturado, totalBeneficio, totalCoste, margenMedio, articulosConsumo, top5 };
+  return { totalFacturas, totalFacturado, totalBeneficio, totalCoste, margenMedio, articulosConsumo, top5, consumoFamilias, operarios };
 }
 
 function renderEstadisticas(){
@@ -2309,6 +2404,7 @@ function renderEstadisticas(){
     </div>
   `;
 
+  // TOP 5
   if (stats.top5.length > 0) {
     html += `<h3 style="color:#ff7a1a;">🏆 TOP 5 ARTÍCULOS MÁS VENDIDOS</h3><div class="item" style="border-left-color:#ff7a1a;">`;
     stats.top5.forEach((a, i) => {
@@ -2320,13 +2416,67 @@ function renderEstadisticas(){
     html += `</div>`;
   }
 
+  // CONSUMO POR FAMILIAS
+  const famKeys = Object.keys(stats.consumoFamilias).sort((a,b) => stats.consumoFamilias[b].totalVenta - stats.consumoFamilias[a].totalVenta);
+  if (famKeys.length > 0) {
+    html += `<h3 style="color:#ff7a1a;margin-top:16px;">📦 CONSUMO POR FAMILIAS DE RECAMBIOS</h3>
+      <div class="item" style="border-left-color:#ff9800;">
+      <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:4px 10px;font-size:13px;border-bottom:1px solid #3b4a63;padding-bottom:4px;margin-bottom:4px;">
+        <span style="color:#aab4c8;">Familia</span>
+        <span style="color:#aab4c8;">Uds</span>
+        <span style="color:#aab4c8;">Venta</span>
+        <span style="color:#aab4c8;">Beneficio</span>
+      </div>`;
+    famKeys.forEach(f => {
+      const fam = stats.consumoFamilias[f];
+      const ben = fam.totalVenta - fam.totalCoste;
+      html += `<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:4px 10px;border-bottom:1px solid #2a3a55;padding:5px 0;font-size:13px;">
+        <span><b>${htmlSeguro(f)}</b></span>
+        <span>${fam.cantidad}</span>
+        <span>${fam.totalVenta.toFixed(2)} €</span>
+        <span style="color:#28a745;">${ben.toFixed(2)} €</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // RENTABILIDAD POR OPERARIO
+  const opKeys = Object.keys(stats.operarios).sort();
+  if (opKeys.length > 0) {
+    html += `<h3 style="color:#ff7a1a;margin-top:16px;">👷 RENTABILIDAD POR OPERARIO</h3>
+      <div class="item" style="border-left-color:#9c27b0;">
+      <div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:4px 10px;font-size:13px;border-bottom:1px solid #3b4a63;padding-bottom:4px;margin-bottom:4px;">
+        <span style="color:#aab4c8;">Operario</span>
+        <span style="color:#aab4c8;">Horas</span>
+        <span style="color:#aab4c8;">Facturado</span>
+        <span style="color:#aab4c8;">Coste</span>
+        <span style="color:#aab4c8;">Beneficio</span>
+      </div>`;
+    opKeys.forEach(op => {
+      const o = stats.operarios[op];
+      const ben = o.facturado - o.coste;
+      html += `<div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:4px 10px;border-bottom:1px solid #2a3a55;padding:5px 0;font-size:13px;">
+        <span><b>${htmlSeguro(op)}</b></span>
+        <span>${o.horas.toFixed(1)}h</span>
+        <span>${o.facturado.toFixed(2)} €</span>
+        <span style="color:#ff7a1a;">${o.coste.toFixed(2)} €</span>
+        <span style="color:#28a745;">${ben.toFixed(2)} €</span>
+      </div>`;
+    });
+    html += `</div>`;
+  } else {
+    html += `<h3 style="color:#ff7a1a;margin-top:16px;">👷 RENTABILIDAD POR OPERARIO</h3>
+      <p style="color:#aab4c8;">Sin datos de operario todavía. Añade mano de obra con operario asignado.</p>`;
+  }
+
+  // CONSUMO COMPLETO DE ARTÍCULOS
   if (stats.articulosConsumo.length > 0) {
-    html += `<h3 style="color:#ff7a1a;margin-top:16px;">📦 CONSUMO DE ARTÍCULOS</h3>
+    html += `<h3 style="color:#ff7a1a;margin-top:16px;">🔩 CONSUMO DE ARTÍCULOS</h3>
       <div class="item" style="border-left-color:#ff7a1a;max-height:300px;overflow-y:auto;">`;
     stats.articulosConsumo.forEach(a => {
       const stockActual = a.stockActual !== undefined ? a.stockActual : "?";
       html += `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #2a3a55;padding:6px 0;font-size:13px;">
-        <span><b>${htmlSeguro(a.descripcion)}</b> (${a.proveedor})</span>
+        <span><b>${htmlSeguro(a.descripcion)}</b> <span style="color:#aab4c8;">(${htmlSeguro(a.familia||"")})</span></span>
         <span>${a.cantidad} uds · ${a.totalVenta.toFixed(2)} € · Stock: ${stockActual}</span>
       </div>`;
     });
