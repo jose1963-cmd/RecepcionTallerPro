@@ -77,11 +77,12 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 
 #tituloApp{font-size:clamp(34px,8.8vw,48px);line-height:1.05;letter-spacing:1px;padding:26px 8px;margin:-16px -16px 16px;white-space:normal;word-break:keep-all}
 .inicio-gestion{display:flex;gap:10px;align-items:stretch;margin-top:6px;margin-bottom:12px}
-.inicio-gestion .btn-gestion{flex:1;font-size:24px;padding:20px;margin:0}
+.inicio-gestion .btn-gestion{flex:1 1 100%;font-size:24px;padding:20px;margin:0;width:100%}
 .inicio-gestion .btn-fecha{flex:0 0 112px;font-size:14px;line-height:1.2;padding:10px 8px;margin:0;background:#344d7a;color:white}
 .cabecera-formulario{display:flex;align-items:center;gap:12px;margin-bottom:16px}
 .cabecera-formulario .btn-inicio{width:auto;padding:8px 16px;margin:0;flex:0 0 auto}
 .cabecera-formulario h2{margin:0;color:#ffffff}
+.fecha-formulario{background:#344d7a;color:white;border-radius:14px;padding:12px 18px;font-size:24px;font-weight:bold;flex:1;text-align:center;line-height:1.1;box-sizing:border-box}
 .separador-materiales-print{font-weight:bold;border-top:1px solid #aaa;border-bottom:1px solid #aaa;padding:6px 4px;background:#f7f7f7;letter-spacing:.5px}
 
 .vehiculo-panel{background:#101827;border:1px solid #3b4a63;border-radius:12px;padding:12px;margin:10px 0 14px}
@@ -93,17 +94,17 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .aviso-mantenimiento{background:#2a1a00;border-left:4px solid #ff7a1a;padding:8px;border-radius:8px;margin:6px 0;color:#ffd580;font-weight:bold}
 .aviso-mantenimiento.ok{background:#10281d;border-left-color:#28a745;color:#b9ffd0;font-weight:normal}
 @media(max-width:520px){.vehiculo-panel .mini-grid{grid-template-columns:1fr}}
-@media(max-width:420px){#tituloApp{font-size:34px}.inicio-gestion .btn-gestion{font-size:22px}.inicio-gestion .btn-fecha{flex-basis:102px;font-size:13px}}
+@media(max-width:420px){#tituloApp{font-size:34px}.inicio-gestion .btn-gestion{font-size:22px}.inicio-gestion .btn-fecha{flex-basis:102px;font-size:13px}.fecha-formulario{font-size:20px;padding:12px 10px}}
 </style>
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R109</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R110</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
 <div id="tabs" class="tabs">
-<button onclick="showTab('nueva')">GESTIÓN</button>
+<button onclick="showTab('nueva')">NUEVA OT</button>
 <button onclick="showTab('agenda')">AGENDA</button>
 <button onclick="showTab('taller')">TALLER</button>
 <button onclick="showTab('mas')" style="font-size:22px;letter-spacing:2px;">⋯</button>
@@ -111,8 +112,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 
 <div id="inicio" class="card hidden">
 <div class="inicio-gestion">
-<button class="green btn-gestion" onclick="showTab('nueva')" type="button">GESTIÓN</button>
-<button id="btnFechaGestion" class="secondary btn-fecha" onclick="showTab('nueva')" type="button">ENTRAR</button>
+<button class="green btn-gestion" onclick="showTab('nueva')" type="button">GESTIÓN EMPRESA</button>
 </div>
 <div id="avisoCopia" style="background:#2a1a00;border-left:4px solid #ff7a1a;padding:10px 14px;border-radius:10px;margin-bottom:6px;font-size:13px;color:#ffd580;"></div>
 <button class="secondary" onclick="exportarCopia()" type="button">EXPORTAR COPIA</button>
@@ -131,7 +131,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <div id="nueva" class="card hidden">
 <div class="cabecera-formulario">
 <button type="button" class="secondary btn-inicio" onclick="showTab('inicio')">⬅️ INICIO</button>
-<h2 id="tituloFormulario">Nueva Orden</h2>
+<h2 id="tituloFormulario" class="fecha-formulario">--/--/----</h2>
 </div>
 <div id="bannerEdicion" style="display:none;background:#7b2fff;color:white;font-weight:bold;font-size:15px;padding:12px 14px;border-radius:12px;margin-bottom:12px;text-align:center;">
 ✏️ MODO EDICIÓN — <span id="bannerEdicionRef"></span>
@@ -537,22 +537,29 @@ function normalizarNombrePropio(valor){
 
 function normalizarCampoNombre(input){ conservarCursor(input,normalizarNombrePropio); }
 
-function actualizarBotonFechaGestion(){
-  const b=document.getElementById("btnFechaGestion");
-  if(!b) return;
+function fechaActualPantalla(){
   const d=new Date();
   const dia=String(d.getDate()).padStart(2,"0");
   const mes=String(d.getMonth()+1).padStart(2,"0");
-  b.innerHTML="ENTRAR<br>"+dia+"/"+mes;
+  const año=d.getFullYear();
+  return dia+"/"+mes+"/"+año;
+}
+
+function actualizarBotonFechaGestion(){
+  const h=document.getElementById("tituloFormulario");
+  if(h && !rectificandoId){
+    h.textContent=fechaActualPantalla();
+    h.classList.add("fecha-formulario");
+  }
 }
 
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R109";
+const APP_VERSION="R110";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R109: nivel 2 añadido: ficha vehículo ampliada, historial del vehículo y avisos ITV/aceite/distribución.";
+const APP_NOTAS="R110: corregida pantalla Inicio y cabecera de Nueva OT: Gestión Empresa, Nueva OT y fecha actual en recuadro.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -1050,6 +1057,7 @@ function showTab(id){
   else if(id==="ganancias"){ botones[3].classList.add("activo"); titulo.style.background="#9c27b0"; titulo.style.color="white"; renderGanancias(); }
   else if(id==="inventario"){ botones[3].classList.add("activo"); titulo.style.background="#ff7a1a"; titulo.style.color="#0f1728"; renderInventario(); }
   else { titulo.style.background="#0f1728"; titulo.style.color="#ff7a1a"; }
+  if(id==="nueva") actualizarBotonFechaGestion();
   if(id==="historial") setFiltro(filtroActivo);
   if(id==="agenda") renderAgenda();
   if(id==="taller") renderTaller();
@@ -1951,7 +1959,7 @@ function rectificarFactura(id){
   lineasTemp = (original.lineas || []).map(l=>({...l}));
   renderLineas();
   const titulo=document.getElementById("tituloFormulario");
-  if(titulo) titulo.textContent="FACTURA RECTIFICATIVA DE "+refOriginal;
+  if(titulo){ titulo.textContent="FACTURA RECTIFICATIVA DE "+refOriginal; titulo.classList.remove("fecha-formulario"); }
   const banner=document.getElementById("bannerEdicion");
   if(banner) banner.style.display="none";
   const panel=document.getElementById("panelRectificativa");
@@ -2023,7 +2031,11 @@ function irGuardar(){ setTimeout(()=>document.getElementById("btnGuardar").scrol
 
 function prepararFormularioNormal(titulo){
   const h=document.getElementById("tituloFormulario");
-  if(h) h.textContent=titulo||"Nueva Orden";
+  if(h){
+    h.textContent=titulo||fechaActualPantalla();
+    if(!titulo) h.classList.add("fecha-formulario");
+    else h.classList.remove("fecha-formulario");
+  }
   const panel=document.getElementById("panelRectificativa");
   if(panel) panel.style.display="none";
   const motivo=document.getElementById("motivoRectificativa");
