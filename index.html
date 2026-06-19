@@ -131,7 +131,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R118</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R119</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -222,7 +222,8 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 
 <!-- NUEVO PANEL DE LÍNEAS -->
 <div id="panelLineasFactura" class="lineas-panel">
-  <h3>🧾 LÍNEAS DE FACTURA</h3>
+  <h3 id="tituloLineasFactura">🧾 LÍNEAS DE TRABAJO / FACTURA</h3>
+  <div id="ayudaLineasFactura" style="color:#aab4c8;font-size:13px;margin-bottom:8px;">Añade mano de obra y materiales en presupuestos, OT y pre-facturas.</div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
     <button type="button" class="btn-anadir green" onclick="abrirModalSeleccionArticulo()">➕ AÑADIR ARTÍCULO</button>
     <button type="button" class="btn-anadir secondary" onclick="anadirLineaManoObra()">➕ AÑADIR MANO DE OBRA</button>
@@ -689,10 +690,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R118";
+const APP_VERSION="R119";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R118: corrección limpia del guardado de OT vinculada a presupuesto y validación de transición PRE→OT.";
+const APP_NOTAS="R119: líneas de artículos y mano de obra visibles y editables en Presupuesto, OT y Pre-Factura; Pre-Factura editable para revisión antes de facturar.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -2448,14 +2449,16 @@ function editarOT(id){
   document.getElementById("estado").value=estadoCanonico(ot.estado||"");
   actualizarColorEstado();
   actualizarTextoBotonGuardar();
+  actualizarVisibilidadPorEstado();
   document.getElementById("trabajos").value=ot.trabajos||"";
   document.getElementById("observaciones").value=ot.observaciones||"";
   lineasTemp = (ot.lineas || []).map(l=>({...l}));
   renderLineas();
   prepararFotosFormulario(ot);
   showTab('nueva');
+  actualizarVisibilidadPorEstado();
   ocultarPanelesExtraOT();
-  prepararFormularioNormal(esFactura(ot) ? "Editar factura" : "Editar orden");
+  prepararFormularioNormal(esFactura(ot) ? "Editar factura" : (esPrefactura(ot) ? "Editar pre-factura" : (esPresupuesto(ot) ? "Editar presupuesto" : "Editar OT")));
   document.getElementById("aviso").classList.add("hidden");
   const banner=document.getElementById("bannerEdicion");
   document.getElementById("bannerEdicionRef").textContent=referenciaOT(ot)+" — "+ot.matricula;
@@ -2585,7 +2588,25 @@ function actualizarVisibilidadPorEstado(){
   const panelFotos=document.getElementById("panelFotos");
   const trabajos=document.getElementById("trabajos");
   const obs=document.getElementById("observaciones");
+  const tituloLineas=document.getElementById("tituloLineasFactura");
+  const ayudaLineas=document.getElementById("ayudaLineasFactura");
+
+  // R119: las líneas son obligatorias para trabajar bien en PRESUPUESTO, OT y PREFACTURA.
+  // Solo se ocultan en CITA, porque una cita rápida puede no necesitar importes.
   if(panelLineas) panelLineas.style.display = (estado==="CITA") ? "none" : "block";
+  if(tituloLineas){
+    if(estado==="PRESUPUESTO") tituloLineas.textContent="🧾 LÍNEAS DE PRESUPUESTO";
+    else if(estado==="OT") tituloLineas.textContent="🧾 LÍNEAS DE OT";
+    else if(estado==="PREFACTURA") tituloLineas.textContent="🧾 LÍNEAS DE PRE-FACTURA";
+    else if(estado==="FACTURA") tituloLineas.textContent="🧾 LÍNEAS DE FACTURA";
+    else tituloLineas.textContent="🧾 LÍNEAS DE TRABAJO / FACTURA";
+  }
+  if(ayudaLineas){
+    if(estado==="PRESUPUESTO") ayudaLineas.textContent="Añade aquí mano de obra y materiales presupuestados.";
+    else if(estado==="OT") ayudaLineas.textContent="Edita aquí trabajos reales, materiales y mano de obra de la OT.";
+    else if(estado==="PREFACTURA") ayudaLineas.textContent="Revisa y corrige aquí antes de emitir la factura definitiva.";
+    else ayudaLineas.textContent="Añade mano de obra y materiales en presupuestos, OT y pre-facturas.";
+  }
   if(panelFotos) panelFotos.style.display = (estado==="FACTURA") ? "none" : "block";
   if(trabajos) trabajos.rows = (estado==="CITA") ? 8 : 5;
   if(obs) obs.rows = (estado==="CITA") ? 6 : 4;
