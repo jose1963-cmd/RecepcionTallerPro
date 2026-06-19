@@ -83,12 +83,22 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .cabecera-formulario .btn-inicio{width:auto;padding:8px 16px;margin:0;flex:0 0 auto}
 .cabecera-formulario h2{margin:0;color:#ffffff}
 .separador-materiales-print{font-weight:bold;border-top:1px solid #aaa;border-bottom:1px solid #aaa;padding:6px 4px;background:#f7f7f7;letter-spacing:.5px}
+
+.vehiculo-panel{background:#101827;border:1px solid #3b4a63;border-radius:12px;padding:12px;margin:10px 0 14px}
+.vehiculo-panel h3{color:#ff7a1a;margin:0 0 10px;font-size:17px}
+.vehiculo-panel .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vehiculo-panel textarea{min-height:70px}
+.historial-vehiculo{background:#0b1220;border-left:4px solid #2196f3;border-radius:10px;padding:10px;margin:10px 0 0;font-size:14px;line-height:1.35}
+.historial-vehiculo h4{margin:0 0 8px;color:#cfe3ff}
+.aviso-mantenimiento{background:#2a1a00;border-left:4px solid #ff7a1a;padding:8px;border-radius:8px;margin:6px 0;color:#ffd580;font-weight:bold}
+.aviso-mantenimiento.ok{background:#10281d;border-left-color:#28a745;color:#b9ffd0;font-weight:normal}
+@media(max-width:520px){.vehiculo-panel .mini-grid{grid-template-columns:1fr}}
 @media(max-width:420px){#tituloApp{font-size:34px}.inicio-gestion .btn-gestion{font-size:22px}.inicio-gestion .btn-fecha{flex-basis:102px;font-size:13px}}
 </style>
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R108</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R109</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -151,6 +161,30 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <label>Modelo</label>
 <input id="modelo" placeholder="Escribe modelo">
 <div id="modeloResultados" class="results"></div>
+
+<div class="vehiculo-panel">
+  <h3>🚗 FICHA VEHÍCULO</h3>
+  <div class="mini-grid">
+    <div><label>Bastidor</label><input id="bastidor" placeholder="Número de bastidor" autocapitalize="characters"></div>
+    <div><label>Combustible</label><input id="combustible" placeholder="Gasolina / Diésel / Híbrido"></div>
+  </div>
+  <div class="mini-grid">
+    <div><label>Fecha matriculación</label><input id="fechaMatriculacion" type="date"></div>
+    <div><label>Próxima ITV</label><input id="proximaItv" type="date"></div>
+  </div>
+  <div class="mini-grid">
+    <div><label>Próx. aceite KM</label><input id="aceiteKm" type="number" inputmode="numeric" placeholder="Ej: 180000"></div>
+    <div><label>Próx. aceite fecha</label><input id="aceiteFecha" type="date"></div>
+  </div>
+  <div class="mini-grid">
+    <div><label>Distribución KM</label><input id="distribucionKm" type="number" inputmode="numeric" placeholder="Ej: 210000"></div>
+    <div><label>Distribución fecha</label><input id="distribucionFecha" type="date"></div>
+  </div>
+  <label>Notas vehículo</label>
+  <textarea id="notasVehiculo" placeholder="Ej: correa hecha, neumáticos, avisos del cliente..."></textarea>
+  <div id="historialVehiculoBox" class="historial-vehiculo hidden"></div>
+</div>
+
 <div class="row">
 <div><label>KM</label><input id="km" type="number" inputmode="numeric" placeholder="KM"></div>
 <div><label>Fecha / cita</label><input id="fecha" type="datetime-local"></div>
@@ -515,10 +549,10 @@ function actualizarBotonFechaGestion(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R108";
+const APP_VERSION="R109";
 const COPIA_VERSION=4;
-const APP_FECHA="18/06/2026";
-const APP_NOTAS="R108: portada limpia; botón GESTIÓN con fecha; INICIO en Nueva OT; limpieza por voz para matrícula y DNI; nombres en mayúscula inicial; teléfono en bloques; impresión con mano de obra antes de materiales.";
+const APP_FECHA="19/06/2026";
+const APP_NOTAS="R109: nivel 2 añadido: ficha vehículo ampliada, historial del vehículo y avisos ITV/aceite/distribución.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -821,20 +855,166 @@ function buscarFichaVehiculo(matricula){ return vehiculos[(matricula||"").trim()
 function guardarFichaVehiculo(datos){
   const clave=(datos.matricula||"").trim().toUpperCase();
   if(!clave) return;
+  const anterior=vehiculos[clave]||{};
   vehiculos[clave]={
+    ...anterior,
     matricula:clave,
-    bastidor:(datos.bastidor||"").trim().toUpperCase(),
-    cliente:(datos.cliente||"").trim().toUpperCase(),
-    marca:(datos.marca||"").trim().toUpperCase(),
-    modelo:(datos.modelo||"").trim().toUpperCase(),
-    combustible:(datos.combustible||"").trim().toUpperCase(),
-    cilindrada:(datos.cilindrada||"").trim(),
-    kw:(datos.kw||"").trim(),
-    cv:(datos.cv||"").trim(),
-    fechaMatriculacion:(datos.fechaMatriculacion||"").trim(),
-    color:(datos.color||"").trim().toUpperCase(),
-    observaciones:(datos.observaciones||"").trim()
+    bastidor:(datos.bastidor!==undefined?datos.bastidor:anterior.bastidor||"").trim().toUpperCase(),
+    cliente:(datos.cliente!==undefined?datos.cliente:anterior.cliente||"").trim().toUpperCase(),
+    marca:(datos.marca!==undefined?datos.marca:anterior.marca||"").trim().toUpperCase(),
+    modelo:(datos.modelo!==undefined?datos.modelo:anterior.modelo||"").trim().toUpperCase(),
+    combustible:(datos.combustible!==undefined?datos.combustible:anterior.combustible||"").trim().toUpperCase(),
+    cilindrada:(datos.cilindrada!==undefined?datos.cilindrada:anterior.cilindrada||"").trim(),
+    kw:(datos.kw!==undefined?datos.kw:anterior.kw||"").trim(),
+    cv:(datos.cv!==undefined?datos.cv:anterior.cv||"").trim(),
+    fechaMatriculacion:(datos.fechaMatriculacion!==undefined?datos.fechaMatriculacion:anterior.fechaMatriculacion||"").trim(),
+    color:(datos.color!==undefined?datos.color:anterior.color||"").trim().toUpperCase(),
+    proximaItv:(datos.proximaItv!==undefined?datos.proximaItv:anterior.proximaItv||"").trim(),
+    aceiteKm:(datos.aceiteKm!==undefined?datos.aceiteKm:anterior.aceiteKm||"").trim(),
+    aceiteFecha:(datos.aceiteFecha!==undefined?datos.aceiteFecha:anterior.aceiteFecha||"").trim(),
+    distribucionKm:(datos.distribucionKm!==undefined?datos.distribucionKm:anterior.distribucionKm||"").trim(),
+    distribucionFecha:(datos.distribucionFecha!==undefined?datos.distribucionFecha:anterior.distribucionFecha||"").trim(),
+    notasVehiculo:(datos.notasVehiculo!==undefined?datos.notasVehiculo:(anterior.notasVehiculo||anterior.observaciones||"")).trim().toUpperCase(),
+    observaciones:(datos.observaciones!==undefined?datos.observaciones:(anterior.observaciones||"")).trim().toUpperCase()
   };
+}
+
+
+function leerFichaVehiculoFormulario(){
+  return {
+    bastidor:(document.getElementById("bastidor")?.value||"").trim().toUpperCase(),
+    combustible:(document.getElementById("combustible")?.value||"").trim().toUpperCase(),
+    fechaMatriculacion:(document.getElementById("fechaMatriculacion")?.value||"").trim(),
+    proximaItv:(document.getElementById("proximaItv")?.value||"").trim(),
+    aceiteKm:(document.getElementById("aceiteKm")?.value||"").trim(),
+    aceiteFecha:(document.getElementById("aceiteFecha")?.value||"").trim(),
+    distribucionKm:(document.getElementById("distribucionKm")?.value||"").trim(),
+    distribucionFecha:(document.getElementById("distribucionFecha")?.value||"").trim(),
+    notasVehiculo:(document.getElementById("notasVehiculo")?.value||"").trim().toUpperCase()
+  };
+}
+
+function rellenarFichaVehiculoFormulario(datos){
+  datos=datos||{};
+  const map={
+    bastidor:datos.bastidor||"",
+    combustible:datos.combustible||"",
+    fechaMatriculacion:datos.fechaMatriculacion||"",
+    proximaItv:datos.proximaItv||"",
+    aceiteKm:datos.aceiteKm||"",
+    aceiteFecha:datos.aceiteFecha||"",
+    distribucionKm:datos.distribucionKm||"",
+    distribucionFecha:datos.distribucionFecha||"",
+    notasVehiculo:datos.notasVehiculo||datos.observaciones||""
+  };
+  Object.keys(map).forEach(id=>{ const el=document.getElementById(id); if(el) el.value=map[id]; });
+  actualizarHistorialVehiculoFormulario();
+}
+
+function limpiarFichaVehiculoFormulario(){ rellenarFichaVehiculoFormulario({}); }
+
+function mezclarDatosVehiculo(base, extra){
+  const r={...(base||{})};
+  Object.keys(extra||{}).forEach(k=>{ if(extra[k]!==undefined && extra[k]!==null && String(extra[k]).trim()!=="") r[k]=extra[k]; });
+  return r;
+}
+
+function guardarFichaVehiculoDesdeFormulario(ot){
+  if(!ot || !ot.matricula) return;
+  const f=leerFichaVehiculoFormulario();
+  guardarFichaVehiculo({
+    ...(buscarFichaVehiculo(ot.matricula)||{}),
+    ...f,
+    matricula:ot.matricula,
+    cliente:ot.cliente,
+    marca:ot.marca,
+    modelo:ot.modelo,
+    observaciones:f.notasVehiculo
+  });
+}
+
+function fechaISOHoy(){ return new Date().toISOString().slice(0,10); }
+function diasHasta(fecha){
+  if(!fecha) return null;
+  const hoy=new Date(fechaISOHoy()+"T00:00:00");
+  const d=new Date(fecha+"T00:00:00");
+  if(isNaN(d.getTime())) return null;
+  return Math.round((d-hoy)/86400000);
+}
+
+function avisosMantenimientoVehiculo(veh, kmActual){
+  const avisos=[];
+  const km=Number(kmActual)||0;
+  const push=(tipo,texto,grave)=>avisos.push({tipo,texto,grave:!!grave});
+  let d=diasHasta(veh.proximaItv);
+  if(d!==null){
+    if(d<0) push("ITV","ITV CADUCADA hace "+Math.abs(d)+" días",true);
+    else if(d<=30) push("ITV","ITV próxima en "+d+" días",true);
+    else if(d<=60) push("ITV","ITV próxima en "+d+" días",false);
+  }
+  const aceiteKm=Number(veh.aceiteKm)||0;
+  if(aceiteKm && km){
+    const falta=aceiteKm-km;
+    if(falta<=0) push("ACEITE","Cambio de aceite vencido por "+Math.abs(falta)+" km",true);
+    else if(falta<=1000) push("ACEITE","Cambio de aceite próximo en "+falta+" km",true);
+    else if(falta<=2000) push("ACEITE","Cambio de aceite próximo en "+falta+" km",false);
+  }
+  d=diasHasta(veh.aceiteFecha);
+  if(d!==null){
+    if(d<0) push("ACEITE","Fecha de aceite vencida hace "+Math.abs(d)+" días",true);
+    else if(d<=30) push("ACEITE","Fecha de aceite próxima en "+d+" días",true);
+  }
+  const distKm=Number(veh.distribucionKm)||0;
+  if(distKm && km){
+    const falta=distKm-km;
+    if(falta<=0) push("DISTRIBUCIÓN","Distribución vencida por "+Math.abs(falta)+" km",true);
+    else if(falta<=5000) push("DISTRIBUCIÓN","Distribución próxima en "+falta+" km",true);
+    else if(falta<=10000) push("DISTRIBUCIÓN","Distribución próxima en "+falta+" km",false);
+  }
+  d=diasHasta(veh.distribucionFecha);
+  if(d!==null){
+    if(d<0) push("DISTRIBUCIÓN","Fecha de distribución vencida hace "+Math.abs(d)+" días",true);
+    else if(d<=60) push("DISTRIBUCIÓN","Fecha de distribución próxima en "+d+" días",true);
+  }
+  return avisos;
+}
+
+function ultimasVisitasVehiculo(matricula, limite){
+  const mat=(matricula||"").trim().toUpperCase();
+  if(!mat) return [];
+  return ots.filter(o=>(o.matricula||"").toUpperCase()===mat)
+    .sort((a,b)=>(fechaDocumento(b)?new Date(fechaDocumento(b)).getTime():b.id)-(fechaDocumento(a)?new Date(fechaDocumento(a)).getTime():a.id))
+    .slice(0,limite||5);
+}
+
+function actualizarHistorialVehiculoFormulario(){
+  const box=document.getElementById("historialVehiculoBox");
+  if(!box) return;
+  const mat=normalizarMatricula(document.getElementById("matricula")?.value||"");
+  const kmActual=document.getElementById("km")?.value||"";
+  const veh=mezclarDatosVehiculo(buscarFichaVehiculo(mat)||{}, leerFichaVehiculoFormulario());
+  if(!mat){ box.classList.add("hidden"); box.innerHTML=""; return; }
+  const visitas=ultimasVisitasVehiculo(mat,5);
+  const avisos=avisosMantenimientoVehiculo(veh,kmActual);
+  let html="<h4>Historial y avisos del vehículo</h4>";
+  if(avisos.length){
+    avisos.forEach(a=>{ html+=`<div class="aviso-mantenimiento${a.grave?"":" ok"}">⚠️ ${htmlSeguro(a.texto)}</div>`; });
+  }else{
+    html+=`<div class="aviso-mantenimiento ok">Sin avisos pendientes con los datos actuales.</div>`;
+  }
+  if(veh.bastidor || veh.combustible || veh.fechaMatriculacion){
+    html+=`<div style="margin-top:8px;color:#aab4c8;">${veh.bastidor?"Bastidor: "+htmlSeguro(veh.bastidor)+" · ":""}${veh.combustible?"Combustible: "+htmlSeguro(veh.combustible)+" · ":""}${veh.fechaMatriculacion?"Matriculación: "+htmlSeguro(veh.fechaMatriculacion):""}</div>`;
+  }
+  if(visitas.length){
+    html+=`<div style="margin-top:8px;"><b>Últimas visitas:</b></div>`;
+    visitas.forEach(v=>{
+      html+=`<div style="border-top:1px solid #23324a;padding-top:6px;margin-top:6px;"><b>${htmlSeguro(referenciaOT(v))}</b> · ${formatearFecha(fechaDocumento(v))} · KM ${htmlSeguro(v.km||"—")}<br>${htmlSeguro((v.trabajos||"").slice(0,120))}</div>`;
+    });
+  }else{
+    html+=`<div style="margin-top:8px;color:#aab4c8;">Sin visitas anteriores registradas.</div>`;
+  }
+  box.innerHTML=html;
+  box.classList.remove("hidden");
 }
 
 function sincronizarFiscalDesdeFicha(ot){
@@ -888,6 +1068,21 @@ function lineasOrdenadasPorTipo(lineas){
   const mano=(lineas||[]).filter(l=>l.tipo==="mano_obra");
   const materiales=(lineas||[]).filter(l=>l.tipo!=="mano_obra");
   return {mano,materiales,ordenadas:mano.concat(materiales)};
+}
+
+
+function vehiculoResumenTarjeta(ot){
+  const veh=mezclarDatosVehiculo(buscarFichaVehiculo(ot.matricula)||{}, ot||{});
+  let partes=[];
+  if(veh.bastidor) partes.push("Bastidor: "+htmlSeguro(veh.bastidor));
+  if(veh.combustible) partes.push("Combustible: "+htmlSeguro(veh.combustible));
+  if(veh.proximaItv) partes.push("ITV: "+htmlSeguro(veh.proximaItv));
+  const avisos=avisosMantenimientoVehiculo(veh,ot.km||"");
+  let html=partes.length ? `<span style="color:#aab4c8;font-size:13px;">${partes.join(" · ")}</span><br>` : "";
+  if(avisos.length){
+    html+=`<span style="color:#ffd580;font-weight:bold;">⚠️ ${htmlSeguro(avisos[0].texto)}</span><br>`;
+  }
+  return html;
 }
 
 // ============================================================
@@ -969,6 +1164,7 @@ function crearTarjetaOT(ot){
     ${bloqueFactura}
     ${htmlSeguro(ot.marca)} ${htmlSeguro(ot.modelo)}<br>
     KM: ${htmlSeguro(ot.km)}<br>
+    ${vehiculoResumenTarjeta(ot)}
     Estado: ${htmlSeguro(ot.estado)}<br>
     ${ot.estado==="FINALIZADO" ? "Fecha FAC" : "Fecha"}: ${formatearFecha(fechaDocumento(ot))}<br>
     ${bloqueTotales}
@@ -1425,33 +1621,43 @@ function elegirModelo(modelo){
   document.getElementById("modeloResultados").innerHTML="";
 }
 
+function aplicarDatosVehiculoEnFormulario(mat, fuente){
+  const veh=buscarFichaVehiculo(mat)||{};
+  const datos=mezclarDatosVehiculo(veh, fuente||{});
+  if(datos.cliente) document.getElementById("cliente").value=normalizarNombrePropio(datos.cliente);
+  if(datos.telefono) document.getElementById("telefono").value=formatearTelefono(datos.telefono);
+  if(datos.marca) document.getElementById("marca").value=String(datos.marca).toUpperCase();
+  if(datos.modelo) document.getElementById("modelo").value=String(datos.modelo).toUpperCase();
+  if(datos.km && !document.getElementById("km").value) document.getElementById("km").value=datos.km;
+  const ficha=buscarFichaCliente(datos.cliente||veh.cliente);
+  if(ficha && !document.getElementById("telefono").value) document.getElementById("telefono").value=formatearTelefono(ficha.movil||ficha.tfno||"");
+  rellenarFichaVehiculoFormulario(datos);
+}
+
 function buscarMatricula(){
-  const mat=document.getElementById("matricula").value.trim().toUpperCase();
+  const mat=normalizarMatricula(document.getElementById("matricula").value.trim());
+  document.getElementById("matricula").value=mat;
   if(!mat)return;
   const ot=[...ots].reverse().find(x=>x.matricula===mat);
-  if(ot){
-    document.getElementById("cliente").value=ot.cliente||"";
-    document.getElementById("telefono").value=ot.telefono||"";
-    document.getElementById("marca").value=ot.marca||"";
-    document.getElementById("modelo").value=ot.modelo||"";
-    document.getElementById("aviso").classList.remove("hidden");
-    document.getElementById("aviso").innerText="DATOS RECUPERADOS";
-    return;
-  }
   const veh=buscarFichaVehiculo(mat);
-  if(veh){
-    document.getElementById("cliente").value=veh.cliente||"";
-    document.getElementById("marca").value=veh.marca||"";
-    document.getElementById("modelo").value=veh.modelo||"";
-    const ficha=buscarFichaCliente(veh.cliente);
-    if(ficha) document.getElementById("telefono").value=ficha.movil||ficha.tfno||"";
+  if(ot){
+    aplicarDatosVehiculoEnFormulario(mat, ot);
     document.getElementById("aviso").classList.remove("hidden");
-    document.getElementById("aviso").innerText="DATOS RECUPERADOS (FICHA IMPORTADA)";
+    document.getElementById("aviso").innerText="DATOS RECUPERADOS + HISTORIAL DEL VEHÍCULO";
     return;
   }
+  if(veh){
+    aplicarDatosVehiculoEnFormulario(mat, veh);
+    document.getElementById("aviso").classList.remove("hidden");
+    document.getElementById("aviso").innerText="DATOS RECUPERADOS (FICHA VEHÍCULO)";
+    return;
+  }
+  limpiarFichaVehiculoFormulario();
+  actualizarHistorialVehiculoFormulario();
   document.getElementById("aviso").classList.remove("hidden");
   document.getElementById("aviso").innerText="MATRÍCULA NO ENCONTRADA";
 }
+
 
 // --- CONTROL DE STOCK REFORZADO ---
 function buscarArticuloLinea(linea){
@@ -1499,6 +1705,15 @@ function guardarOT(){
     telefono:limpiarTelefonoGuardar(document.getElementById("telefono").value.trim()),
     marca:document.getElementById("marca").value.trim().toUpperCase(),
     modelo:document.getElementById("modelo").value.trim().toUpperCase(),
+    bastidor:(document.getElementById("bastidor")?.value||"").trim().toUpperCase(),
+    combustible:(document.getElementById("combustible")?.value||"").trim().toUpperCase(),
+    fechaMatriculacion:(document.getElementById("fechaMatriculacion")?.value||"").trim(),
+    proximaItv:(document.getElementById("proximaItv")?.value||"").trim(),
+    aceiteKm:(document.getElementById("aceiteKm")?.value||"").trim(),
+    aceiteFecha:(document.getElementById("aceiteFecha")?.value||"").trim(),
+    distribucionKm:(document.getElementById("distribucionKm")?.value||"").trim(),
+    distribucionFecha:(document.getElementById("distribucionFecha")?.value||"").trim(),
+    notasVehiculo:(document.getElementById("notasVehiculo")?.value||"").trim().toUpperCase(),
     km:document.getElementById("km").value.trim(),
     fecha:document.getElementById("fecha").value,
     estado:document.getElementById("estado").value,
@@ -1560,6 +1775,8 @@ function _completarGuardadoOT(ot){
     ot.beneficio = ot.beneficio || 0;
     ot.margen = ot.margen || 0;
   }
+
+  guardarFichaVehiculoDesdeFormulario(ot);
 
   if(editandoId){
     const anterior=ots.find(x=>x.id===editandoId) || {};
@@ -1631,6 +1848,7 @@ function _completarGuardadoOT(ot){
   document.getElementById("telefono").value="";
   document.getElementById("marca").value="";
   document.getElementById("modelo").value="";
+  limpiarFichaVehiculoFormulario();
   document.getElementById("km").value="";
   document.getElementById("fecha").value="";
   document.getElementById("estado").value="CITADO";
@@ -1661,7 +1879,9 @@ function editarOT(id){
   document.getElementById("telefono").value=ot.telefono||"";
   document.getElementById("marca").value=ot.marca||"";
   document.getElementById("modelo").value=ot.modelo||"";
+  rellenarFichaVehiculoFormulario(mezclarDatosVehiculo(buscarFichaVehiculo(ot.matricula)||{}, ot));
   document.getElementById("km").value=ot.km||"";
+  actualizarHistorialVehiculoFormulario();
   document.getElementById("fecha").value=ot.fecha||"";
   document.getElementById("estado").value=ot.estado||"";
   actualizarColorEstado();
@@ -1770,6 +1990,7 @@ function cancelarEdicion(){
   document.getElementById("telefono").value="";
   document.getElementById("marca").value="";
   document.getElementById("modelo").value="";
+  limpiarFichaVehiculoFormulario();
   document.getElementById("km").value="";
   document.getElementById("fecha").value="";
   document.getElementById("estado").value="CITADO";
@@ -2447,6 +2668,18 @@ function enviarWhatsApp(id){
   window.location.href=url;
 }
 
+
+function imprimirFichaVehiculoExtra(ot){
+  const veh=mezclarDatosVehiculo(buscarFichaVehiculo(ot.matricula)||{}, ot||{});
+  let html="";
+  if(veh.bastidor) html+=`<p><b>Bastidor:</b> ${htmlSeguro(veh.bastidor)}</p>`;
+  if(veh.combustible) html+=`<p><b>Combustible:</b> ${htmlSeguro(veh.combustible)}</p>`;
+  if(veh.fechaMatriculacion) html+=`<p><b>Fecha matriculación:</b> ${htmlSeguro(veh.fechaMatriculacion)}</p>`;
+  const avisos=avisosMantenimientoVehiculo(veh,ot.km||"");
+  if(avisos.length){ html+=`<div class="box"><b>Avisos vehículo:</b><br>${avisos.map(a=>"⚠️ "+htmlSeguro(a.texto)).join("<br>")}</div>`; }
+  return html;
+}
+
 function imprimir(id){
   const ot=ots.find(x=>x.id===id);
   if(!ot)return;
@@ -2559,6 +2792,7 @@ function imprimir(id){
     <p><b>Matrícula:</b> ${ot.matricula}</p>
     ${bloqueCliente}
     <p><b>Vehículo:</b> ${ot.marca} ${ot.modelo}</p>
+    ${imprimirFichaVehiculoExtra(ot)}
     <p><b>KM:</b> ${ot.km}</p>
     <p><b>Estado:</b> ${ot.estado}</p>
     ${bloqueTrabajos}
@@ -3316,6 +3550,10 @@ document.getElementById("marca").addEventListener("input",mostrarMarcas);
 document.getElementById("marca").addEventListener("focus",mostrarMarcas);
 document.getElementById("modelo").addEventListener("input",mostrarModelos);
 document.getElementById("modelo").addEventListener("focus",mostrarModelos);
+["matricula","km","proximaItv","aceiteKm","aceiteFecha","distribucionKm","distribucionFecha"].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener("input",actualizarHistorialVehiculoFormulario);
+});
 
 document.getElementById("versionApp").querySelector("button").textContent=APP_VERSION;
 showTab('inicio');
