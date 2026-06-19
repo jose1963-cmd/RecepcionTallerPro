@@ -122,20 +122,20 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R115</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R116</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
 <div id="tabs" class="tabs">
 <button onclick="showTab('agenda')">AGENDA</button>
 <button onclick="showTab('presupuesto')">PRESUPUESTO</button>
-<button onclick="showTab('nueva')">OT</button>
+<button onclick="showTab('taller')">OT</button>
 <button onclick="showTab('mas')" style="font-size:22px;letter-spacing:2px;">⋯</button>
 </div>
 
 <div id="inicio" class="card hidden">
 <div class="inicio-gestion">
-<button class="green btn-gestion" onclick="showTab('nueva')" type="button">GESTIÓN EMPRESA</button>
+<button class="green btn-gestion" onclick="showTab('taller')" type="button">GESTIÓN EMPRESA</button>
 </div>
 <div id="avisoCopia" style="background:#2a1a00;border-left:4px solid #ff7a1a;padding:10px 14px;border-radius:10px;margin-bottom:6px;font-size:13px;color:#ffd580;"></div>
 <button class="secondary" onclick="exportarCopia()" type="button">EXPORTAR COPIA</button>
@@ -312,6 +312,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <button type="button" class="secondary" onclick="showTab('inicio')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ INICIO</button>
 <h2 style="margin:0;color:#ffffff;">O.T. activas</h2>
 </div>
+<button type="button" class="green" onclick="nuevaConEstado('OT')">➕ NUEVA OT</button>
 <div id="tallerLista"><p>No hay O.T. activas.</p></div>
 </div>
 
@@ -553,6 +554,7 @@ function estadoCanonico(estado){
   if(estado==="CITADO") return "CITA";
   if(estado==="EN TALLER") return "OT";
   if(estado==="FINALIZADO") return "FACTURA";
+  if(estado==="OT ANULADA" || estado==="OT_ANULADA" || estado==="ANULADA") return "OT_ANULADA";
   return estado||"CITA";
 }
 function esCita(ot){ return estadoCanonico(ot.estado)==="CITA"; }
@@ -560,7 +562,7 @@ function esPresupuesto(ot){ return estadoCanonico(ot.estado)==="PRESUPUESTO"; }
 function esOT(ot){ return estadoCanonico(ot.estado)==="OT"; }
 function esPrefactura(ot){ return estadoCanonico(ot.estado)==="PREFACTURA"; }
 function esFactura(ot){ return estadoCanonico(ot.estado)==="FACTURA"; }
-function textoEstado(estado){ return estadoCanonico(estado); }
+function textoEstado(estado){ return estadoCanonico(estado)==="OT_ANULADA" ? "OT ANULADA" : estadoCanonico(estado); }
 function colorEstado(estado){
   const e=estadoCanonico(estado);
   if(e==="CITA") return "#2196f3";
@@ -568,6 +570,7 @@ function colorEstado(estado){
   if(e==="OT") return "#ff7a1a";
   if(e==="PREFACTURA") return "#344d7a";
   if(e==="FACTURA") return "#28a745";
+  if(e==="OT_ANULADA") return "#777";
   return "#ff7a1a";
 }
 
@@ -641,10 +644,10 @@ function actualizarBotonFechaGestion(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R115";
+const APP_VERSION="R116";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R115: Flujo profesional PRE→OT: presupuesto aceptado queda bloqueado, OT vinculada totalmente editable, pestaña OT, combustible/cambio con desplegables.";
+const APP_NOTAS="R116: pestaña OT convertida en bandeja de OT activas, nueva OT directa, paso a pre-factura y anulación de OT con motivo.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -1170,6 +1173,7 @@ function showTab(id){
   const botones=document.querySelectorAll("#tabs button");
   if(id==="agenda"){ botones[0].classList.add("activo"); titulo.style.background="#2196f3"; titulo.style.color="white"; }
   else if(id==="presupuesto"){ botones[1].classList.add("activo"); titulo.style.background="#00a6a6"; titulo.style.color="white"; }
+  else if(id==="taller"){ botones[2].classList.add("activo"); titulo.style.background="#ff7a1a"; titulo.style.color="#0f1728"; }
   else if(id==="nueva"){ botones[2].classList.add("activo"); titulo.style.background="#ff7a1a"; titulo.style.color="#0f1728"; if(!editandoId && !rectificandoId && !mantenerEstadoAlAbrirFormulario){ document.getElementById("estado").value="OT"; actualizarColorEstado(); actualizarTextoBotonGuardar(); actualizarVisibilidadPorEstado(); } }
   else if(["mas","historial","estadisticas","ganancias","inventario","prefactura"].includes(id)){ botones[3].classList.add("activo"); titulo.style.background=id==="historial"?"#28a745":(id==="prefactura"?"#344d7a":"#344d7a"); titulo.style.color="white"; }
   else { titulo.style.background="#0f1728"; titulo.style.color="#ff7a1a"; }
@@ -1278,8 +1282,18 @@ function crearTarjetaOT(ot){
   let botones="";
   if(facturaEmitida){
     botones=`<button class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>
-      <button style="background:#344d7a;color:white;margin:0;" onclick="editarFichaClienteFactura(${ot.id},'${htmlSeguro(ot.cliente).replace(/'/g,"\\'")}')">EDITAR</button>
+      <button style="background:#344d7a;color:white;margin:0;" onclick="editarFichaClienteFactura(${ot.id},'${htmlSeguro(ot.cliente).replace(/'/g,"\'")}')">EDITAR</button>
       <button style="background:#7b2fff;color:white;margin:0;" onclick="rectificarFactura(${ot.id})">FREC</button>`;
+  }else if(esOT(ot)){
+    botones=`<button onclick="editarOT(${ot.id})">EDITAR OT</button>
+      <button class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>
+      <button class="secondary" onclick="editarOT(${ot.id});setTimeout(()=>document.getElementById('panelFotos').scrollIntoView({behavior:'smooth',block:'start'}),300)">📷 FOTOS</button>
+      <button class="green" onclick="pasarOTAPrefactura(${ot.id})">PREFACTURA</button>
+      <button class="danger" onclick="anularOT(${ot.id})" style="margin:0;">ANULAR</button>`;
+  }else if(esPrefactura(ot)){
+    botones=`<button onclick="editarOT(${ot.id})">EDITAR</button>
+      <button class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>
+      <button class="green" onclick="editarOT(${ot.id});setTimeout(()=>{document.getElementById('estado').value='FACTURA';actualizarColorEstado();actualizarTextoBotonGuardar();actualizarVisibilidadPorEstado();document.getElementById('btnGuardar').scrollIntoView({behavior:'smooth',block:'center'});},300)">PASAR A FACTURA</button>`;
   }else{
     botones=`<button onclick="editarOT(${ot.id})">EDITAR</button>
       <button class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>
@@ -1554,6 +1568,38 @@ function reactivarPresupuesto(id){
   guardar();
   renderPresupuesto();
 }
+function pasarOTAPrefactura(id){
+  const ot=ots.find(x=>x.id===id);
+  if(!ot || !esOT(ot)) return;
+  if(!confirm("¿PASAR "+referenciaOT(ot)+" A PRE-FACTURA?")) return;
+  ot.estado="PREFACTURA";
+  if(!ot.fechaPrefactura) ot.fechaPrefactura=ahoraLocalInput();
+  ot.fecha=ot.fechaPrefactura;
+  asegurarNumeracion(ot);
+  guardar();
+  renderTaller();
+  renderPrefactura();
+  alert(referenciaOT(ot)+" CREADA DESDE OT");
+  showTab("prefactura");
+}
+
+function anularOT(id){
+  const ot=ots.find(x=>x.id===id);
+  if(!ot || !esOT(ot)) return;
+  const motivo=prompt("Motivo de anulación de "+referenciaOT(ot)+":\nEj: cliente no autoriza, discrepancia, vehículo retirado, error administrativo...");
+  if(motivo===null) return;
+  const limpio=(motivo||"").trim();
+  if(!limpio){ alert("Para anular una OT debes indicar un motivo."); return; }
+  if(!confirm("¿ANULAR "+referenciaOT(ot)+"? Quedará guardada como OT ANULADA, no se borrará.")) return;
+  restaurarStockOT(ot);
+  ot.estado="OT_ANULADA";
+  ot.motivoAnulacion=limpio.toUpperCase();
+  ot.fechaAnulacion=ahoraLocalInput();
+  guardar();
+  renderTaller();
+  alert("OT ANULADA Y CONSERVADA EN EL HISTÓRICO INTERNO.");
+}
+
 
 function renderAgenda(){
   const agenda=document.getElementById("agendaLista");
