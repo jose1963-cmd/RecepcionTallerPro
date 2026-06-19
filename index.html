@@ -74,26 +74,36 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 #modalSeleccionArticuloBox h2{color:#ff7a1a;margin-top:0}
 .lista-articulos-modal{max-height:300px;overflow-y:auto}
 .lista-articulos-modal button{background:#101827;color:#e8edf7;border-bottom:1px solid #3b4a63;border-radius:0;margin:0;text-align:left;padding:10px}
+
+#tituloApp{font-size:clamp(34px,8.8vw,48px);line-height:1.05;letter-spacing:1px;padding:26px 8px;margin:-16px -16px 16px;white-space:normal;word-break:keep-all}
+.inicio-gestion{display:flex;gap:10px;align-items:stretch;margin-top:6px;margin-bottom:12px}
+.inicio-gestion .btn-gestion{flex:1;font-size:24px;padding:20px;margin:0}
+.inicio-gestion .btn-fecha{flex:0 0 112px;font-size:14px;line-height:1.2;padding:10px 8px;margin:0;background:#344d7a;color:white}
+.cabecera-formulario{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.cabecera-formulario .btn-inicio{width:auto;padding:8px 16px;margin:0;flex:0 0 auto}
+.cabecera-formulario h2{margin:0;color:#ffffff}
+.separador-materiales-print{font-weight:bold;border-top:1px solid #aaa;border-bottom:1px solid #aaa;padding:6px 4px;background:#f7f7f7;letter-spacing:.5px}
+@media(max-width:420px){#tituloApp{font-size:34px}.inicio-gestion .btn-gestion{font-size:22px}.inicio-gestion .btn-fecha{flex-basis:102px;font-size:13px}}
 </style>
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R107</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R108</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
 <div id="tabs" class="tabs">
-<button onclick="showTab('nueva')">NUEVA OT</button>
+<button onclick="showTab('nueva')">GESTIÓN</button>
 <button onclick="showTab('agenda')">AGENDA</button>
 <button onclick="showTab('taller')">TALLER</button>
 <button onclick="showTab('mas')" style="font-size:22px;letter-spacing:2px;">⋯</button>
 </div>
 
 <div id="inicio" class="card hidden">
-<h1 style="text-align:center;font-size:30px;color:#ff7a1a;margin-bottom:6px;letter-spacing:1px;">
-BIENVENIDO A GESTIÓN
-</h1>
-<button class="green" onclick="showTab('nueva')" style="width:100%;font-size:24px;padding:20px;margin-top:18px;">NUEVA OT</button>
+<div class="inicio-gestion">
+<button class="green btn-gestion" onclick="showTab('nueva')" type="button">GESTIÓN</button>
+<button id="btnFechaGestion" class="secondary btn-fecha" onclick="showTab('nueva')" type="button">ENTRAR</button>
+</div>
 <div id="avisoCopia" style="background:#2a1a00;border-left:4px solid #ff7a1a;padding:10px 14px;border-radius:10px;margin-bottom:6px;font-size:13px;color:#ffd580;"></div>
 <button class="secondary" onclick="exportarCopia()" type="button">EXPORTAR COPIA</button>
 <input type="file" id="backupFile" accept=".json" style="display:none" onchange="importarCopia(event)">
@@ -109,7 +119,10 @@ BIENVENIDO A GESTIÓN
 </div>
 
 <div id="nueva" class="card hidden">
+<div class="cabecera-formulario">
+<button type="button" class="secondary btn-inicio" onclick="showTab('inicio')">⬅️ INICIO</button>
 <h2 id="tituloFormulario">Nueva Orden</h2>
+</div>
 <div id="bannerEdicion" style="display:none;background:#7b2fff;color:white;font-weight:bold;font-size:15px;padding:12px 14px;border-radius:12px;margin-bottom:12px;text-align:center;">
 ✏️ MODO EDICIÓN — <span id="bannerEdicionRef"></span>
 <button type="button" onclick="cancelarEdicion()" style="width:auto;padding:6px 14px;margin:0 0 0 12px;font-size:13px;background:white;color:#7b2fff;border-radius:8px;">✕ CANCELAR</button>
@@ -123,15 +136,15 @@ BIENVENIDO A GESTIÓN
 <div id="panelConceptosRectificativa" class="resumen-frec" style="display:none;"></div>
 <label>Matrícula *</label>
 <div style="display:flex;gap:8px;align-items:flex-start;">
-<input id="matricula" placeholder="0000ABC" style="flex:1;margin:6px 0 12px;">
+<input id="matricula" placeholder="0000ABC" autocomplete="off" autocapitalize="characters" oninput="normalizarCampoMatricula(this)" style="flex:1;margin:6px 0 12px;">
 <button type="button" onclick="abrirCamara()" style="flex:0 0 auto;width:auto;padding:13px 16px;margin:6px 0 12px;font-size:20px;line-height:1;" title="Seleccionar foto de matrícula">📷</button>
 </div>
 <button onclick="buscarMatricula()" type="button">BUSCAR MATRÍCULA</button>
 <div id="aviso" class="notice hidden"></div>
 <label>Cliente *</label>
-<input id="cliente" placeholder="Nombre y apellidos">
+<input id="cliente" placeholder="Nombre y apellidos" autocomplete="name" autocapitalize="words" oninput="normalizarCampoNombre(this)">
 <label>Teléfono</label>
-<input id="telefono" type="tel" inputmode="numeric" maxlength="9" placeholder="Teléfono">
+<input id="telefono" type="tel" inputmode="numeric" maxlength="11" placeholder="600 123 456" oninput="normalizarCampoTelefono(this)">
 <label>Marca</label>
 <input id="marca" placeholder="Escribe marca">
 <div id="marcaResultados" class="results"></div>
@@ -392,14 +405,14 @@ BIENVENIDO A GESTIÓN
 <div class="aviso-modal">⚠️ Para emitir una factura válida es obligatorio completar el NIF/NIE y la dirección del cliente.<br>Estos datos quedan guardados para futuras facturas.</div>
 <div id="modalClienteNombre" style="font-weight:bold;font-size:17px;color:#fff;margin-bottom:10px;"></div>
 <label>NIF / NIE *</label>
-<input id="mcNif" placeholder="12345678A" maxlength="20" oninput="calcularLetraNif(this)">
+<input id="mcNif" placeholder="12345678A" maxlength="20" autocomplete="off" autocapitalize="characters" oninput="normalizarCampoNif(this);calcularLetraNif(this)">
 <label>Dirección *</label>
-<input id="mcDireccion" placeholder="Calle, número, piso...">
+<input id="mcDireccion" placeholder="Calle, número, piso..." autocapitalize="words" oninput="normalizarCampoNombre(this)">
 <label>C. Postal - Ciudad</label>
-<input id="mcPoblacion" placeholder="50540 - Borja">
+<input id="mcPoblacion" placeholder="50540 - Borja" autocapitalize="words" oninput="normalizarCampoNombre(this)">
 <div style="display:flex;gap:10px;">
-<div style="flex:1;"><label>Móvil</label><input id="mcMovil" type="tel" inputmode="numeric" maxlength="9" placeholder="600000000"></div>
-<div style="flex:1;"><label>Tfno</label><input id="mcTfno" type="tel" inputmode="numeric" maxlength="9" placeholder="976000000"></div>
+<div style="flex:1;"><label>Móvil</label><input id="mcMovil" type="tel" inputmode="numeric" maxlength="11" placeholder="600 123 456" oninput="normalizarCampoTelefono(this)"></div>
+<div style="flex:1;"><label>Tfno</label><input id="mcTfno" type="tel" inputmode="numeric" maxlength="11" placeholder="976 000 000" oninput="normalizarCampoTelefono(this)"></div>
 </div>
 <label>E-mail</label>
 <input id="mcEmail" type="email" placeholder="cliente@correo.com">
@@ -439,13 +452,73 @@ function colorEstado(estado){
   return "#ff7a1a";
 }
 
+
+function conservarCursor(input,fn){
+  const pos=input.selectionStart;
+  const antes=input.value;
+  input.value=fn(input.value);
+  try{
+    const diff=input.value.length-antes.length;
+    input.setSelectionRange(Math.max(0,(pos||0)+diff),Math.max(0,(pos||0)+diff));
+  }catch(e){}
+}
+
+function convertirNumerosDictados(valor){
+  const mapa={
+    "CERO":"0","UNO":"1","UNA":"1","DOS":"2","TRES":"3","CUATRO":"4","CINCO":"5","SEIS":"6","SIETE":"7","OCHO":"8","NUEVE":"9"
+  };
+  let v=(valor||"").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  Object.keys(mapa).forEach(k=>{ v=v.replace(new RegExp("\\b"+k+"\\b","g"),mapa[k]); });
+  return v;
+}
+
+function normalizarMatricula(valor){
+  let v=convertirNumerosDictados(valor);
+  v=v.replace(/[^0-9A-Z]/g,"");
+  const m=v.match(/(\d{4})([BCDFGHJKLMNPRSTVWXYZ]{3})/);
+  if(m) return m[1]+m[2];
+  return v.slice(0,8);
+}
+
+function normalizarCampoMatricula(input){ conservarCursor(input,normalizarMatricula); }
+
+function normalizarNifNie(valor){
+  return convertirNumerosDictados(valor).replace(/[^0-9A-Z]/g,"").slice(0,9);
+}
+
+function normalizarCampoNif(input){ conservarCursor(input,normalizarNifNie); }
+
+function formatearTelefono(valor){
+  const n=(valor||"").replace(/\D/g,"").slice(0,9);
+  return n.replace(/(\d{3})(?=\d)/g,"$1 ").trim();
+}
+
+function normalizarCampoTelefono(input){ conservarCursor(input,formatearTelefono); }
+
+function limpiarTelefonoGuardar(valor){ return formatearTelefono(valor); }
+
+function normalizarNombrePropio(valor){
+  return (valor||"").toLowerCase().replace(/(^|[\s\-\/])([a-záéíóúüñ])/g,function(_,sep,letra){return sep+letra.toUpperCase();});
+}
+
+function normalizarCampoNombre(input){ conservarCursor(input,normalizarNombrePropio); }
+
+function actualizarBotonFechaGestion(){
+  const b=document.getElementById("btnFechaGestion");
+  if(!b) return;
+  const d=new Date();
+  const dia=String(d.getDate()).padStart(2,"0");
+  const mes=String(d.getMonth()+1).padStart(2,"0");
+  b.innerHTML="ENTRAR<br>"+dia+"/"+mes;
+}
+
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R107";
+const APP_VERSION="R108";
 const COPIA_VERSION=4;
 const APP_FECHA="18/06/2026";
-const APP_NOTAS="R107: corregido modal de crear artículo desde OT; ART automático visible; VENTA PUNTUAL INT separada para no confundir con almacén.";
+const APP_NOTAS="R108: portada limpia; botón GESTIÓN con fecha; INICIO en Nueva OT; limpieza por voz para matrícula y DNI; nombres en mayúscula inicial; teléfono en bloques; impresión con mano de obra antes de materiales.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -803,11 +876,18 @@ function showTab(id){
   if(id==="almacen") renderAlmacen();
   if(id==="estadisticas") renderEstadisticas();
   if(id==="inventario") renderInventario();
-  if(id==="inicio") actualizarAvisoCopia();
+  if(id==="inicio"){ actualizarAvisoCopia(); actualizarBotonFechaGestion(); }
 }
 
 function mostrarVersion(){
   alert(APP_VERSION+"\n"+APP_FECHA+"\n"+APP_NOTAS);
+}
+
+
+function lineasOrdenadasPorTipo(lineas){
+  const mano=(lineas||[]).filter(l=>l.tipo==="mano_obra");
+  const materiales=(lineas||[]).filter(l=>l.tipo!=="mano_obra");
+  return {mano,materiales,ordenadas:mano.concat(materiales)};
 }
 
 // ============================================================
@@ -847,7 +927,13 @@ function crearTarjetaOT(ot){
   let bloqueTrabajos = "";
   if(ot.lineas && ot.lineas.length>0){
     let lineasHtml = `<b>LÍNEAS:</b><div style="overflow-x:auto;margin-top:6px;"><table class="lineas-tabla"><thead><tr><th>Ref.</th><th>Concepto</th><th>Uds.</th><th>Total</th><th>IVA</th></tr></thead><tbody>`;
-    ot.lineas.forEach(l=>{
+    const grupos=lineasOrdenadasPorTipo(ot.lineas);
+    let puestoSeparador=false;
+    grupos.ordenadas.forEach(l=>{
+      if(l.tipo!=="mano_obra" && grupos.materiales.length>0 && !puestoSeparador){
+        lineasHtml += `<tr><td colspan="5" style="padding-top:10px;color:#ffd580;font-weight:bold;border-top:1px solid #3b4a63;">MATERIALES EMPLEADOS</td></tr>`;
+        puestoSeparador=true;
+      }
       const cantidad=Number(l.cantidad)||0;
       const precio=Number(l.precio)||0;
       const descuento=Number(l.descuento)||0;
@@ -1408,9 +1494,9 @@ function guardarOT(){
   guardandoOT=true;
   const ot={
     id:generarIdUnico(),
-    matricula:document.getElementById("matricula").value.trim().toUpperCase(),
-    cliente:document.getElementById("cliente").value.trim().toUpperCase(),
-    telefono:document.getElementById("telefono").value.trim(),
+    matricula:normalizarMatricula(document.getElementById("matricula").value.trim()),
+    cliente:normalizarNombrePropio(document.getElementById("cliente").value.trim()),
+    telefono:limpiarTelefonoGuardar(document.getElementById("telefono").value.trim()),
     marca:document.getElementById("marca").value.trim().toUpperCase(),
     modelo:document.getElementById("modelo").value.trim().toUpperCase(),
     km:document.getElementById("km").value.trim(),
@@ -2153,11 +2239,11 @@ function sincronizarFacturasCliente(nombreCliente){
 }
 
 function confirmarFicha(){
-  const nif=document.getElementById("mcNif").value.trim().toUpperCase();
-  const dir=document.getElementById("mcDireccion").value.trim();
-  const pob=document.getElementById("mcPoblacion").value.trim();
-  const movil=document.getElementById("mcMovil").value.trim();
-  const tfno=document.getElementById("mcTfno").value.trim();
+  const nif=normalizarNifNie(document.getElementById("mcNif").value.trim());
+  const dir=normalizarNombrePropio(document.getElementById("mcDireccion").value.trim());
+  const pob=normalizarNombrePropio(document.getElementById("mcPoblacion").value.trim());
+  const movil=limpiarTelefonoGuardar(document.getElementById("mcMovil").value.trim());
+  const tfno=limpiarTelefonoGuardar(document.getElementById("mcTfno").value.trim());
   const email=document.getElementById("mcEmail").value.trim();
   const obs=document.getElementById("mcObservaciones").value.trim();
   if(!nif||!dir){
@@ -2391,7 +2477,16 @@ function imprimir(id){
         <th style="text-align:right;padding:4px;width:9%;">Total</th>
       </tr></thead><tbody>`;
     const ivaGrupos={};
-    ot.lineas.forEach(l=>{
+    const grupos=lineasOrdenadasPorTipo(ot.lineas);
+    if(grupos.mano.length>0){
+      tablaLineas+=`<tr><td colspan="8" class="separador-materiales-print" style="font-weight:bold;border-top:1px solid #aaa;border-bottom:1px solid #aaa;padding:6px 4px;background:#f7f7f7;letter-spacing:.5px;">MANO DE OBRA</td></tr>`;
+    }
+    let puestoMateriales=false;
+    grupos.ordenadas.forEach(l=>{
+      if(l.tipo!=="mano_obra" && grupos.materiales.length>0 && !puestoMateriales){
+        tablaLineas+=`<tr><td colspan="8" class="separador-materiales-print" style="font-weight:bold;border-top:1px solid #aaa;border-bottom:1px solid #aaa;padding:6px 4px;background:#f7f7f7;letter-spacing:.5px;">MATERIALES EMPLEADOS</td></tr>`;
+        puestoMateriales=true;
+      }
       const cantidad=Number(l.cantidad)||0;
       const precio=Number(l.precio)||0;
       const descuento=Number(l.descuento)||0;
@@ -2622,28 +2717,26 @@ function cerrarCamara(){
 // ============================================================
 function calcularLetraNif(input){
   const LETRAS="TRWAGMYFPDXBNJZSQVHLCKE";
-  let val=input.value.toUpperCase().replace(/\s/g,"");
-  let nifOriginal=val;
-  if(/[A-Z]$/.test(val)) val=val.slice(0,-1);
-  let numeros=val;
-  if(/^[XYZ]/.test(numeros)){
-    numeros=numeros.replace("X","0").replace("Y","1").replace("Z","2");
-  }
-  const soloNumeros=numeros.replace(/[^0-9]/g,"");
-  if(soloNumeros.length===8){
-    const letra=LETRAS[parseInt(soloNumeros,10)%23];
-    let nuevoVal=nifOriginal;
-    if(/^[XYZ]/.test(val)){
-      nuevoVal=val.charAt(0)+soloNumeros+letra;
-    }else{
-      nuevoVal=soloNumeros+letra;
+  let original=normalizarNifNie(input.value);
+  let val=original;
+  if(/^[XYZ]\d{7}[A-Z]?$/.test(val)){
+    const pref=val.charAt(0);
+    const nums=val.slice(1).replace(/[^0-9]/g,"").slice(0,7);
+    if(nums.length===7){
+      const mapa={X:"0",Y:"1",Z:"2"};
+      const letra=LETRAS[parseInt(mapa[pref]+nums,10)%23];
+      input.value=pref+nums+letra;
+      return;
     }
-    input.value=nuevoVal;
+  }
+  const solo=val.replace(/[^0-9]/g,"");
+  if(solo.length===8){
+    const letra=LETRAS[parseInt(solo,10)%23];
+    input.value=solo+letra;
   }else{
-    input.value=input.value.toUpperCase();
+    input.value=val;
   }
 }
-
 // ============================================================
 // 19. ESTADÍSTICAS
 // ============================================================
@@ -3214,6 +3307,7 @@ document.getElementById("estado").addEventListener("change",function(){
 });
 actualizarColorEstado();
 actualizarTextoBotonGuardar();
+actualizarBotonFechaGestion();
 renderLineas();
 
 setInterval(()=>{ guardar(); }, 300000);
