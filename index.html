@@ -99,7 +99,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R110</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R111</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -556,10 +556,10 @@ function actualizarBotonFechaGestion(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R110";
+const APP_VERSION="R111";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R110: corregida pantalla Inicio y cabecera de Nueva OT: Gestión Empresa, Nueva OT y fecha actual en recuadro.";
+const APP_NOTAS="R111: seguridad OCR; eliminado token Plate Recognizer del cliente y preparada llamada mediante proxy privado.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -2841,9 +2841,12 @@ function setFiltro(tipo){
 }
 
 // ============================================================
-// 17. MÓDULO OCR (PLATE RECOGNIZER)
+// 17. MÓDULO OCR SEGURO
 // ============================================================
-const PLATE_TOKEN="0fe93fa4d4ed7ad906d040fb28eb36c3ee4cdc8f";
+// R111: el token de Plate Recognizer NO debe estar en este archivo.
+// Configura aquí la URL de tu Cloudflare Worker o proxy privado.
+// Ejemplo: const OCR_PROXY_URL="https://ocr-autoborja.tuusuario.workers.dev";
+const OCR_PROXY_URL="";
 let _ocrMatriculaDetectada=null;
 
 function abrirCamara(){ document.getElementById("inputFotoCamara").click(); }
@@ -2873,9 +2876,18 @@ function procesarFotoMatricula(event){
   const formData=new FormData();
   formData.append("upload",file);
   formData.append("regions","es");
-  fetch("https://api.platerecognizer.com/v1/plate-reader/",{
+  if(!OCR_PROXY_URL){
+    URL.revokeObjectURL(urlFoto);
+    overlay.textContent="OCR SEGURO";
+    overlay.style.color="#ff7a1a";
+    estadoEl.textContent="OCR pendiente de configurar: falta URL del proxy privado. La app sigue segura y no expone token.";
+    btnRepetir.style.display="block";
+    event.target.value="";
+    return;
+  }
+
+  fetch(OCR_PROXY_URL,{
     method:"POST",
-    headers:{"Authorization":"Token "+PLATE_TOKEN},
     body:formData
   })
   .then(function(r){ return r.json(); })
