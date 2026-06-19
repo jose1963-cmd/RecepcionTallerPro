@@ -131,7 +131,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R117</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R118</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -689,10 +689,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R117";
+const APP_VERSION="R118";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R116: pestaña OT convertida en bandeja de OT activas, nueva OT directa, paso a pre-factura y anulación de OT con motivo.";
+const APP_NOTAS="R118: corrección limpia del guardado de OT vinculada a presupuesto y validación de transición PRE→OT.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -2240,6 +2240,49 @@ function guardarOT(){
   _completarGuardadoOT(ot);
 }
 
+
+function guardarComoOTDesdePresupuesto(anterior, ot){
+  let existente=null;
+  if(anterior.otVinculadaId){
+    existente=ots.find(x=>x.id===anterior.otVinculadaId);
+  }
+  if(!existente){
+    existente=ots.find(x=>x.origenPresupuestoId===anterior.id && (esOT(x)||esPrefactura(x)||esFactura(x)));
+  }
+  const destino={...ot};
+  destino.id=existente ? existente.id : generarIdUnico();
+  destino.origenPresupuestoId=anterior.id;
+  destino.presupuestoEstado="";
+  destino.numeroAgenda=existente ? existente.numeroAgenda : null;
+  destino.numeroPresupuesto=null;
+  destino.numeroOT=existente ? existente.numeroOT : null;
+  destino.numeroPrefactura=existente ? existente.numeroPrefactura : null;
+  destino.numeroFactura=existente ? existente.numeroFactura : null;
+  destino.numeroRectificativa=existente ? existente.numeroRectificativa : null;
+  destino.esRectificativa=existente ? (existente.esRectificativa||false) : false;
+  destino.facturaRectificada=existente ? (existente.facturaRectificada||"") : "";
+  destino.facturaRectificadaId=existente ? (existente.facturaRectificadaId||null) : null;
+  destino.fotoExpedienteKey=existente ? (existente.fotoExpedienteKey||destino.fotoExpedienteKey) : (destino.fotoExpedienteKey||"");
+  if(!esOT(destino) && !esPrefactura(destino) && !esFactura(destino)){
+    destino.estado="OT";
+  }
+  if(esFactura(destino)){
+    destino.fechaFinalizacion=(existente && existente.fechaFinalizacion) ? existente.fechaFinalizacion : ahoraLocalInput();
+  }
+  asegurarNumeracion(destino);
+  sincronizarFiscalDesdeFicha(destino);
+  if(existente){
+    const idx=ots.findIndex(x=>x.id===existente.id);
+    if(idx>=0) ots[idx]=destino;
+  }else{
+    ots.push(destino);
+  }
+  anterior.presupuestoEstado="CONVERTIDO_OT";
+  anterior.otVinculadaId=destino.id;
+  anterior.otVinculadaRef=referenciaOT(destino);
+  return destino;
+}
+
 function _completarGuardadoOT(ot){
   if(esFactura(ot) && ot.lineas && ot.lineas.length>0){
     const t=calcularTotalesLineas(ot.lineas);
@@ -2271,8 +2314,15 @@ function _completarGuardadoOT(ot){
       return;
     }
     if(esPresupuesto(anterior) && !esPresupuesto(ot)){
-      alert("NO CAMBIES EL ESTADO DEL PRESUPUESTO DESDE EDITAR. USA EL BOTÓN PASAR A OT PARA CONSERVAR EL PRESUPUESTO ORIGINAL.");
+      const destino=guardarComoOTDesdePresupuesto(anterior, ot);
+      if(!guardar()){ guardandoOT=false; return; }
+      editandoId=null;
+      prepararFormularioNormal();
       guardandoOT=false;
+      renderPresupuesto();
+      renderTaller();
+      alert("OT GUARDADA: "+referenciaOT(destino)+". El presupuesto original queda conservado.");
+      showTab(esOT(destino) ? "taller" : (esPrefactura(destino) ? "prefactura" : "historial"));
       return;
     }
     const convertirPresupuestoATrabajo = false;
