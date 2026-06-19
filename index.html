@@ -109,6 +109,12 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .estado-presupuesto.pendiente{background:#00a6a6;color:white}
 .estado-presupuesto.convertido{background:#ff7a1a;color:#0f1728}
 .estado-presupuesto.rechazado{background:#777;color:white}
+.presupuesto-acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.presupuesto-acciones button{margin:0;flex:1;min-width:120px;padding:11px 8px;font-size:14px}
+.presupuesto-datos{font-size:14px;line-height:1.45;margin-top:8px}
+.presupuesto-ref{font-size:16px;color:#fff;font-weight:bold}
+.presupuesto-mat{font-size:19px;color:#fff;font-weight:bold;letter-spacing:.5px}
+.presupuesto-trabajo{margin-top:8px;border-top:1px solid #3b4a63;padding-top:8px}
 
 @media(max-width:520px){.vehiculo-panel .mini-grid{grid-template-columns:1fr}}
 @media(max-width:420px){#tituloApp{font-size:34px}.inicio-gestion .btn-gestion{font-size:22px}.inicio-gestion .btn-fecha{flex-basis:102px;font-size:13px}.fecha-formulario{font-size:20px;padding:12px 10px}}
@@ -116,7 +122,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R113</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R114</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -619,10 +625,10 @@ function actualizarBotonFechaGestion(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R113";
+const APP_VERSION="R114";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R113: Agenda compacta de 3 líneas con lápiz grande, desplegable rápido y botón PRESUPUESTO. Presupuestos conservados con color cálido cuando se convierten a OT.";
+const APP_NOTAS="R114: Presupuestos depurados. La tarjeta de presupuesto solo contempla las acciones reales: pasar a OT o marcar rechazado, conservando siempre el presupuesto.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -1437,9 +1443,84 @@ function textoEstadoPresupuesto(ot){
 }
 
 function crearTarjetaPresupuesto(ot){
-  return crearTarjetaOT(ot)
-    .replace('class="item"', 'class="item '+clasePresupuesto(ot)+'"')
-    .replace(/<br>\s*Estado:/, '<br>'+textoEstadoPresupuesto(ot)+'<br>Estado:');
+  const convertido=presupuestoConvertidoOT(ot);
+  const rechazado=(ot.presupuestoEstado||"")==="RECHAZADO";
+  const veh=(ot.marca||ot.modelo) ? `${htmlSeguro(ot.marca||"")} ${htmlSeguro(ot.modelo||"")}`.trim() : "Vehículo sin modelo";
+  const acciones = rechazado
+    ? `<button type="button" class="secondary" onclick="reactivarPresupuesto(${ot.id})">REACTIVAR</button>
+       <button type="button" onclick="editarOT(${ot.id})">EDITAR</button>
+       <button type="button" class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>`
+    : `<button type="button" class="green" onclick="pasarPresupuestoAOT(${ot.id})" ${convertido?"disabled style='opacity:.55;margin:0;cursor:not-allowed'":""}>${convertido?"YA EN OT":"PASAR A OT"}</button>
+       <button type="button" class="danger" onclick="marcarPresupuestoRechazado(${ot.id})">RECHAZADO</button>
+       <button type="button" onclick="editarOT(${ot.id})">EDITAR</button>
+       <button type="button" class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>`;
+  return `<div class="item ${clasePresupuesto(ot)}" style="border-left-color:${convertido?"#ff7a1a":(rechazado?"#777":"#00a6a6")}">
+    <div class="presupuesto-ref">${htmlSeguro(referenciaOT(ot))}</div>
+    <div class="presupuesto-mat">${htmlSeguro(ot.matricula||"SIN MATRÍCULA")}</div>
+    <div>${htmlSeguro(ot.cliente||"SIN CLIENTE")}</div>
+    ${textoEstadoPresupuesto(ot)}
+    <div class="presupuesto-datos">
+      📅 ${htmlSeguro(formatearFecha(fechaDocumento(ot)))}<br>
+      📞 ${htmlSeguro(ot.telefono||"SIN TELÉFONO")}<br>
+      🚗 ${veh}
+    </div>
+    <div class="presupuesto-trabajo">📝 ${htmlSeguro(resumenTrabajo(ot.trabajos))}</div>
+    <div class="presupuesto-acciones">${acciones}</div>
+  </div>`;
+}
+
+function pasarPresupuestoAOT(id){
+  const presupuesto=ots.find(x=>x.id===id);
+  if(!presupuesto || !esPresupuesto(presupuesto)) return;
+  if(presupuestoConvertidoOT(presupuesto)){
+    alert("ESTE PRESUPUESTO YA ESTÁ CONVERTIDO A OT");
+    return;
+  }
+  if(!confirm("¿PASAR ESTE PRESUPUESTO A OT conservando el presupuesto original?")) return;
+  const ot={...presupuesto};
+  ot.id=generarIdUnico();
+  ot.estado="OT";
+  ot.origenPresupuestoId=presupuesto.id;
+  ot.presupuestoEstado="";
+  ot.numeroAgenda=null;
+  ot.numeroPresupuesto=null;
+  ot.numeroOT=null;
+  ot.numeroPrefactura=null;
+  ot.numeroFactura=null;
+  ot.numeroRectificativa=null;
+  ot.esRectificativa=false;
+  ot.facturaRectificada="";
+  ot.facturaRectificadaId=null;
+  ot.lineas=(presupuesto.lineas||[]).map(l=>({...l}));
+  presupuesto.presupuestoEstado="CONVERTIDO_OT";
+  asegurarNumeracion(ot);
+  descontarStockOT(ot);
+  ots.push(ot);
+  guardar();
+  renderPresupuesto();
+  renderTaller();
+  alert("PRESUPUESTO CONSERVADO Y NUEVA "+referenciaOT(ot)+" CREADA");
+}
+
+function marcarPresupuestoRechazado(id){
+  const ot=ots.find(x=>x.id===id);
+  if(!ot || !esPresupuesto(ot)) return;
+  if(presupuestoConvertidoOT(ot)){
+    alert("NO MARCO COMO RECHAZADO UN PRESUPUESTO QUE YA ESTÁ CONVERTIDO A OT");
+    return;
+  }
+  if(!confirm("¿MARCAR ESTE PRESUPUESTO COMO RECHAZADO?")) return;
+  ot.presupuestoEstado="RECHAZADO";
+  guardar();
+  renderPresupuesto();
+}
+
+function reactivarPresupuesto(id){
+  const ot=ots.find(x=>x.id===id);
+  if(!ot || !esPresupuesto(ot)) return;
+  ot.presupuestoEstado="PENDIENTE";
+  guardar();
+  renderPresupuesto();
 }
 
 function renderAgenda(){
