@@ -162,15 +162,49 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .agenda-mini.agenda-72 .fecha{color:#b9ffd0!important}
 .agenda-mini.agenda-tarde{border-left-color:#2196f3!important}
 
+/* R122: operario asignado a OT */
+.operario-ot-form{background:#101827;border:1px solid #3b4a63;border-radius:12px;padding:10px 12px;margin:8px 0 12px}
+.operario-ot-form label{display:block;margin:0 0 4px}
+.operario-chip-r122{display:inline-block;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:bold;line-height:1.1;white-space:nowrap;border:1px solid #ffffff33}
+.operario-chip-r122.sin{background:#20242b;color:#cfd6e6}
+.operario-chip-r122.jose{background:#1e3a8a;color:white}
+.operario-chip-r122.javier{background:#14532d;color:white}
+.operario-chip-r122.domingo{background:#7c2d12;color:white}
+.operario-chip-r122.jorge{background:#581c87;color:white}
+.operario-chip-r122.ruben{background:#7f1d1d;color:white}
+.ot-ref-line-r122{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+
+
+/* R123: exportar expediente OT y anular reducido */
+.ot-final-acciones-r123{display:flex;gap:8px;margin-top:8px;align-items:stretch}
+.ot-final-acciones-r123 button{margin:0!important;border-radius:12px!important;line-height:1.15!important}
+.ot-exportar-r123{flex:1;background:#344d7a!important;color:white!important;font-size:13px!important;padding:10px 8px!important}
+.ot-anular-r123{flex:0 0 96px;background:#4a1b25!important;color:#ffd6d6!important;font-size:11px!important;padding:8px 6px!important}
+@media(max-width:420px){.ot-anular-r123{flex-basis:82px;font-size:10px!important}.ot-exportar-r123{font-size:12px!important}}
+
 @media(max-width:420px){.lineas-tabla{min-width:560px!important;font-size:12px}.lineas-tabla th:nth-child(1),.lineas-tabla td:nth-child(1){width:56px}.lineas-tabla th:nth-child(2),.lineas-tabla td:nth-child(2){width:240px}.ot-cli-r120{max-width:190px}.ot-veh-r120{max-width:220px}}
 
 @media(max-width:520px){.vehiculo-panel .mini-grid{grid-template-columns:1fr}}
 @media(max-width:420px){#tituloApp{font-size:34px}.inicio-gestion .btn-gestion{font-size:22px}.inicio-gestion .btn-fecha{flex-basis:102px;font-size:13px}.fecha-formulario{font-size:20px;padding:12px 10px}}
+/* R123/R124: exportar expediente OT y anular reducido */
+.ot-final-acciones-r123{display:flex;gap:8px;margin-top:8px;align-items:stretch;flex-wrap:wrap}
+.ot-final-acciones-r123 button{margin:0!important;border-radius:12px!important;line-height:1.15!important}
+.ot-final-acciones-r123 .ot-exportar-r123{flex:1 1 170px;background:#344d7a!important;color:white!important;font-size:13px!important;padding:10px 8px!important}
+.ot-final-acciones-r123 .ot-anular-r123{flex:0 0 auto;width:auto!important;background:#4a1b25!important;color:#ffd6d6!important;font-size:12px!important;padding:8px 12px!important}
+.operario-input-row-r124{display:flex;gap:8px;align-items:stretch}
+.operario-input-row-r124 select{flex:1;margin:0 0 8px}
+.operario-input-row-r124 button{flex:0 0 auto;width:auto;margin:0 0 8px;padding:8px 12px;font-size:13px;background:#344d7a;color:white}
+.ot-operario-r124{margin-top:3px}
+.ot-final-acciones-r124-visible{display:flex;gap:8px;margin-top:9px;align-items:stretch;flex-wrap:wrap}
+.ot-final-acciones-r124-visible button{margin:0!important;border-radius:12px!important;line-height:1.15!important}
+.ot-final-acciones-r124-visible .ot-exportar-r123{flex:1 1 170px;background:#344d7a!important;color:white!important;font-size:13px!important;padding:10px 8px!important}
+.ot-final-acciones-r124-visible .ot-anular-r123{flex:0 0 auto;width:auto!important;background:#4a1b25!important;color:#ffd6d6!important;font-size:12px!important;padding:8px 12px!important}
+
 </style>
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R121</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R124</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -237,6 +271,14 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <div class="row">
 <div><label>KM</label><input id="km" type="number" inputmode="numeric" placeholder="KM"></div>
 <div><label>Fecha / cita</label><input id="fecha" type="datetime-local"></div>
+</div>
+<div class="operario-ot-form">
+<label>Operario asignado</label>
+<div class="operario-input-row-r124">
+<select id="operarioAsignado"></select>
+<button type="button" onclick="nuevoOperarioDesdeFormulario()">➕</button>
+</div>
+<div style="color:#aab4c8;font-size:12px;line-height:1.3;">Se guarda en la base de datos y aparecerá en futuras OT.</div>
 </div>
 <label>Estado</label>
 <select id="estado" onchange="irGuardar();actualizarColorEstado();actualizarTextoBotonGuardar();actualizarVisibilidadPorEstado();">
@@ -699,6 +741,59 @@ function actualizarBotonFechaGestion(){
     h.classList.add("fecha-formulario");
   }
 }
+function normalizarOperario(nombre){
+  return (nombre||"").trim().toUpperCase();
+}
+
+function colorOperario(nombre){
+  const base=normalizarOperario(nombre);
+  const colores=["#1e3a8a","#14532d","#7c2d12","#581c87","#7f1d1d","#0f766e","#9a3412","#3730a3"];
+  if(!base) return "#20242b";
+  let hash=0;
+  for(let i=0;i<base.length;i++) hash=(hash*31+base.charCodeAt(i))>>>0;
+  return colores[hash%colores.length];
+}
+
+function asegurarOperariosBase(){
+  const base=["JOSE AGOIZ","JAVIER PABLO HAUET","JOSE DOMINGO TENA","JORGE RUBIANO","RUBÉN MOGA"];
+  if(!Array.isArray(operarios)) operarios=[];
+  base.forEach(n=>guardarOperario(n,false));
+  (ots||[]).forEach(ot=>{
+    if(ot.operarioAsignado||ot.operario) guardarOperario(ot.operarioAsignado||ot.operario,false);
+    (ot.lineas||[]).forEach(l=>{ if(l.operario) guardarOperario(l.operario,false); });
+  });
+}
+
+function guardarOperario(nombre,persistir){
+  const n=normalizarOperario(nombre);
+  if(!n) return;
+  if(!Array.isArray(operarios)) operarios=[];
+  if(!operarios.includes(n)) operarios.push(n);
+  operarios.sort((a,b)=>a.localeCompare(b,"es"));
+  if(persistir) guardar();
+}
+
+function renderSelectOperarios(valor){
+  const sel=document.getElementById("operarioAsignado");
+  if(!sel) return;
+  asegurarOperariosBase();
+  const actual=normalizarOperario(valor!==undefined ? valor : sel.value);
+  sel.innerHTML=`<option value="">SIN ASIGNAR</option>`+(operarios||[]).map(op=>`<option value="${htmlSeguro(op)}">${htmlSeguro(op)}</option>`).join("");
+  if(actual){
+    guardarOperario(actual,false);
+    sel.value=actual;
+  }
+}
+
+function nuevoOperarioDesdeFormulario(){
+  const nombre=prompt("Nombre del operario:");
+  if(nombre===null) return;
+  const op=normalizarOperario(nombre);
+  if(!op){ alert("Nombre de operario vacío."); return; }
+  guardarOperario(op,true);
+  renderSelectOperarios(op);
+}
+
 
 function ocultarPanelesExtraOT(){
   const ficha=document.getElementById("panelFichaVehiculo");
@@ -729,10 +824,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R121";
+const APP_VERSION="R124";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R121: Agenda con colores por proximidad: 24h rojo, 48h ámbar, 72h verde y citas posteriores mantienen color.";
+const APP_NOTAS="R124: Operarios en base de datos y tarjeta OT activas corregida con operario y EXPORTAR OT visible.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -741,6 +836,7 @@ let clientes={};
 let vehiculos={};
 let articulos=[];
 let fotosExpedientes={};
+let operarios=[];
 let fotosTemp=[];
 let fotoExpedienteKeyActual="";
 let mantenerEstadoAlAbrirFormulario=false;
@@ -823,10 +919,11 @@ try{
     vehiculos=guardado.vehiculos || {};
     articulos=Array.isArray(guardado.articulos) ? guardado.articulos : [];
     fotosExpedientes=(guardado.fotosExpedientes && typeof guardado.fotosExpedientes==="object") ? guardado.fotosExpedientes : {};
+    operarios=Array.isArray(guardado.operarios) ? guardado.operarios : [];
   }
 }catch(e){
   ots=[]; contadores={agenda:0,presupuesto:0,ot:0,prefactura:0,factura:0,rectificativa:0,articuloInterno:0};
-  clientes={}; vehiculos={}; articulos=[]; fotosExpedientes={};
+  clientes={}; vehiculos={}; articulos=[]; fotosExpedientes={}; operarios=[];
 }
 
 // ============================================================
@@ -871,7 +968,8 @@ function paqueteDatos(){
     clientes:clientes,
     vehiculos:vehiculos,
     articulos:articulos,
-    fotosExpedientes:fotosExpedientes
+    fotosExpedientes:fotosExpedientes,
+    operarios:operarios
   };
 }
 
@@ -898,9 +996,10 @@ function validarCopia(datos){
   if(datos.vehiculos!==undefined && (typeof datos.vehiculos!=="object" || Array.isArray(datos.vehiculos))) return {ok:false,msg:"COPIA NO VÁLIDA: vehículos dañado."};
   if(datos.articulos!==undefined && !Array.isArray(datos.articulos)) return {ok:false,msg:"COPIA NO VÁLIDA: artículos dañado."};
   if(datos.fotosExpedientes!==undefined && (typeof datos.fotosExpedientes!=="object" || Array.isArray(datos.fotosExpedientes))) return {ok:false,msg:"COPIA NO VÁLIDA: fotos dañadas."};
+  if(datos.operarios!==undefined && !Array.isArray(datos.operarios)) return {ok:false,msg:"COPIA NO VÁLIDA: operarios dañados."};
   const otsValidas=datos.ots.every(o=>o && typeof o==="object");
   if(!otsValidas) return {ok:false,msg:"COPIA NO VÁLIDA: hay OTs dañadas."};
-  return {ok:true,tipo:"v4",ots:datos.ots,contadores:normalizarContadores(datos.contadores),clientes:datos.clientes||{},vehiculos:datos.vehiculos||{},articulos:datos.articulos||[],fotosExpedientes:datos.fotosExpedientes||{}};
+  return {ok:true,tipo:"v4",ots:datos.ots,contadores:normalizarContadores(datos.contadores),clientes:datos.clientes||{},vehiculos:datos.vehiculos||{},articulos:datos.articulos||[],fotosExpedientes:datos.fotosExpedientes||{},operarios:datos.operarios||[]};
 }
 
 function generarIdUnico(){
@@ -1264,7 +1363,10 @@ function showTab(id){
   else if(id==="nueva"){ botones[2].classList.add("activo"); titulo.style.background="#ff7a1a"; titulo.style.color="#0f1728"; if(!editandoId && !rectificandoId && !mantenerEstadoAlAbrirFormulario){ document.getElementById("estado").value="OT"; actualizarColorEstado(); actualizarTextoBotonGuardar(); actualizarVisibilidadPorEstado(); } }
   else if(["mas","historial","estadisticas","ganancias","inventario","prefactura"].includes(id)){ botones[3].classList.add("activo"); titulo.style.background=id==="historial"?"#28a745":(id==="prefactura"?"#344d7a":"#344d7a"); titulo.style.color="white"; }
   else { titulo.style.background="#0f1728"; titulo.style.color="#ff7a1a"; }
-  if(id==="nueva") actualizarBotonFechaGestion();
+  if(id==="nueva"){
+    actualizarBotonFechaGestion();
+    renderSelectOperarios();
+  }
   if(id==="historial") setFiltro(filtroActivo);
   if(id==="agenda") renderAgenda();
   if(id==="presupuesto") renderPresupuesto();
@@ -1381,7 +1483,7 @@ function crearTarjetaOT(ot){
 
   const color=colorEstado(ot.estado);
   return `<div class="item" style="border-left-color:${color}">
-    <b>${htmlSeguro(ref)}</b><br>
+    <div class="ot-ref-line-r122"><b>${htmlSeguro(ref)}</b>${(esOT(ot)||esPrefactura(ot)||esFactura(ot)) ? etiquetaOperarioOT(ot) : ""}</div>
     ${bloqueOrigenPresupuesto}
     <b>${htmlSeguro(ot.matricula)}</b><br>
     ${htmlSeguro(ot.cliente)}<br>
@@ -1683,6 +1785,40 @@ function pasarOTAPrefactura(id){
   showTab("prefactura");
 }
 
+function nombreArchivoOT(ot, sufijo){
+  const ref=(referenciaOT(ot)||"OT").replace(/[^A-Z0-9_-]/gi,"_");
+  const mat=(ot.matricula||"SIN_MATRICULA").replace(/[^A-Z0-9_-]/gi,"_");
+  const extra=sufijo ? "_"+sufijo : "";
+  return ref+"_"+mat+extra+".json";
+}
+
+function exportarOTArchivo(id){
+  const ot=ots.find(x=>x.id===id);
+  if(!ot){ alert("OT NO ENCONTRADA"); return; }
+  const claveFotos=ot.fotoExpedienteKey||"";
+  const expediente={
+    tipo:"EXPEDIENTE_OT",
+    app:"RecepcionTallerPro",
+    version:APP_VERSION,
+    fechaExportacion:new Date().toISOString(),
+    referencia:referenciaOT(ot),
+    estado:textoEstado(ot.estado),
+    ot:ot,
+    cliente:buscarFichaCliente(ot.cliente)||null,
+    vehiculo:buscarFichaVehiculo(ot.matricula)||null,
+    fotosExpedienteKey:claveFotos,
+    fotos:claveFotos ? (fotosExpedientes[claveFotos]||[]) : [],
+    aviso:"Archivo individual de OT para conservar o mover a carpeta OT inválidas si procede."
+  };
+  const blob=new Blob([JSON.stringify(expediente,null,2)],{type:"application/json;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=nombreArchivoOT(ot, estadoCanonico(ot.estado)==="OT_ANULADA" ? "ANULADA" : "EXPEDIENTE");
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
+}
+
 function anularOT(id){
   const ot=ots.find(x=>x.id===id);
   if(!ot || !esOT(ot)) return;
@@ -1749,6 +1885,16 @@ function crearBloqueLineasR120(ot){
   return `<b>TRABAJOS:</b><br>${htmlSeguro(ot.trabajos||"SIN TRABAJOS")}`;
 }
 
+function claseOperarioAsignado(op){
+  return normalizarOperario(op) ? "" : "sin";
+}
+
+function etiquetaOperarioOT(ot){
+  const op=normalizarOperario(ot.operarioAsignado||ot.operario||"");
+  if(!op) return `<span class="operario-chip-r122 sin">👨‍🔧 SIN ASIGNAR</span>`;
+  return `<span class="operario-chip-r122" style="background:${colorOperario(op)};color:white;">👨‍🔧 ${htmlSeguro(op)}</span>`;
+}
+
 function crearTarjetaTallerOT(ot){
   const ref=referenciaOT(ot);
   const totalActual=calcularTotalesLineas(ot.lineas||[]).total;
@@ -1767,12 +1913,12 @@ function crearTarjetaTallerOT(ot){
         <button class="secondary" onclick="editarOT(${ot.id});setTimeout(()=>document.getElementById('panelFotos').scrollIntoView({behavior:'smooth',block:'start'}),300)">📷 FOTOS</button>
         <button class="btn-prefactura" onclick="pasarOTAPrefactura(${ot.id})">PRE-<br>FACTURA</button>
       </div>
-      <div class="ot-anular-zona-r120"><button type="button" onclick="anularOT(${ot.id})">ANULAR OT</button></div>
     </div>` : "";
   return `<div class="item ot-card-r120" style="border-left-color:${colorEstado(ot.estado)}">
     <div class="ot-top-r120">
       <div style="min-width:0;flex:1;">
-        <div class="ot-ref-r120">${htmlSeguro(ref)}</div>
+        <div class="ot-ref-line-r122"><span class="ot-ref-r120">${htmlSeguro(ref)}</span></div>
+        <div class="ot-operario-r124">${etiquetaOperarioOT(ot)}</div>
         <div class="ot-mat-r120">${htmlSeguro(ot.matricula||"SIN MATRÍCULA")}</div>
         <div class="ot-cli-r120">${htmlSeguro(ot.cliente||"SIN CLIENTE")}</div>
         <div class="ot-veh-r120">${htmlSeguro(veh)}</div>
@@ -1788,6 +1934,10 @@ function crearTarjetaTallerOT(ot){
     ${bloqueOrigen}
     <button type="button" class="ot-ver-r120" onclick="toggleDetalleOT(${ot.id})">${abierto?"▲ Ocultar detalle":"▼ Ver detalle"}</button>
     ${detalle}
+    <div class="ot-final-acciones-r124-visible">
+      <button type="button" class="ot-exportar-r123" onclick="exportarOTArchivo(${ot.id})">⬇️ EXPORTAR OT</button>
+      <button type="button" class="ot-anular-r123" onclick="anularOT(${ot.id})">ANULAR OT</button>
+    </div>
   </div>`;
 }
 
@@ -2333,12 +2483,14 @@ function guardarOT(){
     notasVehiculo:(document.getElementById("notasVehiculo")?.value||"").trim().toUpperCase(),
     km:document.getElementById("km").value.trim(),
     fecha:document.getElementById("fecha").value,
+    operarioAsignado:(document.getElementById("operarioAsignado")?.value||"").trim().toUpperCase(),
     estado:document.getElementById("estado").value,
     trabajos:document.getElementById("trabajos").value.trim().toUpperCase(),
     observaciones:document.getElementById("observaciones").value.trim().toUpperCase(),
     lineas: lineasTemp.map(l=> ({...l})),
     fotoExpedienteKey: fotoExpedienteKeyActual || ""
   };
+  if(ot.operarioAsignado) guardarOperario(ot.operarioAsignado,false);
   if(!ot.matricula||!ot.cliente||!ot.trabajos){
     guardandoOT=false;
     alert("FALTAN DATOS OBLIGATORIOS");
@@ -2544,6 +2696,7 @@ function _completarGuardadoOT(ot){
   limpiarFichaVehiculoFormulario();
   document.getElementById("km").value="";
   document.getElementById("fecha").value="";
+  renderSelectOperarios("");
   document.getElementById("estado").value="CITA";
   actualizarColorEstado();
   actualizarTextoBotonGuardar();
@@ -2581,6 +2734,7 @@ function editarOT(id){
   document.getElementById("km").value=ot.km||"";
   actualizarHistorialVehiculoFormulario();
   document.getElementById("fecha").value=ot.fecha||"";
+  renderSelectOperarios(ot.operarioAsignado||ot.operario||"");
   document.getElementById("estado").value=estadoCanonico(ot.estado||"");
   actualizarColorEstado();
   actualizarTextoBotonGuardar();
@@ -3308,6 +3462,8 @@ function importarCopia(event){
       vehiculos=validada.vehiculos;
       articulos=validada.articulos;
       fotosExpedientes=validada.fotosExpedientes||{};
+      operarios=Array.isArray(validada.operarios) ? validada.operarios : [];
+      asegurarOperariosBase();
       completarNumeracionExistente();
       if(guardar()){
         alert("COPIA IMPORTADA CORRECTAMENTE");
@@ -3338,6 +3494,7 @@ function resetearPrograma(){
   vehiculos={};
   articulos=[];
   fotosExpedientes={};
+  operarios=[];
   editandoId=null;
   if(guardar()){
     alert("PROGRAMA REINICIADO. LA PRÓXIMA OT EMPEZARÁ EN 0001");
@@ -3533,7 +3690,21 @@ function imprimir(id){
       th,td{padding:6px;text-align:left;border-bottom:1px solid #ddd}
       th{background:#f5f5f5}
     }
-    </style>
+    /* R123/R124: exportar expediente OT y anular reducido */
+.ot-final-acciones-r123{display:flex;gap:8px;margin-top:8px;align-items:stretch;flex-wrap:wrap}
+.ot-final-acciones-r123 button{margin:0!important;border-radius:12px!important;line-height:1.15!important}
+.ot-final-acciones-r123 .ot-exportar-r123{flex:1 1 170px;background:#344d7a!important;color:white!important;font-size:13px!important;padding:10px 8px!important}
+.ot-final-acciones-r123 .ot-anular-r123{flex:0 0 auto;width:auto!important;background:#4a1b25!important;color:#ffd6d6!important;font-size:12px!important;padding:8px 12px!important}
+.operario-input-row-r124{display:flex;gap:8px;align-items:stretch}
+.operario-input-row-r124 select{flex:1;margin:0 0 8px}
+.operario-input-row-r124 button{flex:0 0 auto;width:auto;margin:0 0 8px;padding:8px 12px;font-size:13px;background:#344d7a;color:white}
+.ot-operario-r124{margin-top:3px}
+.ot-final-acciones-r124-visible{display:flex;gap:8px;margin-top:9px;align-items:stretch;flex-wrap:wrap}
+.ot-final-acciones-r124-visible button{margin:0!important;border-radius:12px!important;line-height:1.15!important}
+.ot-final-acciones-r124-visible .ot-exportar-r123{flex:1 1 170px;background:#344d7a!important;color:white!important;font-size:13px!important;padding:10px 8px!important}
+.ot-final-acciones-r124-visible .ot-anular-r123{flex:0 0 auto;width:auto!important;background:#4a1b25!important;color:#ffd6d6!important;font-size:12px!important;padding:8px 12px!important}
+
+</style>
     <h1>${tituloPrint}</h1>
     <p><b>Número:</b> ${referenciaOT(ot)}</p>
     ${ot.esRectificativa ? `<p><b>Rectifica:</b> ${ot.facturaRectificada||"—"}</p>` : ""}
@@ -4058,7 +4229,21 @@ function imprimirInventario(modo){
       #zonaImpresion th,#zonaImpresion td{border:1px solid #999;padding:5px;text-align:left;vertical-align:top}
       #zonaImpresion th{background:#eee}
     }
-  </style>${construirHTMLInventarioParaImprimir(modo)}`;
+  /* R123/R124: exportar expediente OT y anular reducido */
+.ot-final-acciones-r123{display:flex;gap:8px;margin-top:8px;align-items:stretch;flex-wrap:wrap}
+.ot-final-acciones-r123 button{margin:0!important;border-radius:12px!important;line-height:1.15!important}
+.ot-final-acciones-r123 .ot-exportar-r123{flex:1 1 170px;background:#344d7a!important;color:white!important;font-size:13px!important;padding:10px 8px!important}
+.ot-final-acciones-r123 .ot-anular-r123{flex:0 0 auto;width:auto!important;background:#4a1b25!important;color:#ffd6d6!important;font-size:12px!important;padding:8px 12px!important}
+.operario-input-row-r124{display:flex;gap:8px;align-items:stretch}
+.operario-input-row-r124 select{flex:1;margin:0 0 8px}
+.operario-input-row-r124 button{flex:0 0 auto;width:auto;margin:0 0 8px;padding:8px 12px;font-size:13px;background:#344d7a;color:white}
+.ot-operario-r124{margin-top:3px}
+.ot-final-acciones-r124-visible{display:flex;gap:8px;margin-top:9px;align-items:stretch;flex-wrap:wrap}
+.ot-final-acciones-r124-visible button{margin:0!important;border-radius:12px!important;line-height:1.15!important}
+.ot-final-acciones-r124-visible .ot-exportar-r123{flex:1 1 170px;background:#344d7a!important;color:white!important;font-size:13px!important;padding:10px 8px!important}
+.ot-final-acciones-r124-visible .ot-anular-r123{flex:0 0 auto;width:auto!important;background:#4a1b25!important;color:#ffd6d6!important;font-size:12px!important;padding:8px 12px!important}
+
+</style>${construirHTMLInventarioParaImprimir(modo)}`;
   document.body.appendChild(zona);
   window.print();
 }
@@ -4284,6 +4469,7 @@ function inicializarPrueba(){
   guardar();
 }
 
+asegurarOperariosBase();
 completarNumeracionExistente();
 guardar();
 
