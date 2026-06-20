@@ -209,7 +209,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R125</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R127</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -829,10 +829,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R125";
+const APP_VERSION="R127";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R125: OT activas muestra todos los operarios intervinientes: responsable principal y operarios de líneas de mano de obra.";
+const APP_NOTAS="R127: Hoja de taller profesional en impresión OT: operarios, observaciones del operario, material añadido, incidencias, horas y firma.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -3600,6 +3600,66 @@ function imprimirFichaVehiculoExtra(ot){
   return html;
 }
 
+
+function bloqueHojaTallerProfesional(ot){
+  if(!esOT(ot)) return "";
+  const operarios=operariosIntervinientesOT(ot);
+  const responsable=normalizarOperario(ot.operarioAsignado||ot.operario||"") || (operarios[0]||"");
+  const intervinientes=operarios.length ? operarios.join(", ") : "SIN ASIGNAR";
+  const grupos=lineasOrdenadasPorTipo(ot.lineas||[]);
+  const materiales=grupos.materiales||[];
+  const mano=grupos.mano||[];
+  const filasMateriales=materiales.length ? materiales.map(l=>`<tr>
+    <td>${htmlSeguro(l.referencia||"—")}</td>
+    <td>${htmlSeguro(l.descripcion||"")}</td>
+    <td style="text-align:center;">${Number(l.cantidad)||0}</td>
+    <td></td>
+  </tr>`).join("") : `<tr><td colspan="4" style="height:30px;">Sin materiales cargados en la OT.</td></tr>`;
+  const filasMano=mano.length ? mano.map(l=>`<tr>
+    <td>${htmlSeguro(l.codigo_mo||l.referencia||"MO")}</td>
+    <td>${htmlSeguro(l.descripcion||"")}</td>
+    <td>${htmlSeguro(l.operario||"")}</td>
+  </tr>`).join("") : `<tr><td colspan="3" style="height:30px;">Sin mano de obra cargada.</td></tr>`;
+  return `
+    <div class="hoja-taller-r127">
+      <h2>HOJA DE TALLER / REGISTRO DEL OPERARIO</h2>
+      <div class="r127-grid">
+        <div><b>Operario responsable:</b><br>${htmlSeguro(responsable||"SIN ASIGNAR")}</div>
+        <div><b>Operarios intervinientes:</b><br>${htmlSeguro(intervinientes)}</div>
+      </div>
+
+      <h3>Trabajos previstos</h3>
+      <div class="r127-box grande">${htmlSeguro(ot.trabajos||"SIN TRABAJOS")}</div>
+
+      <h3>Mano de obra prevista / realizada</h3>
+      <table class="r127-table"><thead><tr><th>Ref.</th><th>Concepto</th><th>Operario</th></tr></thead><tbody>${filasMano}</tbody></table>
+
+      <h3>Material previsto en OT</h3>
+      <table class="r127-table"><thead><tr><th>Ref.</th><th>Descripción</th><th>Uds.</th><th>Usado / OK</th></tr></thead><tbody>${filasMateriales}</tbody></table>
+
+      <h3>Observaciones del operario</h3>
+      <div class="r127-escritura"></div>
+
+      <h3>Material añadido durante reparación</h3>
+      <table class="r127-table r127-blank"><thead><tr><th>Ref.</th><th>Descripción</th><th>Uds.</th><th>Motivo</th></tr></thead><tbody>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+      </tbody></table>
+
+      <h3>Incidencias encontradas durante reparación</h3>
+      <div class="r127-checks">☐ Pieza dañada / incompatible &nbsp;&nbsp; ☐ Trabajo adicional &nbsp;&nbsp; ☐ Cliente avisado &nbsp;&nbsp; ☐ Pendiente autorización</div>
+      <div class="r127-escritura pequena"></div>
+
+      <div class="r127-grid firmas">
+        <div><b>Inicio:</b> ____________ &nbsp; <b>Fin:</b> ____________ &nbsp; <b>Horas:</b> ____________</div>
+        <div><b>Firma operario:</b> ____________________________</div>
+      </div>
+    </div>
+  `;
+}
+
 function imprimir(id){
   const ot=ots.find(x=>x.id===id);
   if(!ot)return;
@@ -3690,6 +3750,7 @@ function imprimir(id){
     <p><b>Teléfono:</b> ${ot.telefono}</p>
   `;
 
+  const bloqueHojaTaller=bloqueHojaTallerProfesional(ot);
   const zona=document.createElement("div");
   zona.id="zonaImpresion";
   zona.innerHTML=`
@@ -3704,6 +3765,19 @@ function imprimir(id){
       table{width:100%;border-collapse:collapse}
       th,td{padding:6px;text-align:left;border-bottom:1px solid #ddd}
       th{background:#f5f5f5}
+      .hoja-taller-r127{page-break-before:always;border-top:3px solid #111;margin-top:18px;padding-top:12px}
+      .hoja-taller-r127 h2{text-align:center;margin:0 0 12px;font-size:18px;color:#000}
+      .hoja-taller-r127 h3{font-size:14px;margin:12px 0 6px;color:#000}
+      .r127-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+      .r127-grid>div,.r127-box{border:1px solid #333;padding:8px;min-height:28px}
+      .r127-box.grande{min-height:55px;white-space:pre-wrap}
+      .r127-table{width:100%;border-collapse:collapse;font-size:11px;margin:6px 0 10px}
+      .r127-table th,.r127-table td{border:1px solid #777;padding:5px;vertical-align:top}
+      .r127-blank td{height:24px}
+      .r127-escritura{border:1px solid #333;height:95px;margin:6px 0 10px}
+      .r127-escritura.pequena{height:65px}
+      .r127-checks{border:1px solid #333;padding:7px;font-size:12px;margin-bottom:6px}
+      .firmas{margin-top:14px}
     }
     /* R123/R124: exportar expediente OT y anular reducido */
 .ot-final-acciones-r123{display:flex;gap:8px;margin-top:8px;align-items:stretch;flex-wrap:wrap}
@@ -3735,6 +3809,7 @@ function imprimir(id){
     ${tablaLineas ? tablaLineas : ""}
     <h3>Observaciones</h3>
     <div class="box">${htmlSeguro(ot.observaciones||"")}</div>
+    ${bloqueHojaTaller}
     <p>Firma cliente: __________________________</p>
   `;
   document.body.appendChild(zona);
