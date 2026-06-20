@@ -125,13 +125,42 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .acciones.ot-acciones .btn-prefactura{background:#28a745;color:white}
 .acciones.ot-acciones .btn-anular{background:#b00020;color:white}
 
+
+/* R120: usabilidad real en iPhone */
+.agenda-mini{padding:7px 50px 7px 10px!important;min-height:54px!important;margin-top:6px!important}
+.agenda-mini .fecha{font-size:13px!important}
+.agenda-mini .mat{font-size:17px!important}
+.agenda-mini .cli{font-size:14px!important}
+.agenda-edit{width:38px!important;height:38px!important;border-radius:12px!important;font-size:20px!important;right:8px!important}
+.lineas-tabla{min-width:620px!important;table-layout:fixed}
+.lineas-tabla th:nth-child(1),.lineas-tabla td:nth-child(1){width:70px}
+.lineas-tabla th:nth-child(2),.lineas-tabla td:nth-child(2){width:270px}
+.lineas-concepto{white-space:normal!important;word-break:break-word;overflow-wrap:anywhere;line-height:1.25}
+.lineas-ref{white-space:normal!important;word-break:break-word;font-size:12px}
+.ot-card-r120{padding:10px 12px!important;margin-top:8px!important}
+.ot-top-r120{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.ot-ref-r120{font-size:15px;color:#ffd580;font-weight:bold;white-space:nowrap}
+.ot-mat-r120{font-size:22px;font-weight:bold;color:#fff;letter-spacing:.7px;line-height:1.05}
+.ot-cli-r120{font-size:15px;color:#e8edf7;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:230px}
+.ot-veh-r120{font-size:13px;color:#aab4c8;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:270px}
+.ot-meta-r120{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;font-size:12px;color:#cfe3ff}
+.ot-chip-r120{background:#0b1220;border:1px solid #3b4a63;border-radius:999px;padding:4px 7px;line-height:1.1}
+.ot-total-r120{font-weight:bold;color:#28a745;font-size:16px;text-align:right;white-space:nowrap}
+.ot-origen-r120{margin-top:7px;padding:7px 9px;border-radius:10px;background:#2a1a00;color:#ffd580;font-weight:bold;font-size:13px;line-height:1.25}
+.ot-detalle-r120{margin-top:9px;border-top:1px solid #3b4a63;padding-top:8px}
+.ot-ver-r120{background:#344d7a!important;color:white!important;margin:8px 0 0!important;padding:9px!important;font-size:14px!important}
+.ot-anular-zona-r120{margin-top:8px;text-align:right}
+.ot-anular-zona-r120 button{width:auto!important;padding:7px 11px!important;font-size:12px!important;margin:0!important;background:#4a1b25!important;color:#ffd6d6!important}
+.aviso.localizado-r120{background:#10281d;border-left-color:#28a745;color:#b9ffd0;line-height:1.35}
+@media(max-width:420px){.lineas-tabla{min-width:560px!important;font-size:12px}.lineas-tabla th:nth-child(1),.lineas-tabla td:nth-child(1){width:56px}.lineas-tabla th:nth-child(2),.lineas-tabla td:nth-child(2){width:240px}.ot-cli-r120{max-width:190px}.ot-veh-r120{max-width:220px}}
+
 @media(max-width:520px){.vehiculo-panel .mini-grid{grid-template-columns:1fr}}
 @media(max-width:420px){#tituloApp{font-size:34px}.inicio-gestion .btn-gestion{font-size:22px}.inicio-gestion .btn-fecha{flex-basis:102px;font-size:13px}.fecha-formulario{font-size:20px;padding:12px 10px}}
 </style>
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R119</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R120</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -690,10 +719,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R119";
+const APP_VERSION="R120";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R119: líneas de artículos y mano de obra visibles y editables en Presupuesto, OT y Pre-Factura; Pre-Factura editable para revisión antes de facturar.";
+const APP_NOTAS="R120: OT y Agenda más compactas; líneas con concepto ancho; presupuesto convertido resumido; vehículo localizado más claro; anulación de OT más protegida.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -715,6 +744,7 @@ const POR_PAGINA=20;
 let lineasTemp=[];
 let guardandoOT=false;
 let agendaExpandidaId=null;
+let detalleOTAbierto={};
 
 const MARCAS=["ABARTH","ALFA ROMEO","ALPINE","AUDI","BMW","BYD","CITROEN","CUPRA","DACIA","DAIHATSU","DS AUTOMOBILES","FIAT","FORD","GENESIS","HONDA","HYUNDAI","INFINITI","ISUZU","JAGUAR","JAECOO","KGM","KIA","LAND ROVER","LEXUS","LYNK & CO","MAZDA","MERCEDES","MG","MINI","MITSUBISHI","NISSAN","OPEL","PEUGEOT","POLESTAR","PORSCHE","RENAULT","SEAT","SKODA","SMART","SSANGYONG","SUBARU","SUZUKI","TESLA","TOYOTA","VOLKSWAGEN","VOLVO"];
 
@@ -1623,11 +1653,16 @@ function pasarOTAPrefactura(id){
 function anularOT(id){
   const ot=ots.find(x=>x.id===id);
   if(!ot || !esOT(ot)) return;
-  const motivo=prompt("Motivo de anulación de "+referenciaOT(ot)+":\nEj: cliente no autoriza, discrepancia, vehículo retirado, error administrativo...");
+  if(!confirm("Zona delicada: vas a ANULAR "+referenciaOT(ot)+".\n\nNo se borra, pero sale de OT activas. ¿Continuar?")) return;
+  const motivo=prompt("Motivo obligatorio de anulación:\nEj: cliente no autoriza, discrepancia, vehículo retirado, error administrativo...");
   if(motivo===null) return;
   const limpio=(motivo||"").trim();
   if(!limpio){ alert("Para anular una OT debes indicar un motivo."); return; }
-  if(!confirm("¿ANULAR "+referenciaOT(ot)+"? Quedará guardada como OT ANULADA, no se borrará.")) return;
+  const codigo=prompt("Escribe ANULAR para confirmar definitivamente:");
+  if((codigo||"").trim().toUpperCase()!=="ANULAR"){
+    alert("Anulación cancelada. No se ha modificado la OT.");
+    return;
+  }
   restaurarStockOT(ot);
   ot.estado="OT_ANULADA";
   ot.motivoAnulacion=limpio.toUpperCase();
@@ -1652,15 +1687,75 @@ function renderPresupuesto(){
   lista.innerHTML=datos.map(ot=>crearTarjetaPresupuesto(ot)).join("");
 }
 
+function toggleDetalleOT(id){
+  detalleOTAbierto[id]=!detalleOTAbierto[id];
+  renderTaller();
+}
+
+function crearBloqueLineasR120(ot){
+  if(ot.lineas && ot.lineas.length>0){
+    let lineasHtml = `<b>LÍNEAS:</b><div style="overflow-x:auto;margin-top:6px;"><table class="lineas-tabla"><thead><tr><th>Ref.</th><th>Concepto</th><th>Uds.</th><th>Total</th><th>IVA</th></tr></thead><tbody>`;
+    const grupos=lineasOrdenadasPorTipo(ot.lineas);
+    let puestoSeparador=false;
+    grupos.ordenadas.forEach(l=>{
+      if(l.tipo!=="mano_obra" && grupos.materiales.length>0 && !puestoSeparador){
+        lineasHtml += `<tr><td colspan="5" style="padding-top:10px;color:#ffd580;font-weight:bold;border-top:1px solid #3b4a63;">MATERIALES EMPLEADOS</td></tr>`;
+        puestoSeparador=true;
+      }
+      const cantidad=Number(l.cantidad)||0;
+      const precio=Number(l.precio)||0;
+      const descuento=Number(l.descuento)||0;
+      const baseLinea=Math.max(0,(cantidad*precio)-descuento);
+      const ivaPct=Number(l.iva!==undefined ? l.iva : 21);
+      const totalLinea=baseLinea+(baseLinea*ivaPct/100);
+      lineasHtml += `<tr><td class="lineas-ref">${htmlSeguro(l.referencia||l.codigo_mo||"—")}</td><td class="lineas-concepto">${htmlSeguro(l.descripcion||"")}</td><td>${cantidad}</td><td>${totalLinea.toFixed(2)} €</td><td>${ivaPct}%</td></tr>`;
+    });
+    lineasHtml += `</tbody></table></div>`;
+    return lineasHtml;
+  }
+  return `<b>TRABAJOS:</b><br>${htmlSeguro(ot.trabajos||"SIN TRABAJOS")}`;
+}
+
 function crearTarjetaTallerOT(ot){
-  const html=crearTarjetaOT(ot);
-  const acciones=`<div class="acciones ot-acciones">
-    <button onclick="editarOT(${ot.id})">EDITAR</button>
-    <button class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>
-    <button class="btn-prefactura" onclick="pasarOTAPrefactura(${ot.id})">PRE-<br>FACTURA</button>
-    <button class="btn-anular" onclick="anularOT(${ot.id})">ANULAR</button>
+  const ref=referenciaOT(ot);
+  const totalActual=calcularTotalesLineas(ot.lineas||[]).total;
+  const presupuestoOrigen=ot.origenPresupuestoId ? ots.find(x=>x.id===ot.origenPresupuestoId) : null;
+  const totalOrigen=presupuestoOrigen ? calcularTotalesLineas(presupuestoOrigen.lineas||[]).total : null;
+  const fotos=(ot.fotoExpedienteKey && fotosDeClave(ot.fotoExpedienteKey).length) ? fotosDeClave(ot.fotoExpedienteKey).length : 0;
+  const abierto=!!detalleOTAbierto[ot.id];
+  const veh=[ot.marca,ot.modelo].filter(Boolean).join(" ") || "Vehículo sin modelo";
+  const bloqueOrigen=presupuestoOrigen ? `<div class="ot-origen-r120">📋 ${htmlSeguro(referenciaOT(presupuestoOrigen))} → ${htmlSeguro(ref)} · ${(totalActual-totalOrigen>=0?"+":"")+(totalActual-totalOrigen).toFixed(2)} € sobre presupuesto</div>` : "";
+  const detalle=abierto ? `<div class="ot-detalle-r120">
+      ${crearBloqueLineasR120(ot)}<br><br>
+      <b>OBSERVACIONES:</b><br>${htmlSeguro(ot.observaciones||"SIN OBSERVACIONES")}
+      <div class="acciones ot-acciones" style="margin-top:10px;">
+        <button onclick="editarOT(${ot.id})">EDITAR</button>
+        <button class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>
+        <button class="secondary" onclick="editarOT(${ot.id});setTimeout(()=>document.getElementById('panelFotos').scrollIntoView({behavior:'smooth',block:'start'}),300)">📷 FOTOS</button>
+        <button class="btn-prefactura" onclick="pasarOTAPrefactura(${ot.id})">PRE-<br>FACTURA</button>
+      </div>
+      <div class="ot-anular-zona-r120"><button type="button" onclick="anularOT(${ot.id})">ANULAR OT</button></div>
+    </div>` : "";
+  return `<div class="item ot-card-r120" style="border-left-color:${colorEstado(ot.estado)}">
+    <div class="ot-top-r120">
+      <div style="min-width:0;flex:1;">
+        <div class="ot-ref-r120">${htmlSeguro(ref)}</div>
+        <div class="ot-mat-r120">${htmlSeguro(ot.matricula||"SIN MATRÍCULA")}</div>
+        <div class="ot-cli-r120">${htmlSeguro(ot.cliente||"SIN CLIENTE")}</div>
+        <div class="ot-veh-r120">${htmlSeguro(veh)}</div>
+      </div>
+      <div class="ot-total-r120">${totalActual>0 ? totalActual.toFixed(2)+" €" : ""}</div>
+    </div>
+    <div class="ot-meta-r120">
+      ${ot.telefono ? `<span class="ot-chip-r120">📞 ${htmlSeguro(ot.telefono)}</span>` : ""}
+      <span class="ot-chip-r120">📅 ${htmlSeguro(formatearFecha(fechaDocumento(ot)))}</span>
+      ${ot.km ? `<span class="ot-chip-r120">KM ${htmlSeguro(ot.km)}</span>` : ""}
+      ${fotos ? `<span class="ot-chip-r120">📷 ${fotos}</span>` : ""}
+    </div>
+    ${bloqueOrigen}
+    <button type="button" class="ot-ver-r120" onclick="toggleDetalleOT(${ot.id})">${abierto?"▲ Ocultar detalle":"▼ Ver detalle"}</button>
+    ${detalle}
   </div>`;
-  return html.replace(/<div class="acciones">[\s\S]*?<\/div>\s*<\/div>$/, acciones+"</div>");
 }
 
 function renderTaller(){
@@ -2039,25 +2134,32 @@ function aplicarDatosVehiculoEnFormulario(mat, fuente){
 function buscarMatricula(){
   const mat=normalizarMatricula(document.getElementById("matricula").value.trim());
   document.getElementById("matricula").value=mat;
+  const aviso=document.getElementById("aviso");
+  if(aviso) aviso.classList.remove("localizado-r120");
   if(!mat)return;
   const ot=[...ots].reverse().find(x=>x.matricula===mat);
   const veh=buscarFichaVehiculo(mat);
   if(ot){
     aplicarDatosVehiculoEnFormulario(mat, ot);
-    document.getElementById("aviso").classList.remove("hidden");
-    document.getElementById("aviso").innerText="DATOS RECUPERADOS + HISTORIAL DEL VEHÍCULO";
+    const intervenciones=ots.filter(x=>x.matricula===mat && !esCita(x)).length;
+    const ultima=ots.filter(x=>x.matricula===mat && fechaDocumento(x)).sort((a,b)=>new Date(fechaDocumento(b)).getTime()-new Date(fechaDocumento(a)).getTime())[0];
+    aviso.classList.remove("hidden");
+    aviso.classList.add("localizado-r120");
+    aviso.innerText="✅ VEHÍCULO LOCALIZADO\n"+intervenciones+" intervención"+(intervenciones===1?"":"es")+" anterior"+(intervenciones===1?"":"es")+(ultima?"\nÚltima visita: "+formatearFecha(fechaDocumento(ultima)):"");
     return;
   }
   if(veh){
     aplicarDatosVehiculoEnFormulario(mat, veh);
-    document.getElementById("aviso").classList.remove("hidden");
-    document.getElementById("aviso").innerText="DATOS RECUPERADOS (FICHA VEHÍCULO)";
+    aviso.classList.remove("hidden");
+    aviso.classList.add("localizado-r120");
+    aviso.innerText="✅ VEHÍCULO LOCALIZADO\nFicha de vehículo recuperada";
     return;
   }
   limpiarFichaVehiculoFormulario();
   actualizarHistorialVehiculoFormulario();
-  document.getElementById("aviso").classList.remove("hidden");
-  document.getElementById("aviso").innerText="MATRÍCULA NO ENCONTRADA";
+  aviso.classList.remove("hidden");
+  aviso.classList.remove("localizado-r120");
+  aviso.innerText="MATRÍCULA NO ENCONTRADA";
 }
 
 
