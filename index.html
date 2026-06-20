@@ -152,6 +152,16 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .ot-anular-zona-r120{margin-top:8px;text-align:right}
 .ot-anular-zona-r120 button{width:auto!important;padding:7px 11px!important;font-size:12px!important;margin:0!important;background:#4a1b25!important;color:#ffd6d6!important}
 .aviso.localizado-r120{background:#10281d;border-left-color:#28a745;color:#b9ffd0;line-height:1.35}
+
+/* R121: colores de agenda por proximidad */
+.agenda-mini.agenda-24{border-left-color:#ff2d2d!important;background:#3a1014!important}
+.agenda-mini.agenda-24 .fecha{color:#ffd6d6!important}
+.agenda-mini.agenda-48{border-left-color:#ffb000!important;background:#33240a!important}
+.agenda-mini.agenda-48 .fecha{color:#ffe2a6!important}
+.agenda-mini.agenda-72{border-left-color:#28a745!important;background:#10281d!important}
+.agenda-mini.agenda-72 .fecha{color:#b9ffd0!important}
+.agenda-mini.agenda-tarde{border-left-color:#2196f3!important}
+
 @media(max-width:420px){.lineas-tabla{min-width:560px!important;font-size:12px}.lineas-tabla th:nth-child(1),.lineas-tabla td:nth-child(1){width:56px}.lineas-tabla th:nth-child(2),.lineas-tabla td:nth-child(2){width:240px}.ot-cli-r120{max-width:190px}.ot-veh-r120{max-width:220px}}
 
 @media(max-width:520px){.vehiculo-panel .mini-grid{grid-template-columns:1fr}}
@@ -160,7 +170,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R120</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R121</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -719,10 +729,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R120";
+const APP_VERSION="R121";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R120: OT y Agenda más compactas; líneas con concepto ancho; presupuesto convertido resumido; vehículo localizado más claro; anulación de OT más protegida.";
+const APP_NOTAS="R121: Agenda con colores por proximidad: 24h rojo, 48h ámbar, 72h verde y citas posteriores mantienen color.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -1488,6 +1498,27 @@ function fechaAgendaCorta(fecha){
   return `${dia}/${mes} ${hh}:${mi}`;
 }
 
+
+function claseAgendaPorProximidad(fecha){
+  if(!fecha) return "agenda-tarde";
+  const ahora=new Date();
+  const cita=new Date(fecha);
+  if(isNaN(cita.getTime())) return "agenda-tarde";
+  const horas=(cita.getTime()-ahora.getTime())/3600000;
+  if(horas<=24) return "agenda-24";
+  if(horas<=48) return "agenda-48";
+  if(horas<=72) return "agenda-72";
+  return "agenda-tarde";
+}
+
+function textoProximidadAgenda(fecha){
+  const c=claseAgendaPorProximidad(fecha);
+  if(c==="agenda-24") return "🔴 24h";
+  if(c==="agenda-48") return "🟠 48h";
+  if(c==="agenda-72") return "🟢 72h";
+  return "";
+}
+
 function resumenTrabajo(texto){
   texto=(texto||"SIN TRABAJO").trim();
   return texto.length>72 ? texto.slice(0,72)+"…" : texto;
@@ -1500,6 +1531,8 @@ function toggleAgendaRapida(id){
 
 function crearTarjetaAgendaCompacta(ot){
   const abierta=agendaExpandidaId===ot.id;
+  const claseAgenda=claseAgendaPorProximidad(ot.fecha);
+  const avisoAgenda=textoProximidadAgenda(ot.fecha);
   const veh=(ot.marca||ot.modelo) ? `${htmlSeguro(ot.marca||"")} ${htmlSeguro(ot.modelo||"")}`.trim() : "Vehículo sin modelo";
   const detalle=abierta ? `<div class="agenda-detalle">
     📞 ${htmlSeguro(ot.telefono||"SIN TELÉFONO")}<br>
@@ -1507,8 +1540,8 @@ function crearTarjetaAgendaCompacta(ot){
     📝 ${htmlSeguro(resumenTrabajo(ot.trabajos))}
     <button type="button" class="btn-presupuesto-rapido" onclick="convertirCitaAPresupuesto(${ot.id})">PRESUPUESTO ➜</button>
   </div>` : "";
-  return `<div class="agenda-mini">
-    <div class="fecha">${htmlSeguro(fechaAgendaCorta(ot.fecha))}</div>
+  return `<div class="agenda-mini ${claseAgenda}">
+    <div class="fecha">${htmlSeguro(fechaAgendaCorta(ot.fecha))}${avisoAgenda ? " · "+avisoAgenda : ""}</div>
     <div class="mat">${htmlSeguro(ot.matricula||"SIN MATRÍCULA")}</div>
     <div class="cli">${htmlSeguro(ot.cliente||"SIN CLIENTE")}</div>
     <button type="button" class="agenda-edit" onclick="toggleAgendaRapida(${ot.id})">✏️</button>
