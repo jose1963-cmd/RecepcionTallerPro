@@ -123,6 +123,9 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .acciones button{min-width:82px;white-space:normal;line-height:1.15}
 .acciones.ot-acciones button{min-width:90px;font-size:12px;padding:10px 5px}
 .acciones.ot-acciones .btn-prefactura{background:#28a745;color:white}
+.acciones.ot-acciones .btn-rentabilidad-ot{background:#9c27b0;color:white}
+.acciones.ot-acciones .btn-prefactura.compacto{flex:.72;min-width:72px;font-size:11px;padding:8px 4px}
+.acciones.ot-acciones .btn-rentabilidad-ot{flex:1.28;min-width:126px;font-size:12px;padding:8px 5px}
 .acciones.ot-acciones .btn-anular{background:#b00020;color:white}
 
 
@@ -833,7 +836,7 @@ function toggleHistorialVehiculo(){
 const APP_VERSION="R129";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R128: salida segura con aviso de copia y coste/hora de mano de obra por defecto a 30 € editable.";
+const APP_NOTAS="R131: en OT se añade rentabilidad individual y se compacta el botón Pre-Factura.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -1937,6 +1940,49 @@ function etiquetaOperarioOT(ot){
   return lista.map((op,i)=>`<span class="operario-chip-r122" style="background:${colorOperario(op)};color:white;">${i===0?"👨‍🔧 RESPONSABLE":"🔧"} ${htmlSeguro(op)}</span>`).join(" ");
 }
 
+
+function calcularRentabilidadOT(ot){
+  let ventaManoObra=0, costeManoObra=0, ventaMateriales=0, costeMateriales=0;
+  (ot.lineas||[]).forEach(l=>{
+    const cantidad=Number(l.cantidad)||0;
+    const precio=Number(l.precio)||0;
+    const descuento=Number(l.descuento)||0;
+    const coste=Number(l.coste_unitario)||0;
+    const venta=Math.max(0,(cantidad*precio)-descuento);
+    const costeLinea=cantidad*coste;
+    if(l.tipo==="mano_obra"){
+      ventaManoObra+=venta;
+      costeManoObra+=costeLinea;
+    }else{
+      ventaMateriales+=venta;
+      costeMateriales+=costeLinea;
+    }
+  });
+  const beneficioManoObra=ventaManoObra-costeManoObra;
+  const beneficioMateriales=ventaMateriales-costeMateriales;
+  const ventaBase=ventaManoObra+ventaMateriales;
+  const costeTotal=costeManoObra+costeMateriales;
+  const beneficioTotal=beneficioManoObra+beneficioMateriales;
+  const margen=ventaBase>0 ? (beneficioTotal/ventaBase)*100 : 0;
+  return {ventaBase,costeTotal,beneficioTotal,margen,beneficioManoObra,beneficioMateriales,ventaManoObra,ventaMateriales};
+}
+
+function mostrarRentabilidadOT(id){
+  const ot=ots.find(x=>x.id===id);
+  if(!ot){ alert("No se encuentra la OT."); return; }
+  const r=calcularRentabilidadOT(ot);
+  alert(
+    "RENTABILIDAD DE LA OT\n"+
+    referenciaOT(ot)+" · "+(ot.matricula||"SIN MATRÍCULA")+"\n\n"+
+    "Beneficio total: "+r.beneficioTotal.toFixed(2)+" €\n"+
+    "Margen: "+r.margen.toFixed(1)+" %\n\n"+
+    "Mano de obra: "+r.beneficioManoObra.toFixed(2)+" €\n"+
+    "Materiales: "+r.beneficioMateriales.toFixed(2)+" €\n\n"+
+    "Venta base: "+r.ventaBase.toFixed(2)+" €\n"+
+    "Coste total: "+r.costeTotal.toFixed(2)+" €"
+  );
+}
+
 function crearTarjetaTallerOT(ot){
   const ref=referenciaOT(ot);
   const totalActual=calcularTotalesLineas(ot.lineas||[]).total;
@@ -1953,7 +1999,8 @@ function crearTarjetaTallerOT(ot){
         <button onclick="editarOT(${ot.id})">EDITAR</button>
         <button class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>
         <button class="secondary" onclick="editarOT(${ot.id});setTimeout(()=>document.getElementById('panelFotos').scrollIntoView({behavior:'smooth',block:'start'}),300)">📷 FOTOS</button>
-        <button class="btn-prefactura" onclick="pasarOTAPrefactura(${ot.id})">PRE-<br>FACTURA</button>
+        <button class="btn-prefactura compacto" onclick="pasarOTAPrefactura(${ot.id})">PRE-<br>FACT.</button>
+        <button class="btn-rentabilidad-ot" onclick="mostrarRentabilidadOT(${ot.id})">💰 RENTABILIDAD<br>OT</button>
       </div>
     </div>` : "";
   return `<div class="item ot-card-r120" style="border-left-color:${colorEstado(ot.estado)}">
