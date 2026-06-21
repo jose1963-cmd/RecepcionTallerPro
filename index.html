@@ -124,9 +124,13 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .acciones.ot-acciones button{min-width:90px;font-size:12px;padding:10px 5px}
 .acciones.ot-acciones .btn-prefactura{background:#28a745;color:white}
 .acciones.ot-acciones .btn-rentabilidad-ot{background:#9c27b0;color:white}
-.acciones.ot-acciones .btn-prefactura.compacto{flex:.72;min-width:72px;font-size:11px;padding:8px 4px}
-.acciones.ot-acciones .btn-rentabilidad-ot{flex:1.28;min-width:126px;font-size:12px;padding:8px 5px}
+.acciones.ot-acciones .btn-prefactura.compacto,
+.acciones.ot-acciones .btn-rentabilidad-ot.compacto{flex:1 1 0;min-width:118px;font-size:12px;padding:10px 6px;min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center}
 .acciones.ot-acciones .btn-anular{background:#b00020;color:white}
+#pantallaSalida{position:fixed;inset:0;background:#050914;color:#e8edf7;z-index:999999;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;box-sizing:border-box}
+#pantallaSalida .box{max-width:360px;background:#101827;border:2px solid #344d7a;border-radius:18px;padding:22px;box-shadow:0 4px 18px #0008}
+#pantallaSalida h2{color:#ff7a1a;margin:0 0 10px}
+#pantallaSalida p{margin:8px 0;color:#cfd6e6;line-height:1.35}
 
 
 /* R120: usabilidad real en iPhone */
@@ -225,7 +229,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R132</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R133</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -581,6 +585,14 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <div id="inventarioContenido"></div>
 </div>
 
+<div id="pantallaSalida">
+  <div class="box">
+    <h2>Sesión cerrada</h2>
+    <p>La imagen del programa queda ocultada.</p>
+    <p>Ya puedes volver a la pantalla de inicio del iPhone.</p>
+  </div>
+</div>
+
 <!-- Modal cámara OCR -->
 <input type="file" id="inputFotoCamara" accept="image/*" style="display:none" onchange="procesarFotoMatricula(event)">
 <div id="modalCamara">
@@ -875,7 +887,7 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R132";
+const APP_VERSION="R133";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
 const APP_NOTAS="R132: buscadores separados por sección y rentabilidad OT consolidada.";
@@ -2054,7 +2066,7 @@ function crearTarjetaTallerOT(ot){
         <button class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>
         <button class="secondary" onclick="editarOT(${ot.id});setTimeout(()=>document.getElementById('panelFotos').scrollIntoView({behavior:'smooth',block:'start'}),300)">📷 FOTOS</button>
         <button class="btn-prefactura compacto" onclick="pasarOTAPrefactura(${ot.id})">PRE-<br>FACT.</button>
-        <button class="btn-rentabilidad-ot" onclick="mostrarRentabilidadOT(${ot.id})">💰 RENTABILIDAD<br>OT</button>
+        <button class="btn-rentabilidad-ot compacto" onclick="mostrarRentabilidadOT(${ot.id})">💰 RENT.<br>OT</button>
       </div>
     </div>` : "";
   return `<div class="item ot-card-r120" style="border-left-color:${colorEstado(ot.estado)}">
@@ -3584,10 +3596,20 @@ function salirSeguro(){
   const hacerCopia=confirm("¿Quieres hacer una copia de seguridad antes de salir?\n\nAceptar = hacer copia ahora.\nCancelar = salir sin copia.");
   if(hacerCopia){
     exportarCopia();
+    setTimeout(cerrarVisualmentePrograma,450);
     return;
   }
-  showTab('inicio');
-  alert("Salida preparada. Puedes cerrar Safari o volver a la pantalla de inicio.");
+  cerrarVisualmentePrograma();
+}
+
+function cerrarVisualmentePrograma(){
+  try{ guardar(); }catch(e){}
+  document.querySelectorAll('body > *').forEach(el=>{
+    if(el.id!=="pantallaSalida") el.style.display="none";
+  });
+  const salida=document.getElementById("pantallaSalida");
+  if(salida) salida.style.display="flex";
+  try{ window.close(); }catch(e){}
 }
 
 function exportarCopia(){
@@ -3961,6 +3983,19 @@ function imprimir(id){
 .ot-final-acciones-r124-visible button{margin:0!important;border-radius:12px!important;line-height:1.15!important}
 .ot-final-acciones-r124-visible .ot-exportar-r123{flex:1 1 170px;background:#344d7a!important;color:white!important;font-size:13px!important;padding:10px 8px!important}
 .ot-final-acciones-r124-visible .ot-anular-r123{flex:0 0 auto;width:auto!important;background:#4a1b25!important;color:#ffd6d6!important;font-size:12px!important;padding:8px 12px!important}
+
+
+/* R132: buscadores separados por sección */
+.cabecera-seccion-r132{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.cabecera-seccion-r132 .btn-inicio-seccion-r132{width:auto;padding:8px 16px;margin:0;flex:0 0 auto}
+.cabecera-seccion-r132 h2{margin:0;color:#ffffff}
+.buscador-doc-r132{background:#0f1728;border:2px solid #3b4a63;border-radius:16px;padding:10px;margin:0 0 14px;box-shadow:inset 0 0 0 1px #0003}
+.buscador-tabs-r132{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.buscador-tabs-r132 button{flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;min-width:78px}
+.buscador-tabs-r132 button.activo{background:#ff7a1a!important;color:#0f1728!important;border-color:#ff7a1a!important;font-weight:bold}
+.buscador-tabs-r132 button.morado.activo{background:#7b2fff!important;color:white!important;border-color:#7b2fff!important}
+.buscador-doc-r132 input{margin:0}
+@media(max-width:420px){.buscador-tabs-r132 button{font-size:12px;min-width:68px}.cabecera-seccion-r132{gap:8px}.cabecera-seccion-r132 .btn-inicio-seccion-r132{padding:8px 12px}}
 
 </style>
     <h1>${tituloPrint}</h1>
@@ -4538,6 +4573,19 @@ function imprimirInventario(modo){
 .ot-final-acciones-r124-visible button{margin:0!important;border-radius:12px!important;line-height:1.15!important}
 .ot-final-acciones-r124-visible .ot-exportar-r123{flex:1 1 170px;background:#344d7a!important;color:white!important;font-size:13px!important;padding:10px 8px!important}
 .ot-final-acciones-r124-visible .ot-anular-r123{flex:0 0 auto;width:auto!important;background:#4a1b25!important;color:#ffd6d6!important;font-size:12px!important;padding:8px 12px!important}
+
+
+/* R132: buscadores separados por sección */
+.cabecera-seccion-r132{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.cabecera-seccion-r132 .btn-inicio-seccion-r132{width:auto;padding:8px 16px;margin:0;flex:0 0 auto}
+.cabecera-seccion-r132 h2{margin:0;color:#ffffff}
+.buscador-doc-r132{background:#0f1728;border:2px solid #3b4a63;border-radius:16px;padding:10px;margin:0 0 14px;box-shadow:inset 0 0 0 1px #0003}
+.buscador-tabs-r132{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.buscador-tabs-r132 button{flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;min-width:78px}
+.buscador-tabs-r132 button.activo{background:#ff7a1a!important;color:#0f1728!important;border-color:#ff7a1a!important;font-weight:bold}
+.buscador-tabs-r132 button.morado.activo{background:#7b2fff!important;color:white!important;border-color:#7b2fff!important}
+.buscador-doc-r132 input{margin:0}
+@media(max-width:420px){.buscador-tabs-r132 button{font-size:12px;min-width:68px}.cabecera-seccion-r132{gap:8px}.cabecera-seccion-r132 .btn-inicio-seccion-r132{padding:8px 12px}}
 
 </style>${construirHTMLInventarioParaImprimir(modo)}`;
   document.body.appendChild(zona);
