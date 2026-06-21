@@ -126,6 +126,10 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .acciones.ot-acciones .btn-rentabilidad-ot{background:#9c27b0;color:white}
 .acciones.ot-acciones .btn-prefactura.compacto,
 .acciones.ot-acciones .btn-rentabilidad-ot.compacto{flex:1 1 0;min-width:118px;font-size:12px;padding:10px 6px;min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center}
+.ot-acciones-par-r134{display:flex;gap:8px;width:100%;margin:0;align-items:stretch}
+.ot-acciones-par-r134 button{flex:1 1 0!important;width:0!important;min-width:0!important;min-height:48px!important;margin:0!important;padding:10px 6px!important;font-size:13px!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1.12!important}
+.ot-acciones-par-r134 .btn-prefactura{background:#28a745;color:white}
+.ot-acciones-par-r134 .btn-rentabilidad-ot{background:#9c27b0;color:white}
 .acciones.ot-acciones .btn-anular{background:#b00020;color:white}
 #pantallaSalida{position:fixed;inset:0;background:#050914;color:#e8edf7;z-index:999999;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;box-sizing:border-box}
 #pantallaSalida .box{max-width:360px;background:#101827;border:2px solid #344d7a;border-radius:18px;padding:22px;box-shadow:0 4px 18px #0008}
@@ -229,7 +233,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R133</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R134</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -887,10 +891,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R133";
+const APP_VERSION="R134";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R132: buscadores separados por sección y rentabilidad OT consolidada.";
+const APP_NOTAS="R134: simetría visual real en botones PRE-FACT. y BENEFICIO OT; salida se mantiene sin cambios.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -2065,8 +2069,10 @@ function crearTarjetaTallerOT(ot){
         <button onclick="editarOT(${ot.id})">EDITAR</button>
         <button class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>
         <button class="secondary" onclick="editarOT(${ot.id});setTimeout(()=>document.getElementById('panelFotos').scrollIntoView({behavior:'smooth',block:'start'}),300)">📷 FOTOS</button>
-        <button class="btn-prefactura compacto" onclick="pasarOTAPrefactura(${ot.id})">PRE-<br>FACT.</button>
-        <button class="btn-rentabilidad-ot compacto" onclick="mostrarRentabilidadOT(${ot.id})">💰 RENT.<br>OT</button>
+        <div class="ot-acciones-par-r134">
+          <button class="btn-prefactura compacto" onclick="pasarOTAPrefactura(${ot.id})">PRE-FACT.</button>
+          <button class="btn-rentabilidad-ot compacto" onclick="mostrarRentabilidadOT(${ot.id})">⚖️ BENEFICIO</button>
+        </div>
       </div>
     </div>` : "";
   return `<div class="item ot-card-r120" style="border-left-color:${colorEstado(ot.estado)}">
