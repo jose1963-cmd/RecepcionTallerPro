@@ -233,7 +233,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R134</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R135</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -891,10 +891,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R134";
+const APP_VERSION="R135";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R134: simetría visual real en botones PRE-FACT. y BENEFICIO OT; salida se mantiene sin cambios.";
+const APP_NOTAS="R135: líneas editables en Presupuesto, OT y Pre-Factura; facturas emitidas quedan bloqueadas.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -3164,12 +3164,31 @@ function renderConceptosRectificativa(original){
 // ============================================================
 // 12. FUNCIONES DE LÍNEAS DE FACTURA (NUEVO)
 // ============================================================
+function lineasBloqueadasPorFactura(){
+  const estado=document.getElementById("estado");
+  return estado && estado.value==="FACTURA" && !rectificandoId;
+}
+
+function actualizarLineaTemp(idx,campo,valor){
+  if(lineasBloqueadasPorFactura()) return;
+  if(!lineasTemp[idx]) return;
+  if(["cantidad","precio","descuento","iva","coste_unitario"].includes(campo)){
+    let n=numero(valor);
+    if(n===null || n<0) n=0;
+    lineasTemp[idx][campo]=n;
+  }else{
+    lineasTemp[idx][campo]=String(valor||"").toUpperCase();
+  }
+  renderLineas();
+}
+
 function renderLineas(){
   const tbody=document.getElementById("cuerpoLineas");
   const vacio=document.getElementById("lineasVacio");
   const totalBase=document.getElementById("totalBase");
   const totalIva=document.getElementById("totalIva");
   const totalFactura=document.getElementById("totalFactura");
+  const bloqueado=lineasBloqueadasPorFactura();
 
   if(!lineasTemp || lineasTemp.length===0){
     tbody.innerHTML="";
@@ -3189,18 +3208,20 @@ function renderLineas(){
     const ivaPct = Number(l.iva!==undefined ? l.iva : 21);
     const ivaImporte = baseLinea*(ivaPct/100);
     const totalLinea = baseLinea+ivaImporte;
-    const ref = htmlSeguro(l.referencia || l.codigo_mo || "—");
-    const desc = htmlSeguro(l.descripcion || "Sin descripción");
+    const ref = htmlSeguro(l.referencia || l.codigo_mo || "");
+    const desc = htmlSeguro(l.descripcion || "");
+    const disabled=bloqueado ? "disabled" : "";
+    const soloLectura=bloqueado ? "🔒" : "✕";
     html+=`<tr>
-      <td class="lineas-ref">${ref}</td>
-      <td class="lineas-concepto">${desc}</td>
-      <td>${cantidad}</td>
-      <td>${precio.toFixed(2)} €</td>
-      <td>${descuento.toFixed(2)} €</td>
+      <td class="lineas-ref"><input value="${ref}" ${disabled} onchange="actualizarLineaTemp(${idx},'referencia',this.value)" style="padding:7px 5px;margin:0;font-size:12px;border-radius:8px;"></td>
+      <td class="lineas-concepto"><textarea ${disabled} rows="2" onchange="actualizarLineaTemp(${idx},'descripcion',this.value)" style="padding:7px 5px;margin:0;font-size:12px;border-radius:8px;resize:vertical;line-height:1.25;">${desc}</textarea></td>
+      <td><input type="number" min="0" step="0.01" value="${cantidad}" ${disabled} onchange="actualizarLineaTemp(${idx},'cantidad',this.value)" style="padding:7px 4px;margin:0;font-size:12px;border-radius:8px;"></td>
+      <td><input type="number" min="0" step="0.01" value="${precio}" ${disabled} onchange="actualizarLineaTemp(${idx},'precio',this.value)" style="padding:7px 4px;margin:0;font-size:12px;border-radius:8px;"></td>
+      <td><input type="number" min="0" step="0.01" value="${descuento}" ${disabled} onchange="actualizarLineaTemp(${idx},'descuento',this.value)" style="padding:7px 4px;margin:0;font-size:12px;border-radius:8px;"></td>
       <td>${baseLinea.toFixed(2)} €</td>
-      <td>${ivaPct}%</td>
+      <td><input type="number" min="0" step="1" value="${ivaPct}" ${disabled} onchange="actualizarLineaTemp(${idx},'iva',this.value)" style="padding:7px 4px;margin:0;font-size:12px;border-radius:8px;"></td>
       <td>${totalLinea.toFixed(2)} €</td>
-      <td><button class="eliminar" onclick="eliminarLinea(${idx})">✕</button></td>
+      <td><button class="eliminar" ${bloqueado?'disabled':''} onclick="eliminarLinea(${idx})">${soloLectura}</button></td>
     </tr>`;
   });
   tbody.innerHTML=html;
@@ -3211,6 +3232,11 @@ function renderLineas(){
 }
 
 function eliminarLinea(idx){
+  if(lineasBloqueadasPorFactura()){
+    alert("Factura emitida bloqueada. Para corregir una factura usa factura rectificativa.");
+    return;
+  }
+  if(!confirm("¿Eliminar esta línea?")) return;
   lineasTemp.splice(idx,1);
   renderLineas();
 }
