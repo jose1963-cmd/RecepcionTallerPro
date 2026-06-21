@@ -234,11 +234,22 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .herramientas-r138 .grupo-r138 button{margin:5px 0}
 @media(max-width:420px){.portada-r138 button{font-size:20px;padding:19px 12px}}
 
+/* R139: acceso operarios desde portada */
+.portada-r138 .btn-operarios-r139{background:#2196f3;color:white}
+.operarios-r139 h2{text-align:center;color:#ff7a1a;margin-bottom:18px}
+.operario-lista-r139{display:grid;gap:8px;margin-top:10px}
+.operario-lista-r139 button{margin:0;background:#101827;color:#e8edf7;border:1px solid #3b4a63;text-align:left;padding:14px}
+.operario-card-r139{background:#101827;border-left:5px solid #2196f3;border-radius:12px;padding:12px;margin-top:10px}
+.operario-card-r139 .ref{color:#ffd580;font-weight:bold}
+.operario-card-r139 .mat{font-size:21px;font-weight:bold;color:#fff;letter-spacing:.5px}
+.operario-card-r139 .mini{color:#aab4c8;font-size:13px;line-height:1.35}
+.operario-card-r139 .trabajo{border-top:1px solid #3b4a63;margin-top:8px;padding-top:8px;white-space:pre-wrap;line-height:1.3}
+
 </style>
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R138</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R139</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -253,8 +264,16 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <div class="portada-r138">
 <button class="green" onclick="solicitarAccesoR138('gestion')" type="button">🔒 GESTIÓN EMPRESA</button>
 <button class="btn-herramientas-r138" onclick="solicitarAccesoR138('herramientas')" type="button">🔒 HERRAMIENTAS</button>
+<button class="btn-operarios-r139" onclick="showTab('operarios')" type="button">👨‍🔧 OPERARIOS</button>
 <button class="btn-salir-r138" onclick="salirSeguro()" type="button">🚪 SALIR</button>
 </div>
+</div>
+
+<div id="operarios" class="card hidden operarios-r139">
+<button class="secondary" onclick="showTab('inicio')" type="button" style="width:auto;padding:9px 14px;margin:0 0 14px;">⬅️ PORTADA</button>
+<h2>👨‍🔧 OPERARIOS</h2>
+<div id="operariosListaR139" class="operario-lista-r139"></div>
+<div id="operariosOTR139"></div>
 </div>
 
 <div id="herramientas" class="card hidden herramientas-r138">
@@ -904,10 +923,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R138";
+const APP_VERSION="R139";
 const COPIA_VERSION=4;
 const APP_FECHA="21/06/2026";
-const APP_NOTAS="R138: nueva portada protegida. Gestión Empresa y Herramientas requieren el código JOSE, sin distinguir mayúsculas ni acentos; las utilidades quedan agrupadas en Herramientas.";
+const APP_NOTAS="R139: añade botón Operarios en portada para consultar O.T. activas asignadas a cada operario, incluyendo responsables e intervinientes en líneas de mano de obra.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -933,6 +952,7 @@ let lineasTemp=[];
 let guardandoOT=false;
 let agendaExpandidaId=null;
 let detalleOTAbierto={};
+let operarioSeleccionadoR139=null;
 let accesoR138="";
 
 const MARCAS=["ABARTH","ALFA ROMEO","ALPINE","AUDI","BMW","BYD","CITROEN","CUPRA","DACIA","DAIHATSU","DS AUTOMOBILES","FIAT","FORD","GENESIS","HONDA","HYUNDAI","INFINITI","ISUZU","JAGUAR","JAECOO","KGM","KIA","LAND ROVER","LEXUS","LYNK & CO","MAZDA","MERCEDES","MG","MINI","MITSUBISHI","NISSAN","OPEL","PEUGEOT","POLESTAR","PORSCHE","RENAULT","SEAT","SKODA","SMART","SSANGYONG","SUBARU","SUZUKI","TESLA","TOYOTA","VOLKSWAGEN","VOLVO"];
@@ -1456,6 +1476,73 @@ function nuevaConEstado(estado){
 // ============================================================
 // 5. FUNCIONES DE INTERFAZ
 // ============================================================
+
+function operariosConOTActivasR139(){
+  asegurarOperariosBase();
+  const set=new Set();
+  (ots||[]).filter(o=>esOT(o)).forEach(ot=>{
+    operariosIntervinientesOT(ot).forEach(op=>set.add(normalizarOperario(op)));
+  });
+  (operarios||[]).forEach(op=>set.add(normalizarOperario(op)));
+  return Array.from(set).filter(Boolean).sort((a,b)=>a.localeCompare(b,"es"));
+}
+
+function otsDeOperarioR139(nombre){
+  const op=normalizarOperario(nombre);
+  return (ots||[]).filter(ot=>esOT(ot) && operariosIntervinientesOT(ot).some(x=>normalizarOperario(x)===op))
+    .sort((a,b)=>(fechaDocumento(b)?new Date(fechaDocumento(b)).getTime():b.id)-(fechaDocumento(a)?new Date(fechaDocumento(a)).getTime():a.id));
+}
+
+function resumenLineasOperarioR139(ot,nombre){
+  const op=normalizarOperario(nombre);
+  const propias=(ot.lineas||[]).filter(l=>l && l.tipo==="mano_obra" && normalizarOperario(l.operario)===op);
+  if(propias.length){
+    return propias.map(l=>"• "+(l.referencia||l.codigo_mo||"MO")+" — "+(l.descripcion||"")).join("\n");
+  }
+  return ot.trabajos||"SIN TRABAJOS";
+}
+
+function crearTarjetaOperarioR139(ot,nombre){
+  const total=calcularTotalesLineas(ot.lineas||[]).total;
+  const veh=[ot.marca,ot.modelo].filter(Boolean).join(" ") || "Vehículo sin modelo";
+  return `<div class="operario-card-r139">
+    <div class="ref">${htmlSeguro(referenciaOT(ot))}</div>
+    <div class="mat">${htmlSeguro(ot.matricula||"SIN MATRÍCULA")}</div>
+    <div>${htmlSeguro(ot.cliente||"SIN CLIENTE")}</div>
+    <div class="mini">📅 ${htmlSeguro(formatearFecha(fechaDocumento(ot)))}<br>🚗 ${htmlSeguro(veh)}${total>0?"<br>💶 "+total.toFixed(2)+" €":""}</div>
+    <div style="margin-top:7px;">${etiquetaOperarioOT(ot)}</div>
+    <div class="trabajo">${htmlSeguro(resumenLineasOperarioR139(ot,nombre))}</div>
+  </div>`;
+}
+
+function abrirOperarioR139(nombre){
+  operarioSeleccionadoR139=normalizarOperario(nombre);
+  renderOperariosR139();
+}
+
+function renderOperariosR139(){
+  const lista=document.getElementById("operariosListaR139");
+  const detalle=document.getElementById("operariosOTR139");
+  if(!lista || !detalle) return;
+  const ops=operariosConOTActivasR139();
+  if(!ops.length){
+    lista.innerHTML="<p>No hay operarios registrados.</p>";
+    detalle.innerHTML="";
+    return;
+  }
+  lista.innerHTML=ops.map(op=>{
+    const n=otsDeOperarioR139(op).length;
+    return `<button type="button" onclick="abrirOperarioR139('${jsSeguro(op)}')">${htmlSeguro(op)}<br><span style="color:#aab4c8;font-size:13px;">O.T. activas asignadas: ${n}</span></button>`;
+  }).join("");
+  if(!operarioSeleccionadoR139){
+    detalle.innerHTML="<p style='color:#aab4c8;margin-top:14px;'>Pulsa un operario para ver sus O.T. activas.</p>";
+    return;
+  }
+  const datos=otsDeOperarioR139(operarioSeleccionadoR139);
+  detalle.innerHTML=`<h3 style="color:#ff7a1a;margin-top:18px;">${htmlSeguro(operarioSeleccionadoR139)} · ${datos.length} O.T.</h3>`+
+    (datos.length ? datos.map(ot=>crearTarjetaOperarioR139(ot,operarioSeleccionadoR139)).join("") : "<p>No tiene O.T. activas asignadas.</p>");
+}
+
 function normalizarCodigoR138(valor){
   return String(valor||"")
     .trim()
@@ -1491,12 +1578,12 @@ function showTab(id){
     alert("ACCESO BLOQUEADO. ENTRA DESDE HERRAMIENTAS.");
     id="inicio";
   }
-  if(id==="inicio") accesoR138="";
-  ["inicio","herramientas","nueva","presupuesto","historial","agenda","taller","prefactura","almacen","estadisticas","ganancias","inventario","mas"].forEach(t=>{
+  if(id==="inicio"){ accesoR138=""; operarioSeleccionadoR139=null; }
+  ["inicio","operarios","herramientas","nueva","presupuesto","historial","agenda","taller","prefactura","almacen","estadisticas","ganancias","inventario","mas"].forEach(t=>{
     const el=document.getElementById(t);
     if(el) el.classList.toggle("hidden", t!==id);
   });
-  document.getElementById("tabs").style.display = (id==="inicio"||id==="herramientas"||id==="almacen") ? "none" : "flex";
+  document.getElementById("tabs").style.display = (id==="inicio"||id==="operarios"||id==="herramientas"||id==="almacen") ? "none" : "flex";
   document.querySelectorAll("#tabs button").forEach(btn=>btn.classList.remove("activo"));
   const titulo=document.getElementById("tituloApp");
   const botones=document.querySelectorAll("#tabs button");
@@ -1521,6 +1608,7 @@ renderSelectOperarios();
   if(id==="ganancias") renderGanancias();
   if(id==="inventario") renderInventario();
   if(id==="herramientas") actualizarAvisoCopia();
+  if(id==="operarios") renderOperariosR139();
   if(id==="inicio") actualizarBotonFechaGestion();
 }
 
