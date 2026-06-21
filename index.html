@@ -209,7 +209,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R127</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R129</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -235,6 +235,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <input type="file" id="importArticulosFile" accept=".csv" style="display:none">
 <button class="secondary" onclick="importarArticulosCSVDesdeInicio()" type="button">IMPORTAR ARTÍCULOS CSV</button>
 <button class="secondary" onclick="showTab('almacen')" type="button">📦 ALMACÉN</button>
+<button class="secondary" onclick="salirSeguro()" type="button">🚪 SALIR</button>
 <button class="danger" onclick="resetearPrograma()" type="button">BORRAR PRUEBAS / EMPEZAR DE CERO</button>
 </div>
 
@@ -829,10 +830,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R127";
+const APP_VERSION="R129";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R127: Hoja de taller profesional en impresión OT: operarios, observaciones del operario, material añadido, incidencias, horas y firma.";
+const APP_NOTAS="R128: salida segura con aviso de copia y coste/hora de mano de obra por defecto a 30 € editable.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -1117,6 +1118,31 @@ function asegurarNumeracion(ot){
 
 function completarNumeracionExistente(){
   ots.slice().sort((a,b)=>(a.id||0)-(b.id||0)).forEach(ot=>asegurarNumeracion(ot));
+}
+
+function recalcularContadoresDesdeDatos(){
+  const maximos={agenda:0,presupuesto:0,ot:0,prefactura:0,factura:0,rectificativa:0,articuloInterno:Number(contadores.articuloInterno)||0};
+  (ots||[]).forEach(o=>{
+    maximos.agenda=Math.max(maximos.agenda, Number(o.numeroAgenda)||0);
+    maximos.presupuesto=Math.max(maximos.presupuesto, Number(o.numeroPresupuesto)||0);
+    maximos.ot=Math.max(maximos.ot, Number(o.numeroOT)||0);
+    maximos.prefactura=Math.max(maximos.prefactura, Number(o.numeroPrefactura)||0);
+    maximos.factura=Math.max(maximos.factura, Number(o.numeroFactura)||0);
+    maximos.rectificativa=Math.max(maximos.rectificativa, Number(o.numeroRectificativa)||0);
+  });
+  (articulos||[]).forEach(a=>{
+    const m=String(a.referencia||"").match(/^INT-(\d+)$/);
+    if(m) maximos.articuloInterno=Math.max(maximos.articuloInterno, parseInt(m[1],10)||0);
+  });
+  contadores={
+    agenda:Math.max(Number(contadores.agenda)||0,maximos.agenda),
+    presupuesto:Math.max(Number(contadores.presupuesto)||0,maximos.presupuesto),
+    ot:Math.max(Number(contadores.ot)||0,maximos.ot),
+    prefactura:Math.max(Number(contadores.prefactura)||0,maximos.prefactura),
+    factura:Math.max(Number(contadores.factura)||0,maximos.factura),
+    rectificativa:Math.max(Number(contadores.rectificativa)||0,maximos.rectificativa),
+    articuloInterno:Math.max(Number(contadores.articuloInterno)||0,maximos.articuloInterno)
+  };
 }
 
 function claveCliente(nombre){ return (nombre||"").trim().toUpperCase(); }
@@ -2390,11 +2416,28 @@ function descontarStockOT(ot){
   });
 }
 
+function stockYaDescontado(ot){
+  return !!(ot && ot.stockDescontado===true);
+}
+
+function aplicarStockFacturaSiProcede(ot){
+  if(!ot) return;
+  if(esFactura(ot)){
+    if(!stockYaDescontado(ot)){
+      descontarStockOT(ot);
+      ot.stockDescontado=true;
+    }
+  }else{
+    ot.stockDescontado=false;
+  }
+}
+
 function recalcularStockAlEditar(anterior,nuevo){
-  // Movimiento atómico: primero devuelve el stock de la OT anterior,
-  // después descuenta las líneas nuevas. Así no hay doble descuento si se abre/cancela.
-  restaurarStockOT(anterior);
-  descontarStockOT(nuevo);
+  // R129: solo se mueve stock al emitir factura/FREC. Editar OT o prefactura no descuenta.
+  // Si una factura ya tenía stock descontado, primero se devuelve y después se descuenta la versión nueva.
+  if(stockYaDescontado(anterior)) restaurarStockOT(anterior);
+  nuevo.stockDescontado=false;
+  aplicarStockFacturaSiProcede(nuevo);
 }
 // ------------------------------------------
 
@@ -2610,6 +2653,15 @@ function _completarGuardadoOT(ot){
 
   if(editandoId){
     const anterior=ots.find(x=>x.id===editandoId) || {};
+    if(esFactura(anterior)){
+      alert("FACTURA EMITIDA BLOQUEADA. Para corregir importes o conceptos crea una FREC. Solo la ficha fiscal del cliente puede actualizarse desde FACTURAS.");
+      editandoId=null;
+      rectificandoId=null;
+      guardandoOT=false;
+      prepararFormularioNormal();
+      showTab("historial");
+      return;
+    }
     if(esPresupuesto(anterior) && presupuestoConvertidoOT(anterior)){
       alert("ESTE PRESUPUESTO YA ESTÁ CONVERTIDO A OT Y QUEDA BLOQUEADO. ABRE LA OT VINCULADA PARA MODIFICAR EL TRABAJO.");
       editandoId=null;
@@ -2650,6 +2702,7 @@ function _completarGuardadoOT(ot){
     }else{
       ot.fechaFinalizacion=anterior.fechaFinalizacion;
     }
+    ot.stockDescontado=stockYaDescontado(anterior);
     if(!ot.nif && anterior.nif) ot.nif=anterior.nif;
     if(!ot.direccion && anterior.direccion) ot.direccion=anterior.direccion;
     if(!ot.poblacion && anterior.poblacion) ot.poblacion=anterior.poblacion;
@@ -2659,7 +2712,7 @@ function _completarGuardadoOT(ot){
     if(convertirPresupuestoATrabajo){
       anterior.presupuestoEstado="CONVERTIDO_OT";
       asegurarNumeracion(ot);
-      descontarStockOT(ot);
+      aplicarStockFacturaSiProcede(ot);
       ots.push(ot);
       alert("PRESUPUESTO CONSERVADO Y NUEVA "+referenciaOT(ot)+" CREADA");
     }else{
@@ -2689,7 +2742,7 @@ function _completarGuardadoOT(ot){
     ot.motivoRectificativa=ot.motivoRectificativa || (document.getElementById("motivoRectificativa") ? document.getElementById("motivoRectificativa").value.trim().toUpperCase() : "");
     sincronizarFiscalDesdeFicha(ot);
     asegurarNumeracion(ot);
-    descontarStockOT(ot); // Descontar stock de la factura rectificativa
+    aplicarStockFacturaSiProcede(ot); // R129: descuenta una sola vez al emitir FREC
     ots.push(ot);
     alert("FACTURA RECTIFICATIVA CREADA: "+referenciaOT(ot)+" sobre "+ot.facturaRectificada);
     rectificandoId=null;
@@ -2699,7 +2752,7 @@ function _completarGuardadoOT(ot){
     }
     sincronizarFiscalDesdeFicha(ot);
     asegurarNumeracion(ot);
-    descontarStockOT(ot); // Descontar stock de la nueva OT (artículos ya en lineasTemp pero stock NO descontado aún)
+    aplicarStockFacturaSiProcede(ot); // R129: solo descuenta stock si se emite factura
     ots.push(ot);
     alert("OT GUARDADA: "+referenciaOT(ot));
   }
@@ -3081,7 +3134,7 @@ Revisión de elementos asociados." style="width:100%;box-sizing:border-box;paddi
           </div>
         </div>
         <label style="font-weight:bold;color:#ff7a1a;display:block;margin-top:8px;">Coste/hora (€) — para P&L</label>
-        <input id="moCosteHora" type="number" step="0.01" min="0" placeholder="0" style="width:100%;box-sizing:border-box;padding:13px;margin:6px 0 12px;border-radius:12px;border:1px solid #3b4a63;font-size:16px;background:#101827;color:#e8edf7;">
+        <input id="moCosteHora" type="number" step="0.01" min="0" placeholder="30" style="width:100%;box-sizing:border-box;padding:13px;margin:6px 0 12px;border-radius:12px;border:1px solid #3b4a63;font-size:16px;background:#101827;color:#e8edf7;">
         <div style="display:flex;gap:10px;margin-top:16px;">
           <button type="button" class="green" onclick="confirmarLineaManoObra()" style="margin:0;flex:2;">✅ AÑADIR</button>
           <button type="button" class="danger" onclick="document.getElementById('modalManoObra').style.display='none'" style="margin:0;flex:1;">CANCELAR</button>
@@ -3099,7 +3152,7 @@ Revisión de elementos asociados." style="width:100%;box-sizing:border-box;paddi
   document.getElementById("moOperario").value="";
   document.getElementById("moHoras").value="";
   document.getElementById("moPrecioHora").value="45";
-  document.getElementById("moCosteHora").value="0";
+  document.getElementById("moCosteHora").value="30";
   document.getElementById("modalManoObra").style.display="block";
 }
 
@@ -3421,6 +3474,17 @@ function cancelarFicha(){
 // ============================================================
 // 14. FUNCIONES DE EXPORTACIÓN/IMPORTACIÓN DE COPIA
 // ============================================================
+
+function salirSeguro(){
+  const hacerCopia=confirm("¿Quieres hacer una copia de seguridad antes de salir?\n\nAceptar = hacer copia ahora.\nCancelar = salir sin copia.");
+  if(hacerCopia){
+    exportarCopia();
+    return;
+  }
+  showTab('inicio');
+  alert("Salida preparada. Puedes cerrar Safari o volver a la pantalla de inicio.");
+}
+
 function exportarCopia(){
   const copia={
     version:COPIA_VERSION,
