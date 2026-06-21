@@ -223,11 +223,22 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .buscador-doc-r132 input{margin:0}
 @media(max-width:420px){.buscador-tabs-r132 button{font-size:12px;min-width:68px}.cabecera-seccion-r132{gap:8px}.cabecera-seccion-r132 .btn-inicio-seccion-r132{padding:8px 12px}}
 
+/* R138: portada protegida y herramientas agrupadas */
+.portada-r138{display:grid;gap:12px;margin-top:6px}
+.portada-r138 button{margin:0;padding:21px 14px;font-size:22px;line-height:1.15}
+.portada-r138 .btn-herramientas-r138{background:#344d7a;color:white}
+.portada-r138 .btn-salir-r138{background:#4a1b25;color:#ffd6d6}
+.herramientas-r138 h2{text-align:center;color:#ff7a1a;margin-bottom:18px}
+.herramientas-r138 .volver-r138{width:auto;padding:9px 14px;margin:0 0 14px;background:#344d7a;color:white}
+.herramientas-r138 .grupo-r138{display:grid;gap:2px}
+.herramientas-r138 .grupo-r138 button{margin:5px 0}
+@media(max-width:420px){.portada-r138 button{font-size:20px;padding:19px 12px}}
+
 </style>
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R137</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R138</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -239,10 +250,18 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </div>
 
 <div id="inicio" class="card hidden">
-<div class="inicio-gestion">
-<button class="green btn-gestion" onclick="showTab('taller')" type="button">GESTIÓN EMPRESA</button>
+<div class="portada-r138">
+<button class="green" onclick="solicitarAccesoR138('gestion')" type="button">🔒 GESTIÓN EMPRESA</button>
+<button class="btn-herramientas-r138" onclick="solicitarAccesoR138('herramientas')" type="button">🔒 HERRAMIENTAS</button>
+<button class="btn-salir-r138" onclick="salirSeguro()" type="button">🚪 SALIR</button>
 </div>
-<div id="avisoCopia" style="background:#2a1a00;border-left:4px solid #ff7a1a;padding:10px 14px;border-radius:10px;margin-bottom:6px;font-size:13px;color:#ffd580;"></div>
+</div>
+
+<div id="herramientas" class="card hidden herramientas-r138">
+<button class="volver-r138" onclick="volverPortadaR138()" type="button">⬅️ VOLVER A PORTADA PRINCIPAL</button>
+<h2>🛠 HERRAMIENTAS</h2>
+<div id="avisoCopia" style="background:#2a1a00;border-left:4px solid #ff7a1a;padding:10px 14px;border-radius:10px;margin-bottom:10px;font-size:13px;color:#ffd580;"></div>
+<div class="grupo-r138">
 <button class="secondary" onclick="exportarCopia()" type="button">EXPORTAR COPIA</button>
 <input type="file" id="backupFile" accept=".json" style="display:none" onchange="importarCopia(event)">
 <button class="secondary" onclick="document.getElementById('backupFile').click()" type="button">IMPORTAR COPIA</button>
@@ -253,8 +272,8 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <input type="file" id="importArticulosFile" accept=".csv" style="display:none">
 <button class="secondary" onclick="importarArticulosCSVDesdeInicio()" type="button">IMPORTAR ARTÍCULOS CSV</button>
 <button class="secondary" onclick="showTab('almacen')" type="button">📦 ALMACÉN</button>
-<button class="secondary" onclick="salirSeguro()" type="button">🚪 SALIR</button>
 <button class="danger" onclick="resetearPrograma()" type="button">BORRAR PRUEBAS / EMPEZAR DE CERO</button>
+</div>
 </div>
 
 <div id="nueva" class="card hidden">
@@ -498,7 +517,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <div id="almacen" class="card hidden">
 <h2>📦 Almacén</h2>
 <div style="display:flex;gap:8px;margin-bottom:10px;">
-<button type="button" class="secondary" onclick="showTab('inicio')" style="margin:0;flex:1;">⬅️ INICIO</button>
+<button type="button" class="secondary" onclick="showTab('herramientas')" style="margin:0;flex:1;">⬅️ HERRAMIENTAS</button>
 <button type="button" class="green" onclick="abrirModalNuevoArticulo()" style="margin:0;flex:1;">➕ NUEVO ARTÍCULO</button>
 </div>
 <div style="display:flex;gap:8px;margin-bottom:0;">
@@ -885,10 +904,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R137";
+const APP_VERSION="R138";
 const COPIA_VERSION=4;
-const APP_FECHA="19/06/2026";
-const APP_NOTAS="R137: presupuestos separados en activos, pasados a OT y rechazados; se elimina duplicidad visible de operario/trabajos en documentos con líneas.";
+const APP_FECHA="21/06/2026";
+const APP_NOTAS="R138: nueva portada protegida. Gestión Empresa y Herramientas requieren el código JOSE, sin distinguir mayúsculas ni acentos; las utilidades quedan agrupadas en Herramientas.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -914,6 +933,7 @@ let lineasTemp=[];
 let guardandoOT=false;
 let agendaExpandidaId=null;
 let detalleOTAbierto={};
+let accesoR138="";
 
 const MARCAS=["ABARTH","ALFA ROMEO","ALPINE","AUDI","BMW","BYD","CITROEN","CUPRA","DACIA","DAIHATSU","DS AUTOMOBILES","FIAT","FORD","GENESIS","HONDA","HYUNDAI","INFINITI","ISUZU","JAGUAR","JAECOO","KGM","KIA","LAND ROVER","LEXUS","LYNK & CO","MAZDA","MERCEDES","MG","MINI","MITSUBISHI","NISSAN","OPEL","PEUGEOT","POLESTAR","PORSCHE","RENAULT","SEAT","SKODA","SMART","SSANGYONG","SUBARU","SUZUKI","TESLA","TOYOTA","VOLKSWAGEN","VOLVO"];
 
@@ -1436,12 +1456,47 @@ function nuevaConEstado(estado){
 // ============================================================
 // 5. FUNCIONES DE INTERFAZ
 // ============================================================
+function normalizarCodigoR138(valor){
+  return String(valor||"")
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .toUpperCase();
+}
+
+function solicitarAccesoR138(destino){
+  const nombre=destino==="gestion" ? "GESTIÓN EMPRESA" : "HERRAMIENTAS";
+  const codigo=prompt("Código de acceso a "+nombre+":");
+  if(codigo===null) return;
+  if(normalizarCodigoR138(codigo)!=="JOSE"){
+    alert("CÓDIGO INCORRECTO");
+    return;
+  }
+  accesoR138=destino;
+  showTab(destino==="gestion" ? "taller" : "herramientas");
+}
+
+function volverPortadaR138(){
+  accesoR138="";
+  showTab("inicio");
+}
+
 function showTab(id){
-  ["inicio","nueva","presupuesto","historial","agenda","taller","prefactura","almacen","estadisticas","ganancias","inventario","mas"].forEach(t=>{
+  const pantallasGestion=["nueva","presupuesto","historial","agenda","taller","prefactura","estadisticas","ganancias","inventario","mas"];
+  if(pantallasGestion.includes(id) && accesoR138!=="gestion"){
+    alert("ACCESO BLOQUEADO. ENTRA DESDE GESTIÓN EMPRESA.");
+    id="inicio";
+  }
+  if((id==="herramientas"||id==="almacen") && accesoR138!=="herramientas"){
+    alert("ACCESO BLOQUEADO. ENTRA DESDE HERRAMIENTAS.");
+    id="inicio";
+  }
+  if(id==="inicio") accesoR138="";
+  ["inicio","herramientas","nueva","presupuesto","historial","agenda","taller","prefactura","almacen","estadisticas","ganancias","inventario","mas"].forEach(t=>{
     const el=document.getElementById(t);
     if(el) el.classList.toggle("hidden", t!==id);
   });
-  document.getElementById("tabs").style.display = (id==="inicio"||id==="almacen") ? "none" : "flex";
+  document.getElementById("tabs").style.display = (id==="inicio"||id==="herramientas"||id==="almacen") ? "none" : "flex";
   document.querySelectorAll("#tabs button").forEach(btn=>btn.classList.remove("activo"));
   const titulo=document.getElementById("tituloApp");
   const botones=document.querySelectorAll("#tabs button");
@@ -1465,7 +1520,8 @@ renderSelectOperarios();
   if(id==="estadisticas") renderEstadisticas();
   if(id==="ganancias") renderGanancias();
   if(id==="inventario") renderInventario();
-  if(id==="inicio"){ actualizarAvisoCopia(); actualizarBotonFechaGestion(); }
+  if(id==="herramientas") actualizarAvisoCopia();
+  if(id==="inicio") actualizarBotonFechaGestion();
 }
 
 function mostrarVersion(){
@@ -3662,16 +3718,12 @@ function cancelarFicha(){
 // ============================================================
 
 function salirSeguro(){
-  const hacerCopia=confirm("¿Quieres hacer una copia de seguridad antes de salir?\n\nAceptar = hacer copia ahora.\nCancelar = volver a INICIO sin copia.");
+  const hacerCopia=confirm("¿Quieres hacer una copia de seguridad antes de salir?\n\nAceptar = hacer copia ahora.\nCancelar = volver a la portada sin copia.");
   try{ guardar(); }catch(e){}
-  if(hacerCopia){
-    exportarCopia();
-  }
-  showTab('inicio');
-  const aviso=document.getElementById("avisoCopia");
-  if(aviso){
-    aviso.innerHTML="✅ Programa en inicio. Acceso no bloqueado. Puedes cerrar Safari manualmente cuando quieras.";
-  }
+  if(hacerCopia) exportarCopia();
+  accesoR138="";
+  showTab("inicio");
+  alert("PROGRAMA BLOQUEADO EN LA PORTADA PRINCIPAL");
 }
 
 function exportarCopia(){
