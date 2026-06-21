@@ -227,7 +227,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R136</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R137</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -296,7 +296,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <div><label>KM</label><input id="km" type="number" inputmode="numeric" placeholder="KM"></div>
 <div><label>Fecha / cita</label><input id="fecha" type="datetime-local"></div>
 </div>
-<div class="operario-ot-form">
+<div id="bloqueOperarioPrincipal" class="operario-ot-form">
 <label>Operario asignado</label>
 <div class="operario-input-row-r124">
 <select id="operarioAsignado"></select>
@@ -312,8 +312,10 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <option>PREFACTURA</option>
 <option>FACTURA</option>
 </select>
-<label>Trabajos *</label>
+<div id="bloqueTrabajosPrincipal">
+<label id="labelTrabajosPrincipal">Trabajos *</label>
 <textarea id="trabajos" rows="5"></textarea>
+</div>
 <label>Observaciones</label>
 <textarea id="observaciones" rows="4"></textarea>
 
@@ -430,6 +432,11 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <button type="button" id="presupuestoFiltroNumero" onclick="setFiltroDoc('presupuesto','numero')">Nº PRES.</button>
 </div>
 <input id="buscarPresupuesto" placeholder="Buscar matrícula..." oninput="renderPresupuesto()">
+</div>
+<div id="presupuestoVistasR137" class="buscador-tabs-r132" style="margin-bottom:12px;">
+<button type="button" id="pvActivos" onclick="setVistaPresupuesto('activos')">PRESUPUESTOS</button>
+<button type="button" id="pvPasados" onclick="setVistaPresupuesto('pasados')">PASADOS A OT</button>
+<button type="button" id="pvRechazados" onclick="setVistaPresupuesto('rechazados')">RECHAZADOS</button>
 </div>
 <button type="button" class="green" onclick="nuevaConEstado('PRESUPUESTO')">➕ NUEVO PRESUPUESTO</button>
 <div id="presupuestoLista"></div>
@@ -878,10 +885,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R136";
+const APP_VERSION="R137";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R136: se elimina pantalla de sesión cerrada; SALIR no bloquea el acceso y vuelve a Inicio con aviso de copia.";
+const APP_NOTAS="R137: presupuestos separados en activos, pasados a OT y rechazados; se elimina duplicidad visible de operario/trabajos en documentos con líneas.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -900,6 +907,7 @@ let rectificandoId=null;
 let _otPendienteGuardar=null;
 let filtroActivo=localStorage.getItem("RTP_FILTRO_historial")||"matricula";
 let filtrosDoc={presupuesto:localStorage.getItem("RTP_FILTRO_presupuesto")||"matricula",taller:localStorage.getItem("RTP_FILTRO_taller")||"matricula",prefactura:localStorage.getItem("RTP_FILTRO_prefactura")||"matricula"};
+let vistaPresupuesto=localStorage.getItem("RTP_VISTA_presupuesto")||"activos";
 let paginaHistorial=1;
 const POR_PAGINA=20;
 let lineasTemp=[];
@@ -1770,6 +1778,14 @@ function textoEstadoPresupuesto(ot){
   return `<span class="estado-presupuesto pendiente">PENDIENTE CLIENTE</span>`;
 }
 
+function resumenTrabajoDesdeLineas(ot){
+  const mano=(ot.lineas||[]).filter(l=>l && l.tipo==="mano_obra" && (l.descripcion||"").trim());
+  if(mano.length){
+    return mano.map(l=>l.descripcion).join(" · ").slice(0,180);
+  }
+  return resumenTrabajo(ot.trabajos);
+}
+
 function crearTarjetaPresupuesto(ot){
   const convertido=presupuestoConvertidoOT(ot);
   const rechazado=(ot.presupuestoEstado||"")==="RECHAZADO";
@@ -1796,7 +1812,7 @@ function crearTarjetaPresupuesto(ot){
       📞 ${htmlSeguro(ot.telefono||"SIN TELÉFONO")}<br>
       🚗 ${veh}
     </div>
-    <div class="presupuesto-trabajo">📝 ${htmlSeguro(resumenTrabajo(ot.trabajos))}</div>
+    <div class="presupuesto-trabajo">📝 ${htmlSeguro(resumenTrabajoDesdeLineas(ot))}</div>
     <div class="presupuesto-acciones">${acciones}</div>
   </div>`;
 }
@@ -1936,12 +1952,34 @@ function renderAgenda(){
   agenda.innerHTML=conFecha.map(ot=>crearTarjetaAgendaCompacta(ot)).join("");
 }
 
+function setVistaPresupuesto(vista){
+  vistaPresupuesto=vista||"activos";
+  localStorage.setItem("RTP_VISTA_presupuesto",vistaPresupuesto);
+  renderPresupuesto();
+}
+
+function actualizarBotonesVistaPresupuesto(){
+  const mapa={activos:"pvActivos",pasados:"pvPasados",rechazados:"pvRechazados"};
+  Object.keys(mapa).forEach(k=>{
+    const b=document.getElementById(mapa[k]);
+    if(b) b.classList.toggle("activo",vistaPresupuesto===k);
+  });
+}
+
+function tipoVistaPresupuesto(ot){
+  if((ot.presupuestoEstado||"")==="RECHAZADO") return "rechazados";
+  if(presupuestoConvertidoOT(ot)) return "pasados";
+  return "activos";
+}
+
 function renderPresupuesto(){
   const lista=document.getElementById("presupuestoLista");
-  let datos=ots.filter(ot=>esPresupuesto(ot))
+  actualizarBotonesVistaPresupuesto();
+  let datos=ots.filter(ot=>esPresupuesto(ot) && tipoVistaPresupuesto(ot)===vistaPresupuesto)
     .sort((a,b)=>(fechaDocumento(b)?new Date(fechaDocumento(b)).getTime():b.id)-(fechaDocumento(a)?new Date(fechaDocumento(a)).getTime():a.id));
   datos=filtrarDocumentoR132(datos,"presupuesto");
-  if(datos.length===0){ lista.innerHTML="<p>No hay presupuestos.</p>"; return; }
+  const nombreVista = vistaPresupuesto==="pasados" ? "presupuestos pasados a OT" : (vistaPresupuesto==="rechazados" ? "presupuestos rechazados" : "presupuestos activos");
+  if(datos.length===0){ lista.innerHTML=`<p>No hay ${nombreVista}.</p>`; return; }
   lista.innerHTML=datos.map(ot=>crearTarjetaPresupuesto(ot)).join("");
 }
 
@@ -2659,10 +2697,17 @@ function guardarOT(){
     lineas: lineasTemp.map(l=> ({...l})),
     fotoExpedienteKey: fotoExpedienteKeyActual || ""
   };
+  const estadoDoc=estadoCanonico(ot.estado);
+  const requiereLineas=(estadoDoc==="PRESUPUESTO"||estadoDoc==="OT"||estadoDoc==="PREFACTURA"||estadoDoc==="FACTURA");
+  const lineasValidas=(ot.lineas||[]).some(l=>l && (l.descripcion||"").trim());
+  if(requiereLineas && !ot.trabajos){
+    const mano=(ot.lineas||[]).filter(l=>l && l.tipo==="mano_obra" && (l.descripcion||"").trim()).map(l=>l.descripcion.trim().toUpperCase());
+    ot.trabajos=mano.length ? mano.join("\n") : "TRABAJOS DETALLADOS EN LÍNEAS";
+  }
   if(ot.operarioAsignado) guardarOperario(ot.operarioAsignado,false);
-  if(!ot.matricula||!ot.cliente||!ot.trabajos){
+  if(!ot.matricula||!ot.cliente||(!requiereLineas && !ot.trabajos)|| (requiereLineas && !lineasValidas)){
     guardandoOT=false;
-    alert("FALTAN DATOS OBLIGATORIOS");
+    alert(requiereLineas ? "FALTAN DATOS OBLIGATORIOS: matrícula, cliente y al menos una línea." : "FALTAN DATOS OBLIGATORIOS");
     return;
   }
   if(rectificandoId){
@@ -3055,6 +3100,8 @@ function actualizarVisibilidadPorEstado(){
   const panelLineas=document.getElementById("panelLineasFactura");
   const panelFotos=document.getElementById("panelFotos");
   const trabajos=document.getElementById("trabajos");
+  const bloqueTrabajos=document.getElementById("bloqueTrabajosPrincipal");
+  const bloqueOperario=document.getElementById("bloqueOperarioPrincipal");
   const obs=document.getElementById("observaciones");
   const tituloLineas=document.getElementById("tituloLineasFactura");
   const ayudaLineas=document.getElementById("ayudaLineasFactura");
@@ -3075,6 +3122,9 @@ function actualizarVisibilidadPorEstado(){
     else if(estado==="PREFACTURA") ayudaLineas.textContent="Revisa y corrige aquí antes de emitir la factura definitiva.";
     else ayudaLineas.textContent="Añade mano de obra y materiales en presupuestos, OT y pre-facturas.";
   }
+  const documentoConLineas=(estado==="PRESUPUESTO"||estado==="OT"||estado==="PREFACTURA"||estado==="FACTURA");
+  if(bloqueOperario) bloqueOperario.style.display = documentoConLineas ? "none" : "block";
+  if(bloqueTrabajos) bloqueTrabajos.style.display = documentoConLineas ? "none" : "block";
   if(panelFotos) panelFotos.style.display = (estado==="FACTURA") ? "none" : "block";
   if(trabajos) trabajos.rows = (estado==="CITA") ? 8 : 5;
   if(obs) obs.rows = (estado==="CITA") ? 6 : 4;
