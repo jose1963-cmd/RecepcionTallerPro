@@ -208,11 +208,24 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .ot-operario-r124{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
 .ot-operario-r124 .operario-chip-r122{margin-top:3px}
 
+
+/* R132: buscadores separados por sección */
+.cabecera-seccion-r132{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.cabecera-seccion-r132 .btn-inicio-seccion-r132{width:auto;padding:8px 16px;margin:0;flex:0 0 auto}
+.cabecera-seccion-r132 h2{margin:0;color:#ffffff}
+.buscador-doc-r132{background:#0f1728;border:2px solid #3b4a63;border-radius:16px;padding:10px;margin:0 0 14px;box-shadow:inset 0 0 0 1px #0003}
+.buscador-tabs-r132{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.buscador-tabs-r132 button{flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;min-width:78px}
+.buscador-tabs-r132 button.activo{background:#ff7a1a!important;color:#0f1728!important;border-color:#ff7a1a!important;font-weight:bold}
+.buscador-tabs-r132 button.morado.activo{background:#7b2fff!important;color:white!important;border-color:#7b2fff!important}
+.buscador-doc-r132 input{margin:0}
+@media(max-width:420px){.buscador-tabs-r132 button{font-size:12px;min-width:68px}.cabecera-seccion-r132{gap:8px}.cabecera-seccion-r132 .btn-inicio-seccion-r132{padding:8px 12px}}
+
 </style>
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R129</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R132</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -384,26 +397,37 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </div>
 
 <div id="historial" class="card hidden">
-<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-<button type="button" class="secondary" onclick="showTab('inicio')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ INICIO</button>
-<h2 style="margin:0;color:#ffffff;">Facturas</h2>
+<div class="cabecera-seccion-r132">
+<button type="button" class="secondary btn-inicio-seccion-r132" onclick="showTab('inicio')">⬅️ INICIO</button>
+<h2>Facturas</h2>
 </div>
-<div id="filtroTabs" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-<button type="button" id="ftbMatricula" onclick="setFiltro('matricula')" style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">MATRÍCULA</button>
-<button type="button" id="ftbCliente"   onclick="setFiltro('cliente')"   style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">CLIENTE</button>
-<button type="button" id="ftbFecha"     onclick="setFiltro('fecha')"     style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">FECHA</button>
-<button type="button" id="ftbFactura"   onclick="setFiltro('factura')"   style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">Nº FACTURA</button>
-<button type="button" id="ftbFrec"      onclick="setFiltro('frec')"      style="flex:1;padding:8px 4px;font-size:13px;background:#1c2940;color:#e8edf7;border:2px solid #3b4a63;border-radius:10px;margin:0;">FREC</button>
+<div class="buscador-doc-r132">
+<div id="filtroTabs" class="buscador-tabs-r132">
+<button type="button" id="ftbMatricula" onclick="setFiltro('matricula')">MATRÍCULA</button>
+<button type="button" id="ftbCliente" onclick="setFiltro('cliente')">CLIENTE</button>
+<button type="button" id="ftbFecha" onclick="setFiltro('fecha')">FECHA</button>
+<button type="button" id="ftbFactura" onclick="setFiltro('factura')">Nº FACTURA</button>
+<button type="button" id="ftbFrec" class="morado" onclick="setFiltro('frec')">FREC</button>
 </div>
-<input id="buscar" placeholder="Buscar matrícula..." oninput="renderHistorial()" style="display:block;">
+<input id="buscar" placeholder="Buscar matrícula..." oninput="renderHistorial()">
+</div>
 <div id="lista"></div>
 <div id="paginacionHistorial" style="display:flex;justify-content:center;gap:10px;margin-top:12px;"></div>
 </div>
 
 <div id="presupuesto" class="card hidden">
-<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-<button type="button" class="secondary" onclick="showTab('inicio')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ INICIO</button>
-<h2 style="margin:0;color:#ffffff;">Presupuestos</h2>
+<div class="cabecera-seccion-r132">
+<button type="button" class="secondary btn-inicio-seccion-r132" onclick="showTab('inicio')">⬅️ INICIO</button>
+<h2>Presupuestos</h2>
+</div>
+<div class="buscador-doc-r132">
+<div id="filtroTabsPresupuesto" class="buscador-tabs-r132">
+<button type="button" id="presupuestoFiltroMatricula" onclick="setFiltroDoc('presupuesto','matricula')">MATRÍCULA</button>
+<button type="button" id="presupuestoFiltroCliente" onclick="setFiltroDoc('presupuesto','cliente')">CLIENTE</button>
+<button type="button" id="presupuestoFiltroFecha" onclick="setFiltroDoc('presupuesto','fecha')">FECHA</button>
+<button type="button" id="presupuestoFiltroNumero" onclick="setFiltroDoc('presupuesto','numero')">Nº PRES.</button>
+</div>
+<input id="buscarPresupuesto" placeholder="Buscar matrícula..." oninput="renderPresupuesto()">
 </div>
 <button type="button" class="green" onclick="nuevaConEstado('PRESUPUESTO')">➕ NUEVO PRESUPUESTO</button>
 <div id="presupuestoLista"></div>
@@ -418,9 +442,18 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <div id="agendaLista"></div>
 </div>
 <div id="taller" class="card hidden">
-<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-<button type="button" class="secondary" onclick="showTab('inicio')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ INICIO</button>
-<h2 style="margin:0;color:#ffffff;">O.T. activas</h2>
+<div class="cabecera-seccion-r132">
+<button type="button" class="secondary btn-inicio-seccion-r132" onclick="showTab('inicio')">⬅️ INICIO</button>
+<h2>O.T. activas</h2>
+</div>
+<div class="buscador-doc-r132">
+<div id="filtroTabsTaller" class="buscador-tabs-r132">
+<button type="button" id="tallerFiltroMatricula" onclick="setFiltroDoc('taller','matricula')">MATRÍCULA</button>
+<button type="button" id="tallerFiltroCliente" onclick="setFiltroDoc('taller','cliente')">CLIENTE</button>
+<button type="button" id="tallerFiltroFecha" onclick="setFiltroDoc('taller','fecha')">FECHA</button>
+<button type="button" id="tallerFiltroNumero" onclick="setFiltroDoc('taller','numero')">Nº OT</button>
+</div>
+<input id="buscarTaller" placeholder="Buscar matrícula..." oninput="renderTaller()">
 </div>
 <button type="button" class="green" onclick="nuevaConEstado('OT')">➕ NUEVA OT</button>
 <div id="tallerLista"><p>No hay O.T. activas.</p></div>
@@ -436,9 +469,18 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <button onclick="showTab('inventario')" style="font-size:18px;padding:24px;margin-bottom:14px;background:#ff7a1a;color:#0f1728;">📦 INVENTARIO</button>
 </div>
 <div id="prefactura" class="card hidden">
-<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-<button type="button" class="secondary" onclick="showTab('inicio')" style="width:auto;padding:8px 16px;margin:0;flex:0 0 auto;">⬅️ INICIO</button>
-<h2 style="margin:0;color:#ffffff;">Pre-Factura</h2>
+<div class="cabecera-seccion-r132">
+<button type="button" class="secondary btn-inicio-seccion-r132" onclick="showTab('inicio')">⬅️ INICIO</button>
+<h2>Pre-Factura</h2>
+</div>
+<div class="buscador-doc-r132">
+<div id="filtroTabsPrefactura" class="buscador-tabs-r132">
+<button type="button" id="prefacturaFiltroMatricula" onclick="setFiltroDoc('prefactura','matricula')">MATRÍCULA</button>
+<button type="button" id="prefacturaFiltroCliente" onclick="setFiltroDoc('prefactura','cliente')">CLIENTE</button>
+<button type="button" id="prefacturaFiltroFecha" onclick="setFiltroDoc('prefactura','fecha')">FECHA</button>
+<button type="button" id="prefacturaFiltroNumero" onclick="setFiltroDoc('prefactura','numero')">Nº PF</button>
+</div>
+<input id="buscarPrefactura" placeholder="Buscar matrícula..." oninput="renderPrefactura()">
 </div>
 <button type="button" class="green" onclick="nuevaConEstado('PREFACTURA')">➕ NUEVA PRE-FACTURA</button>
 <div id="prefacturaLista"></div>
@@ -833,10 +875,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R129";
+const APP_VERSION="R132";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R131: en OT se añade rentabilidad individual y se compacta el botón Pre-Factura.";
+const APP_NOTAS="R132: buscadores separados por sección y rentabilidad OT consolidada.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -853,7 +895,8 @@ let mantenerEstadoAlAbrirFormulario=false;
 let editandoId=null;
 let rectificandoId=null;
 let _otPendienteGuardar=null;
-let filtroActivo="matricula";
+let filtroActivo=localStorage.getItem("RTP_FILTRO_historial")||"matricula";
+let filtrosDoc={presupuesto:localStorage.getItem("RTP_FILTRO_presupuesto")||"matricula",taller:localStorage.getItem("RTP_FILTRO_taller")||"matricula",prefactura:localStorage.getItem("RTP_FILTRO_prefactura")||"matricula"};
 let paginaHistorial=1;
 const POR_PAGINA=20;
 let lineasTemp=[];
@@ -1399,7 +1442,10 @@ function showTab(id){
   else { titulo.style.background="#0f1728"; titulo.style.color="#ff7a1a"; }
   if(id==="nueva") actualizarBotonFechaGestion();
 renderSelectOperarios();
-  if(id==="historial") setFiltro(filtroActivo);
+  if(id==="historial") setFiltroDoc("historial",filtroActivo,true);
+  if(id==="presupuesto") setFiltroDoc("presupuesto",filtrosDoc.presupuesto,true);
+  if(id==="taller") setFiltroDoc("taller",filtrosDoc.taller,true);
+  if(id==="prefactura") setFiltroDoc("prefactura",filtrosDoc.prefactura,true);
   if(id==="agenda") renderAgenda();
   if(id==="presupuesto") renderPresupuesto();
   if(id==="taller") renderTaller();
@@ -1570,7 +1616,13 @@ function renderHistorial(){
       return numFrec.includes(texto) || ref.includes(texto) || rectifica.includes(texto);
     });
   }else{ // fecha
-    filtradas=base;
+    filtradas=base.filter(ot=>{
+      if(!texto) return true;
+      const f=fechaDocumento(ot)||"";
+      const pantalla=normalizar(formatearFecha(f));
+      const iso=normalizar(String(f).slice(0,10));
+      return pantalla.includes(texto) || iso.includes(texto);
+    });
   }
 
   const total=filtradas.length;
@@ -1883,7 +1935,9 @@ function renderAgenda(){
 
 function renderPresupuesto(){
   const lista=document.getElementById("presupuestoLista");
-  const datos=ots.filter(ot=>esPresupuesto(ot)).sort((a,b)=>(b.fecha?new Date(b.fecha).getTime():0)-(a.fecha?new Date(a.fecha).getTime():0));
+  let datos=ots.filter(ot=>esPresupuesto(ot))
+    .sort((a,b)=>(fechaDocumento(b)?new Date(fechaDocumento(b)).getTime():b.id)-(fechaDocumento(a)?new Date(fechaDocumento(a)).getTime():a.id));
+  datos=filtrarDocumentoR132(datos,"presupuesto");
   if(datos.length===0){ lista.innerHTML="<p>No hay presupuestos.</p>"; return; }
   lista.innerHTML=datos.map(ot=>crearTarjetaPresupuesto(ot)).join("");
 }
@@ -2032,14 +2086,18 @@ function crearTarjetaTallerOT(ot){
 
 function renderTaller(){
   const taller=document.getElementById("tallerLista");
-  const enTaller=ots.filter(ot=>esOT(ot)).sort((a,b)=>(b.fecha?new Date(b.fecha).getTime():0)-(a.fecha?new Date(a.fecha).getTime():0));
+  let enTaller=ots.filter(ot=>esOT(ot))
+    .sort((a,b)=>(fechaDocumento(b)?new Date(fechaDocumento(b)).getTime():b.id)-(fechaDocumento(a)?new Date(fechaDocumento(a)).getTime():a.id));
+  enTaller=filtrarDocumentoR132(enTaller,"taller");
   if(enTaller.length===0){ taller.innerHTML="<p>No hay O.T. activas.</p>"; return; }
   taller.innerHTML=enTaller.map(ot=>crearTarjetaTallerOT(ot)).join("");
 }
 
 function renderPrefactura(){
   const lista=document.getElementById("prefacturaLista");
-  const datos=ots.filter(ot=>esPrefactura(ot)).sort((a,b)=>(b.fecha?new Date(b.fecha).getTime():0)-(a.fecha?new Date(a.fecha).getTime():0));
+  let datos=ots.filter(ot=>esPrefactura(ot))
+    .sort((a,b)=>(fechaDocumento(b)?new Date(fechaDocumento(b)).getTime():b.id)-(fechaDocumento(a)?new Date(fechaDocumento(a)).getTime():a.id));
+  datos=filtrarDocumentoR132(datos,"prefactura");
   if(datos.length===0){ lista.innerHTML="<p>No hay pre-facturas.</p>"; return; }
   lista.innerHTML=datos.map(ot=>crearTarjetaOT(ot)).join("");
 }
@@ -3930,24 +3988,61 @@ function imprimir(id){
 // ============================================================
 // 16. FUNCIONES DE FILTRO
 // ============================================================
-function setFiltro(tipo){
-  filtroActivo=tipo;
-  ["matricula","cliente","fecha","factura","frec"].forEach(t=>{
-    const btn=document.getElementById("ftb"+t.charAt(0).toUpperCase()+t.slice(1));
-    if(btn){
-      const esActivo=t===tipo;
-      const colorActivo=t==="frec" ? "#7b2fff" : "#ff7a1a";
-      btn.style.background= esActivo ? colorActivo : "#1c2940";
-      btn.style.color= esActivo ? "white" : "#e8edf7";
-      btn.style.border= esActivo ? "2px solid "+colorActivo : "2px solid #3b4a63";
-      btn.style.fontWeight= esActivo ? "bold" : "normal";
-    }
+function inputBusquedaSeccionR132(seccion){
+  if(seccion==="historial") return document.getElementById("buscar");
+  return document.getElementById("buscar"+seccion.charAt(0).toUpperCase()+seccion.slice(1));
+}
+
+function placeholderBusquedaR132(seccion,tipo){
+  const mapa={
+    matricula:"Buscar matrícula...",
+    cliente:"Buscar cliente...",
+    fecha:"Buscar fecha (dd/mm/aaaa)...",
+    numero: seccion==="taller" ? "Buscar nº OT..." : (seccion==="prefactura" ? "Buscar nº PF..." : "Buscar nº presupuesto..."),
+    factura:"Buscar nº factura...",
+    frec:"Buscar nº rectificativa..."
+  };
+  return mapa[tipo]||"Buscar...";
+}
+
+function setFiltroDoc(seccion,tipo,mantenerTexto){
+  if(seccion==="historial"){ filtroActivo=tipo; localStorage.setItem("RTP_FILTRO_historial",tipo); }
+  else{ filtrosDoc[seccion]=tipo; localStorage.setItem("RTP_FILTRO_"+seccion,tipo); }
+  const pref=seccion==="historial" ? "ftb" : seccion+"Filtro";
+  const tipos=seccion==="historial" ? ["matricula","cliente","fecha","factura","frec"] : ["matricula","cliente","fecha","numero"];
+  const nombres={matricula:"Matricula",cliente:"Cliente",fecha:"Fecha",numero:"Numero",factura:"Factura",frec:"Frec"};
+  tipos.forEach(t=>{
+    const btn=document.getElementById(pref+nombres[t]);
+    if(btn) btn.classList.toggle("activo",t===tipo);
   });
-  const buscar=document.getElementById("buscar");
-  if(tipo==="fecha"){ buscar.style.display="none"; buscar.value=""; }
-  else{ buscar.style.display="block"; buscar.value=""; buscar.placeholder={matricula:"Buscar matrícula...",cliente:"Buscar por nombre de cliente...",factura:"Buscar nº factura (ej: 8)...",frec:"Buscar nº rectificativa (ej: 3)..."}[tipo]||""; }
-  paginaHistorial=1;
-  renderHistorial();
+  const buscar=inputBusquedaSeccionR132(seccion);
+  if(buscar){
+    if(!mantenerTexto) buscar.value="";
+    buscar.placeholder=placeholderBusquedaR132(seccion,tipo);
+  }
+  if(seccion==="historial"){ paginaHistorial=1; renderHistorial(); }
+  if(seccion==="presupuesto") renderPresupuesto();
+  if(seccion==="taller") renderTaller();
+  if(seccion==="prefactura") renderPrefactura();
+}
+
+function setFiltro(tipo){ setFiltroDoc("historial",tipo); }
+
+function filtrarDocumentoR132(datos,seccion){
+  const tipo=filtrosDoc[seccion]||"matricula";
+  const input=inputBusquedaSeccionR132(seccion);
+  const texto=normalizar((input&&input.value)||"").trim();
+  if(!texto) return datos;
+  return datos.filter(ot=>{
+    if(tipo==="matricula") return normalizar(ot.matricula).includes(texto);
+    if(tipo==="cliente") return normalizar(ot.cliente).includes(texto);
+    if(tipo==="fecha"){
+      const f=fechaDocumento(ot)||"";
+      return normalizar(formatearFecha(f)).includes(texto) || normalizar(String(f).slice(0,10)).includes(texto);
+    }
+    if(tipo==="numero") return normalizar(referenciaOT(ot)).includes(texto) || String(ot.numeroPresupuesto||ot.numeroOT||ot.numeroPrefactura||"").includes(texto.replace(/\D/g,""));
+    return true;
+  });
 }
 
 // ============================================================
