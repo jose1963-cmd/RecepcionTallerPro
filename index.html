@@ -131,12 +131,6 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .ot-acciones-par-r134 .btn-prefactura{background:#28a745;color:white}
 .ot-acciones-par-r134 .btn-rentabilidad-ot{background:#9c27b0;color:white}
 .acciones.ot-acciones .btn-anular{background:#b00020;color:white}
-#pantallaSalida{position:fixed;inset:0;background:#050914;color:#e8edf7;z-index:999999;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;box-sizing:border-box}
-#pantallaSalida .box{max-width:360px;background:#101827;border:2px solid #344d7a;border-radius:18px;padding:22px;box-shadow:0 4px 18px #0008}
-#pantallaSalida h2{color:#ff7a1a;margin:0 0 10px}
-#pantallaSalida p{margin:8px 0;color:#cfd6e6;line-height:1.35}
-
-
 /* R120: usabilidad real en iPhone */
 .agenda-mini{padding:7px 50px 7px 10px!important;min-height:54px!important;margin-top:6px!important}
 .agenda-mini .fecha{font-size:13px!important}
@@ -233,7 +227,7 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R135</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R136</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -589,13 +583,6 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <div id="inventarioContenido"></div>
 </div>
 
-<div id="pantallaSalida">
-  <div class="box">
-    <h2>Sesión cerrada</h2>
-    <p>La imagen del programa queda ocultada.</p>
-    <p>Ya puedes volver a la pantalla de inicio del iPhone.</p>
-  </div>
-</div>
 
 <!-- Modal cámara OCR -->
 <input type="file" id="inputFotoCamara" accept="image/*" style="display:none" onchange="procesarFotoMatricula(event)">
@@ -891,10 +878,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R135";
+const APP_VERSION="R136";
 const COPIA_VERSION=4;
 const APP_FECHA="19/06/2026";
-const APP_NOTAS="R135: líneas editables en Presupuesto, OT y Pre-Factura; facturas emitidas quedan bloqueadas.";
+const APP_NOTAS="R136: se elimina pantalla de sesión cerrada; SALIR no bloquea el acceso y vuelve a Inicio con aviso de copia.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -3625,23 +3612,16 @@ function cancelarFicha(){
 // ============================================================
 
 function salirSeguro(){
-  const hacerCopia=confirm("¿Quieres hacer una copia de seguridad antes de salir?\n\nAceptar = hacer copia ahora.\nCancelar = salir sin copia.");
+  const hacerCopia=confirm("¿Quieres hacer una copia de seguridad antes de salir?\n\nAceptar = hacer copia ahora.\nCancelar = volver a INICIO sin copia.");
+  try{ guardar(); }catch(e){}
   if(hacerCopia){
     exportarCopia();
-    setTimeout(cerrarVisualmentePrograma,450);
-    return;
   }
-  cerrarVisualmentePrograma();
-}
-
-function cerrarVisualmentePrograma(){
-  try{ guardar(); }catch(e){}
-  document.querySelectorAll('body > *').forEach(el=>{
-    if(el.id!=="pantallaSalida") el.style.display="none";
-  });
-  const salida=document.getElementById("pantallaSalida");
-  if(salida) salida.style.display="flex";
-  try{ window.close(); }catch(e){}
+  showTab('inicio');
+  const aviso=document.getElementById("avisoCopia");
+  if(aviso){
+    aviso.innerHTML="✅ Programa en inicio. Acceso no bloqueado. Puedes cerrar Safari manualmente cuando quieras.";
+  }
 }
 
 function exportarCopia(){
