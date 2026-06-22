@@ -234,36 +234,6 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .herramientas-r138 .grupo-r138 button{margin:5px 0}
 @media(max-width:420px){.portada-r138 button{font-size:20px;padding:19px 12px}}
 
-/* R140: control horario */
-.box-fichaje-r140{margin-top:18px;padding-top:16px;border-top:2px solid #2a3650}
-.box-fichaje-r140 button{width:100%;margin:0;padding:18px 14px;font-size:19px;background:#0f766e;color:white;border-radius:14px}
-.fichajes-r140 h2{text-align:center;color:#ff7a1a;margin-bottom:14px}
-.fichajes-r140 select,.fichajes-r140 input[type=month]{margin:0 0 10px}
-.fichajes-r140 .grid-fichar-r140{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;box-sizing:border-box}
-.fichajes-r140 .grid-fichar-r140 button{margin:0;padding:22px 4px;font-size:14px;font-weight:700;box-sizing:border-box;width:100%;min-height:64px}
-
-/* R141: modal PIN */
-.modal-pin-r141{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:9999}
-.modal-pin-r141 .contenido{background:#131f36;border:2px solid #ff7a1a;border-radius:18px;padding:28px 22px;max-width:340px;width:90%;text-align:center}
-.modal-pin-r141 h3{color:#ff7a1a;margin:0 0 8px;font-size:20px}
-.modal-pin-r141 p{color:#aab4c8;font-size:13px;margin:0 0 16px}
-.modal-pin-r141 input{text-align:center;font-size:32px;font-weight:bold;letter-spacing:10px;text-transform:uppercase;width:100%;margin:0 0 14px;box-sizing:border-box}
-.modal-pin-r141 .fila{display:flex;gap:8px}
-.modal-pin-r141 .fila button{flex:1;margin:0}
-/* R141: vista OT operario */
-.ot-operario-r141{border:2px solid #ff7a1a;border-radius:14px;padding:14px;margin-top:12px}
-.ot-operario-r141 .titulo-ot{color:#ff7a1a;font-size:16px;font-weight:bold;margin:0 0 8px}
-.linea-mo-r141{background:#0f1728;border-left:4px solid #0f766e;border-radius:8px;padding:10px;margin:8px 0}
-.linea-mo-r141 label{display:block;color:#aab4c8;font-size:11px;margin:6px 0 3px}
-.linea-mo-r141 input{margin:0;padding:10px;font-size:16px;width:100%;box-sizing:border-box}
-.ficha-hoy-r140{background:#101827;border-left:5px solid #0f766e;border-radius:12px;padding:12px;margin-bottom:18px}
-.ficha-hoy-r140 p{margin:4px 0}
-.tabla-fichajes-r140{width:100%;border-collapse:collapse;font-size:12px}
-.tabla-fichajes-r140 th,.tabla-fichajes-r140 td{border:1px solid #3b4a63;padding:6px 4px;text-align:center}
-.tabla-fichajes-r140 th{background:#1c2940}
-.fichajes-r140 .fila-historial-r140{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-bottom:10px}
-.fichajes-r140 .fila-historial-r140>div{flex:1;min-width:140px}
-
 /* R139: acceso operarios desde portada */
 .portada-r138 .btn-operarios-r139{background:#2196f3;color:white}
 .operarios-r139 h2{text-align:center;color:#ff7a1a;margin-bottom:18px}
@@ -275,11 +245,23 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 .operario-card-r139 .mini{color:#aab4c8;font-size:13px;line-height:1.35}
 .operario-card-r139 .trabajo{border-top:1px solid #3b4a63;margin-top:8px;padding-top:8px;white-space:pre-wrap;line-height:1.3}
 
+
+/* R140: hoja de trabajo operario completa */
+.operario-lineas-r140{margin-top:10px;border-top:1px solid #3b4a63;padding-top:8px}
+.operario-lineas-r140 h4{margin:8px 0 6px;color:#ffd580;font-size:15px}
+.operario-lineas-r140 table{width:100%;border-collapse:collapse;font-size:13px}
+.operario-lineas-r140 th{color:#aab4c8;font-weight:normal;text-align:left;border-bottom:1px solid #3b4a63;padding:5px 4px}
+.operario-lineas-r140 td{border-bottom:1px solid #2a3a55;padding:6px 4px;vertical-align:top}
+.operario-lineas-r140 .ref{color:#ff7a1a;font-weight:bold;width:76px;word-break:break-word}
+.operario-lineas-r140 .uds{text-align:center;width:44px;color:#fff;font-weight:bold}
+.apuntes-operario-r140{margin-top:10px;background:#0b1220;border:1px solid #3b4a63;border-radius:10px;padding:9px;white-space:pre-wrap;line-height:1.35}
+.btn-apunte-r140{background:#344d7a!important;color:white!important;margin-top:10px!important}
+
 </style>
 </head>
 <body>
 
-<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R142</button></div>
+<div id="versionApp" class="version-app"><button type="button" onclick="mostrarVersion()">R140</button></div>
 
 <h1 id="tituloApp">TALLERES AUTOBORJA</h1>
 
@@ -294,32 +276,9 @@ input[type="datetime-local"]{min-width:0;font-size:14px;padding:12px 8px}
 <div class="portada-r138">
 <button class="green" onclick="solicitarAccesoR138('gestion')" type="button">🔒 GESTIÓN EMPRESA</button>
 <button class="btn-herramientas-r138" onclick="solicitarAccesoR138('herramientas')" type="button">🔒 HERRAMIENTAS</button>
-<button class="btn-operarios-r139" onclick="pedirPINR141()" type="button">👨‍🔧 OPERARIOS</button>
+<button class="btn-operarios-r139" onclick="showTab('operarios')" type="button">👨‍🔧 OPERARIOS</button>
 <button class="btn-salir-r138" onclick="salirSeguro()" type="button">🚪 SALIR</button>
 </div>
-<div class="box-fichaje-r140">
-<button onclick="showTab('fichajes')" type="button">⏱ CONTROL HORARIO</button>
-</div>
-</div>
-
-<div id="fichajes" class="card hidden fichajes-r140">
-<button class="secondary" onclick="showTab('inicio')" type="button" style="width:auto;padding:9px 14px;margin:0 0 14px;">⬅️ PORTADA</button>
-<h2>⏱ CONTROL HORARIO</h2>
-<select id="fichajeOperario" onchange="renderFichajeHoy()"></select>
-<div class="grid-fichar-r140">
-<button class="secondary" onclick="ficharR140('entradaM')" type="button">ENTRADA MAÑANA</button>
-<button class="secondary" onclick="ficharR140('salidaM')" type="button">SALIDA MAÑANA</button>
-<button class="secondary" onclick="ficharR140('entradaT')" type="button">ENTRADA TARDE</button>
-<button class="secondary" onclick="ficharR140('salidaT')" type="button">SALIDA TARDE</button>
-</div>
-<div id="fichajeHoyR140"></div>
-<h2 style="margin-top:6px;">HISTORIAL</h2>
-<div class="fila-historial-r140">
-<div><select id="historialFichajeOperario" onchange="renderHistorialFichajesR140()"></select></div>
-<div><input type="month" id="historialFichajeMes" onchange="renderHistorialFichajesR140()"></div>
-</div>
-<div style="overflow-x:auto;"><div id="historialFichajeLista"></div></div>
-<button class="secondary" onclick="exportarFichajesCSV()" type="button" style="margin-top:12px;">EXPORTAR CSV</button>
 </div>
 
 <div id="operarios" class="card hidden operarios-r139">
@@ -976,10 +935,10 @@ function toggleHistorialVehiculo(){
 // ============================================================
 // 2. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
-const APP_VERSION="R142";
+const APP_VERSION="R140";
 const COPIA_VERSION=4;
 const APP_FECHA="22/06/2026";
-const APP_NOTAS="R142: PREFACTURA corregida con tarjeta propia, botones EDITAR PF / FACTURAR / VOLVER A OT / IMPRIMIR y cabecera de impresión compacta para ganar espacio en líneas.";
+const APP_NOTAS="R139: añade botón Operarios en portada para consultar O.T. activas asignadas a cada operario, incluyendo responsables e intervinientes en líneas de mano de obra.";
 
 const STORAGE="RECEPCION_TALLER_PRO";
 let ots=[];
@@ -989,7 +948,6 @@ let vehiculos={};
 let articulos=[];
 let fotosExpedientes={};
 let operarios=[];
-let fichajes=[];
 let fotosTemp=[];
 let fotoExpedienteKeyActual="";
 let mantenerEstadoAlAbrirFormulario=false;
@@ -997,7 +955,6 @@ let mantenerEstadoAlAbrirFormulario=false;
 let editandoId=null;
 let rectificandoId=null;
 let _otPendienteGuardar=null;
-let _accionDespuesFichaCliente=null;
 let filtroActivo=localStorage.getItem("RTP_FILTRO_historial")||"matricula";
 let filtrosDoc={presupuesto:localStorage.getItem("RTP_FILTRO_presupuesto")||"matricula",taller:localStorage.getItem("RTP_FILTRO_taller")||"matricula",prefactura:localStorage.getItem("RTP_FILTRO_prefactura")||"matricula"};
 let vistaPresupuesto=localStorage.getItem("RTP_VISTA_presupuesto")||"activos";
@@ -1008,8 +965,6 @@ let guardandoOT=false;
 let agendaExpandidaId=null;
 let detalleOTAbierto={};
 let operarioSeleccionadoR139=null;
-let operarioActualR141=null;
-const PINES_R141={"JA":"JOSE AGOIZ","JD":"JOSE DOMINGO TENA","JP":"JAVIER PABLO HAUET","JR":"JORGE RUBIANO","RM":"RUBÉN MOGA"};
 let accesoR138="";
 
 const MARCAS=["ABARTH","ALFA ROMEO","ALPINE","AUDI","BMW","BYD","CITROEN","CUPRA","DACIA","DAIHATSU","DS AUTOMOBILES","FIAT","FORD","GENESIS","HONDA","HYUNDAI","INFINITI","ISUZU","JAGUAR","JAECOO","KGM","KIA","LAND ROVER","LEXUS","LYNK & CO","MAZDA","MERCEDES","MG","MINI","MITSUBISHI","NISSAN","OPEL","PEUGEOT","POLESTAR","PORSCHE","RENAULT","SEAT","SKODA","SMART","SSANGYONG","SUBARU","SUZUKI","TESLA","TOYOTA","VOLKSWAGEN","VOLVO"];
@@ -1080,11 +1035,10 @@ try{
     articulos=Array.isArray(guardado.articulos) ? guardado.articulos : [];
     fotosExpedientes=(guardado.fotosExpedientes && typeof guardado.fotosExpedientes==="object") ? guardado.fotosExpedientes : {};
     operarios=Array.isArray(guardado.operarios) ? guardado.operarios : [];
-    fichajes=Array.isArray(guardado.fichajes) ? guardado.fichajes : [];
   }
 }catch(e){
   ots=[]; contadores={agenda:0,presupuesto:0,ot:0,prefactura:0,factura:0,rectificativa:0,articuloInterno:0};
-  clientes={}; vehiculos={}; articulos=[]; fotosExpedientes={}; operarios=[]; fichajes=[];
+  clientes={}; vehiculos={}; articulos=[]; fotosExpedientes={}; operarios=[];
 }
 
 // ============================================================
@@ -1130,8 +1084,7 @@ function paqueteDatos(){
     vehiculos:vehiculos,
     articulos:articulos,
     fotosExpedientes:fotosExpedientes,
-    operarios:operarios,
-    fichajes:fichajes
+    operarios:operarios
   };
 }
 
@@ -1561,6 +1514,47 @@ function resumenLineasOperarioR139(ot,nombre){
   return ot.trabajos||"SIN TRABAJOS";
 }
 
+function bloqueLineasOperarioR140(ot){
+  const grupos=lineasOrdenadasPorTipo(ot.lineas||[]);
+  const tabla=function(lineas,titulo){
+    if(!lineas.length) return "";
+    return `<h4>${titulo}</h4><table><thead><tr><th>Ref.</th><th>Concepto</th><th>Uds.</th></tr></thead><tbody>`+
+      lineas.map(l=>`<tr><td class="ref">${htmlSeguro(l.referencia||l.codigo_mo||"—")}</td><td>${htmlSeguro(l.descripcion||"")}</td><td class="uds">${Number(l.cantidad)||0}</td></tr>`).join("")+
+      `</tbody></table>`;
+  };
+  if(!grupos.ordenadas.length){
+    return `<div class="operario-lineas-r140"><h4>TRABAJOS</h4><div class="trabajo">${htmlSeguro(ot.trabajos||"SIN TRABAJOS")}</div></div>`;
+  }
+  return `<div class="operario-lineas-r140">`+
+    tabla(grupos.mano,"MANO DE OBRA PREVISTA")+
+    tabla(grupos.materiales,"MATERIALES EMPLEADOS")+
+    `</div>`;
+}
+
+function apuntesOperarioR140(ot,nombre){
+  const op=normalizarOperario(nombre);
+  const apuntes=(ot.apuntesOperario && ot.apuntesOperario[op]) ? ot.apuntesOperario[op] : [];
+  if(!apuntes.length) return `<div class="apuntes-operario-r140" style="color:#aab4c8;">Sin líneas manuales añadidas por este operario.</div>`;
+  return `<div class="apuntes-operario-r140"><b>LÍNEAS MANUALES DEL OPERARIO:</b><br>`+
+    apuntes.map((a,i)=>`${i+1}. ${htmlSeguro(a.texto)}${a.fecha?" — "+htmlSeguro(formatearFecha(a.fecha)):""}`).join("<br>")+
+    `</div>`;
+}
+
+function anadirLineaManualOperarioR140(id,nombre){
+  const ot=ots.find(x=>x.id===id);
+  if(!ot) return;
+  const op=normalizarOperario(nombre);
+  const texto=prompt("Añadir línea manual a tu hoja de trabajo:");
+  if(texto===null) return;
+  const limpio=(texto||"").trim().toUpperCase();
+  if(!limpio){ alert("Línea vacía."); return; }
+  if(!ot.apuntesOperario || typeof ot.apuntesOperario!=="object") ot.apuntesOperario={};
+  if(!Array.isArray(ot.apuntesOperario[op])) ot.apuntesOperario[op]=[];
+  ot.apuntesOperario[op].push({texto:limpio,fecha:ahoraLocalInput()});
+  guardar();
+  renderOperariosR139();
+}
+
 function crearTarjetaOperarioR139(ot,nombre){
   const total=calcularTotalesLineas(ot.lineas||[]).total;
   const veh=[ot.marca,ot.modelo].filter(Boolean).join(" ") || "Vehículo sin modelo";
@@ -1568,9 +1562,11 @@ function crearTarjetaOperarioR139(ot,nombre){
     <div class="ref">${htmlSeguro(referenciaOT(ot))}</div>
     <div class="mat">${htmlSeguro(ot.matricula||"SIN MATRÍCULA")}</div>
     <div>${htmlSeguro(ot.cliente||"SIN CLIENTE")}</div>
-    <div class="mini">📅 ${htmlSeguro(formatearFecha(fechaDocumento(ot)))}<br>🚗 ${htmlSeguro(veh)}${total>0?"<br>💶 "+total.toFixed(2)+" €":""}</div>
+    <div class="mini">📞 ${htmlSeguro(ot.telefono||"SIN TELÉFONO")}<br>📅 ${htmlSeguro(formatearFecha(fechaDocumento(ot)))}<br>🚗 ${htmlSeguro(veh)}${ot.km?"<br>KM "+htmlSeguro(ot.km):""}${total>0?"<br>💶 "+total.toFixed(2)+" €":""}</div>
     <div style="margin-top:7px;">${etiquetaOperarioOT(ot)}</div>
-    <div class="trabajo">${htmlSeguro(resumenLineasOperarioR139(ot,nombre))}</div>
+    ${bloqueLineasOperarioR140(ot)}
+    ${apuntesOperarioR140(ot,nombre)}
+    <button type="button" class="btn-apunte-r140" onclick="anadirLineaManualOperarioR140(${ot.id},'${jsSeguro(nombre)}')">➕ AÑADIR LÍNEA MANUAL</button>
   </div>`;
 }
 
@@ -1583,31 +1579,6 @@ function renderOperariosR139(){
   const lista=document.getElementById("operariosListaR139");
   const detalle=document.getElementById("operariosOTR139");
   if(!lista || !detalle) return;
-
-  // Vista personal (operario identificado por PIN)
-  if(operarioActualR141){
-    lista.innerHTML=`<p style="color:#ff7a1a;font-weight:bold;font-size:15px;margin-bottom:14px;">👨‍🔧 ${htmlSeguro(operarioActualR141)}</p>`;
-    const datos=otsDeOperarioR139(operarioActualR141);
-    if(!datos.length){
-      detalle.innerHTML="<p style='color:#aab4c8;margin-top:8px;'>No tienes O.T. activas asignadas.</p>";
-      return;
-    }
-    detalle.innerHTML=`<h3 style="color:#ff7a1a;margin-top:6px;">${datos.length} O.T. ACTIVA${datos.length!==1?"S":""}</h3>`+
-      datos.map(ot=>{
-        const total=calcularTotalesLineas(ot.lineas||[]).total;
-        const veh=[ot.marca,ot.modelo].filter(Boolean).join(" ")||"Sin modelo";
-        return `<div class="operario-card-r139" onclick="abrirOTModoOperarioR141(${ot.id})" style="cursor:pointer;">
-          <div class="ref">${htmlSeguro(referenciaOT(ot))}</div>
-          <div class="mat">${htmlSeguro(ot.matricula||"SIN MATRÍCULA")}</div>
-          <div>${htmlSeguro(ot.cliente||"SIN CLIENTE")}</div>
-          <div class="mini">📅 ${htmlSeguro(formatearFecha(fechaDocumento(ot)))}<br>🚗 ${htmlSeguro(veh)}${total>0?"<br>💶 "+total.toFixed(2)+" €":""}</div>
-          <div class="trabajo">${htmlSeguro(resumenLineasOperarioR139(ot,operarioActualR141))}</div>
-        </div>`;
-      }).join("");
-    return;
-  }
-
-  // Vista general (sin PIN — admin)
   const ops=operariosConOTActivasR139();
   if(!ops.length){
     lista.innerHTML="<p>No hay operarios registrados.</p>";
@@ -1625,198 +1596,6 @@ function renderOperariosR139(){
   const datos=otsDeOperarioR139(operarioSeleccionadoR139);
   detalle.innerHTML=`<h3 style="color:#ff7a1a;margin-top:18px;">${htmlSeguro(operarioSeleccionadoR139)} · ${datos.length} O.T.</h3>`+
     (datos.length ? datos.map(ot=>crearTarjetaOperarioR139(ot,operarioSeleccionadoR139)).join("") : "<p>No tiene O.T. activas asignadas.</p>");
-}
-
-// ============================================================
-// R141: PIN OPERARIOS + VISTA OT MODO OPERARIO + TIEMPO REAL
-// ============================================================
-
-function pedirPINR141(){
-  const anterior=document.getElementById("modalPinR141");
-  if(anterior) anterior.remove();
-  const div=document.createElement("div");
-  div.id="modalPinR141";
-  div.className="modal-pin-r141";
-  div.innerHTML=`<div class="contenido">
-    <h3>👨‍🔧 ACCESO OPERARIOS</h3>
-    <p>Introduce tu PIN (tus iniciales)</p>
-    <input id="inputPinR141" type="text" maxlength="4" placeholder="ej: JA"
-      autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
-    <div class="fila">
-      <button class="secondary" onclick="document.getElementById('modalPinR141').remove()" type="button">CANCELAR</button>
-      <button class="green" onclick="validarPINR141()" type="button">ENTRAR</button>
-    </div>
-  </div>`;
-  document.body.appendChild(div);
-  div.querySelector("#inputPinR141").addEventListener("keydown",e=>{ if(e.key==="Enter") validarPINR141(); });
-  setTimeout(()=>{ const inp=document.getElementById("inputPinR141"); if(inp) inp.focus(); },120);
-}
-
-function validarPINR141(){
-  const pin=(document.getElementById("inputPinR141").value||"").trim().toUpperCase();
-  const nombre=PINES_R141[pin];
-  if(!nombre){
-    alert("PIN INCORRECTO.\nInténtalo de nuevo.");
-    const inp=document.getElementById("inputPinR141");
-    if(inp){ inp.value=""; inp.focus(); }
-    return;
-  }
-  const modal=document.getElementById("modalPinR141");
-  if(modal) modal.remove();
-  operarioActualR141=normalizarOperario(nombre);
-  showTab("operarios");
-}
-
-function abrirOTModoOperarioR141(otId){
-  const ot=ots.find(x=>x.id===otId);
-  if(!ot || !operarioActualR141) return;
-  const detalle=document.getElementById("operariosOTR139");
-  const veh=[ot.marca,ot.modelo].filter(Boolean).join(" ")||"Sin modelo";
-  const lineasMO=(ot.lineas||[]).map((l,i)=>({l,i})).filter(({l})=>l && l.tipo==="mano_obra" && normalizarOperario(l.operario)===operarioActualR141);
-  const htmlLineas=lineasMO.map(({l,i})=>`
-    <div class="linea-mo-r141">
-      <b>${htmlSeguro(l.referencia||l.codigo_mo||"MO")} — ${htmlSeguro(l.descripcion||"")}</b>
-      <label>Tiempo asignado: ${htmlSeguro(String(l.cantidad||"—"))} h</label>
-      <label>⏱ Tiempo real (escribe tu tiempo):</label>
-      <input type="text" inputmode="decimal" placeholder="ej: 2.5"
-        value="${htmlSeguro(l.tiempoReal||"")}"
-        oninput="guardarTiempoRealR141(${otId},${i},this.value)">
-    </div>`).join("");
-  detalle.innerHTML=`
-    <button class="secondary" type="button" style="width:auto;padding:9px 14px;margin:0 0 14px;"
-      onclick="renderOperariosR139()">⬅️ MIS O.T.</button>
-    <div class="ot-operario-r141">
-      <div class="titulo-ot">${htmlSeguro(referenciaOT(ot))} — ${htmlSeguro(ot.matricula||"SIN MATRÍCULA")}</div>
-      <div>${htmlSeguro(ot.cliente||"SIN CLIENTE")} · ${htmlSeguro(veh)}</div>
-      <div style="margin:8px 0;color:#aab4c8;font-size:13px;">📅 ${htmlSeguro(formatearFecha(fechaDocumento(ot)))}</div>
-      <hr style="border-color:#2a3650;margin:10px 0">
-      ${lineasMO.length
-        ? `<h4 style="color:#0f766e;margin:0 0 6px;">TUS LÍNEAS DE TRABAJO</h4>${htmlLineas}`
-        : `<p style="color:#aab4c8;">No tienes líneas de mano de obra asignadas en esta O.T.</p>`}
-      <button class="secondary" type="button" style="margin-top:16px;"
-        onclick="imprimir(${otId})">🖨️ IMPRIMIR O.T.</button>
-    </div>`;
-}
-
-function guardarTiempoRealR141(otId,lineaIdx,valor){
-  const ot=ots.find(x=>x.id===otId);
-  if(!ot || !ot.lineas || !ot.lineas[lineaIdx]) return;
-  ot.lineas[lineaIdx].tiempoReal=valor.trim();
-  guardar();
-}
-
-// ============================================================
-// R140: CONTROL HORARIO (FICHAJES)
-// ============================================================
-function fechaHoyISO(){
-  const d=new Date();
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-}
-function horaAhoraR140(){
-  const d=new Date();
-  return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
-}
-function ddmmyyyy(fechaISO){
-  return fechaISO.split("-").reverse().join("/");
-}
-function renderSelectFichajeOperario(){
-  asegurarOperariosBase();
-  ["fichajeOperario","historialFichajeOperario"].forEach(id=>{
-    const sel=document.getElementById(id);
-    if(!sel) return;
-    const actual=sel.value;
-    const placeholder=id==="fichajeOperario" ? "SELECCIONA OPERARIO" : "TODOS LOS OPERARIOS";
-    sel.innerHTML=`<option value="">${placeholder}</option>`+(operarios||[]).map(op=>`<option value="${htmlSeguro(op)}">${htmlSeguro(op)}</option>`).join("");
-    if(actual && operarios.includes(actual)) sel.value=actual;
-  });
-  const mesInput=document.getElementById("historialFichajeMes");
-  if(mesInput && !mesInput.value) mesInput.value=fechaHoyISO().slice(0,7);
-  renderFichajeHoy();
-  renderHistorialFichajesR140();
-}
-function registroFichajeDia(operario,fecha){
-  if(!Array.isArray(fichajes)) fichajes=[];
-  let r=fichajes.find(f=>f.fecha===fecha && f.operario===operario);
-  if(!r){ r={fecha:fecha,operario:operario,entradaM:"",salidaM:"",entradaT:"",salidaT:""}; fichajes.push(r); }
-  return r;
-}
-function ficharR140(tipo){
-  const operario=normalizarOperario(document.getElementById("fichajeOperario").value);
-  if(!operario){ alert("Selecciona un operario antes de fichar."); return; }
-  const etiquetas={entradaM:"ENTRADA MAÑANA",salidaM:"SALIDA MAÑANA",entradaT:"ENTRADA TARDE",salidaT:"SALIDA TARDE"};
-  const r=registroFichajeDia(operario,fechaHoyISO());
-  if(r[tipo] && !confirm(etiquetas[tipo]+" YA REGISTRADA HOY A LAS "+r[tipo]+"H.\n¿Sobrescribir con la hora actual?")) return;
-  r[tipo]=horaAhoraR140();
-  guardar();
-  renderFichajeHoy();
-  renderHistorialFichajesR140();
-  alert(operario+"\n"+etiquetas[tipo]+" registrada a las "+r[tipo]+"h");
-}
-function minutosHora(h){
-  if(!h) return null;
-  const p=h.split(":");
-  return Number(p[0])*60+Number(p[1]);
-}
-function minutosTrabajadosDia(r){
-  let total=0;
-  const m1=minutosHora(r.entradaM), m2=minutosHora(r.salidaM), m3=minutosHora(r.entradaT), m4=minutosHora(r.salidaT);
-  if(m1!==null && m2!==null && m2>m1) total+=(m2-m1);
-  if(m3!==null && m4!==null && m4>m3) total+=(m4-m3);
-  return total;
-}
-function formatoHorasMinR140(mins){
-  const h=Math.floor((mins||0)/60), m=(mins||0)%60;
-  return h+"h "+String(m).padStart(2,"0")+"min";
-}
-function renderFichajeHoy(){
-  const div=document.getElementById("fichajeHoyR140");
-  if(!div) return;
-  const operario=normalizarOperario(document.getElementById("fichajeOperario").value);
-  if(!operario){ div.innerHTML=""; return; }
-  const r=registroFichajeDia(operario,fechaHoyISO());
-  div.innerHTML=`<div class="ficha-hoy-r140">
-    <p><b>HOY ${ddmmyyyy(fechaHoyISO())}</b> — ${htmlSeguro(operario)}</p>
-    <p>Mañana: ${r.entradaM||"—"} a ${r.salidaM||"—"}</p>
-    <p>Tarde: ${r.entradaT||"—"} a ${r.salidaT||"—"}</p>
-    <p>Total hoy: ${formatoHorasMinR140(minutosTrabajadosDia(r))}</p>
-  </div>`;
-}
-function listaFichajesFiltrada(){
-  const operario=normalizarOperario(document.getElementById("historialFichajeOperario").value);
-  const mes=document.getElementById("historialFichajeMes").value;
-  if(!Array.isArray(fichajes)) fichajes=[];
-  return fichajes.filter(f=>(!operario||f.operario===operario)&&(!mes||f.fecha.startsWith(mes)))
-    .sort((a,b)=> b.fecha.localeCompare(a.fecha) || a.operario.localeCompare(b.operario,"es"));
-}
-function renderHistorialFichajesR140(){
-  const div=document.getElementById("historialFichajeLista");
-  if(!div) return;
-  const lista=listaFichajesFiltrada();
-  if(!lista.length){ div.innerHTML="<p>No hay fichajes para este filtro.</p>"; return; }
-  let totalMin=0;
-  div.innerHTML=`<table class="tabla-fichajes-r140"><thead><tr><th>FECHA</th><th>OPERARIO</th><th>MAÑANA</th><th>TARDE</th><th>HORAS</th></tr></thead><tbody>`+
-    lista.map(r=>{
-      const min=minutosTrabajadosDia(r); totalMin+=min;
-      return `<tr><td>${ddmmyyyy(r.fecha)}</td><td>${htmlSeguro(r.operario)}</td><td>${r.entradaM||"—"}–${r.salidaM||"—"}</td><td>${r.entradaT||"—"}–${r.salidaT||"—"}</td><td>${formatoHorasMinR140(min)}</td></tr>`;
-    }).join("")+
-    `</tbody></table><p style="margin-top:10px;"><b>TOTAL: ${formatoHorasMinR140(totalMin)}</b> (${lista.length} días)</p>`;
-}
-function exportarFichajesCSV(){
-  const lista=listaFichajesFiltrada();
-  if(!lista.length){ alert("No hay fichajes para exportar con este filtro."); return; }
-  const operario=normalizarOperario(document.getElementById("historialFichajeOperario").value);
-  const mes=document.getElementById("historialFichajeMes").value;
-  let csv="FECHA;OPERARIO;ENTRADA MAÑANA;SALIDA MAÑANA;ENTRADA TARDE;SALIDA TARDE;HORAS\n";
-  [...lista].sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.operario.localeCompare(b.operario,"es")).forEach(r=>{
-    csv+=[ddmmyyyy(r.fecha),r.operario,r.entradaM,r.salidaM,r.entradaT,r.salidaT,formatoHorasMinR140(minutosTrabajadosDia(r))].join(";")+"\n";
-  });
-  const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="control_horario_"+(operario||"TODOS").replace(/\s+/g,"_")+"_"+(mes||"completo")+".csv";
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 }
 
 function normalizarCodigoR138(valor){
@@ -1854,12 +1633,12 @@ function showTab(id){
     alert("ACCESO BLOQUEADO. ENTRA DESDE HERRAMIENTAS.");
     id="inicio";
   }
-  if(id==="inicio"){ accesoR138=""; operarioSeleccionadoR139=null; operarioActualR141=null; }
-  ["inicio","operarios","herramientas","fichajes","nueva","presupuesto","historial","agenda","taller","prefactura","almacen","estadisticas","ganancias","inventario","mas"].forEach(t=>{
+  if(id==="inicio"){ accesoR138=""; operarioSeleccionadoR139=null; }
+  ["inicio","operarios","herramientas","nueva","presupuesto","historial","agenda","taller","prefactura","almacen","estadisticas","ganancias","inventario","mas"].forEach(t=>{
     const el=document.getElementById(t);
     if(el) el.classList.toggle("hidden", t!==id);
   });
-  document.getElementById("tabs").style.display = (id==="inicio"||id==="operarios"||id==="herramientas"||id==="almacen"||id==="fichajes") ? "none" : "flex";
+  document.getElementById("tabs").style.display = (id==="inicio"||id==="operarios"||id==="herramientas"||id==="almacen") ? "none" : "flex";
   document.querySelectorAll("#tabs button").forEach(btn=>btn.classList.remove("activo"));
   const titulo=document.getElementById("tituloApp");
   const botones=document.querySelectorAll("#tabs button");
@@ -1885,7 +1664,6 @@ renderSelectOperarios();
   if(id==="inventario") renderInventario();
   if(id==="herramientas") actualizarAvisoCopia();
   if(id==="operarios") renderOperariosR139();
-  if(id==="fichajes") renderSelectFichajeOperario();
   if(id==="inicio") actualizarBotonFechaGestion();
 }
 
@@ -2298,7 +2076,6 @@ function pasarOTAPrefactura(id){
   const ot=ots.find(x=>x.id===id);
   if(!ot || !esOT(ot)) return;
   if(!confirm("¿PASAR "+referenciaOT(ot)+" A PRE-FACTURA?")) return;
-  if(!ot.fechaOTOriginal) ot.fechaOTOriginal=ot.fecha||ahoraLocalInput();
   ot.estado="PREFACTURA";
   if(!ot.fechaPrefactura) ot.fechaPrefactura=ahoraLocalInput();
   ot.fecha=ot.fechaPrefactura;
@@ -2308,57 +2085,6 @@ function pasarOTAPrefactura(id){
   renderPrefactura();
   alert(referenciaOT(ot)+" CREADA DESDE OT");
   showTab("prefactura");
-}
-
-function volverPrefacturaAOT(id){
-  const ot=ots.find(x=>x.id===id);
-  if(!ot || !esPrefactura(ot)) return;
-  if(!confirm("¿DEVOLVER "+referenciaOT(ot)+" A OT?\n\nSe conservan líneas, operarios, fotos y datos del expediente.")) return;
-  ot.estado="OT";
-  ot.fecha=ot.fechaOTOriginal || ot.fecha || ahoraLocalInput();
-  ot.fechaFinalizacion="";
-  ot.stockDescontado=false;
-  asegurarNumeracion(ot);
-  guardar();
-  renderPrefactura();
-  renderTaller();
-  alert("PRE-FACTURA DEVUELTA A OT: "+referenciaOT(ot));
-  showTab("taller");
-}
-
-function facturarPrefactura(id){
-  const ot=ots.find(x=>x.id===id);
-  if(!ot || !esPrefactura(ot)) return;
-  if(!confirm("¿FACTURAR "+referenciaOT(ot)+"?\n\nSe emitirá FAC con fecha real de facturación y quedará bloqueada.")) return;
-  const fichaExistente=buscarFichaCliente(ot.cliente);
-  if(!fichaExistente || !fichaExistente.nif || !fichaExistente.direccion){
-    _accionDespuesFichaCliente={tipo:"facturarPrefactura",id:id};
-    alert("Para facturar falta completar la ficha fiscal del cliente.");
-    abrirModalCliente(ot.cliente, fichaExistente);
-    return;
-  }
-  if(!nifNieValido(fichaExistente.nif)){
-    _accionDespuesFichaCliente={tipo:"facturarPrefactura",id:id};
-    alert("NIF/NIE no válido. Corrige la ficha antes de facturar.");
-    abrirModalCliente(ot.cliente, fichaExistente);
-    return;
-  }
-  ot.estado="FACTURA";
-  ot.fechaFinalizacion=ahoraLocalInput();
-  ot.fecha=ot.fechaFinalizacion;
-  ot.nif=fichaExistente.nif;
-  ot.direccion=fichaExistente.direccion;
-  ot.poblacion=fichaExistente.poblacion||"";
-  ot.telefono=fichaExistente.movil||fichaExistente.tfno||ot.telefono||"";
-  ot.email=fichaExistente.email||"";
-  sincronizarFiscalDesdeFicha(ot);
-  asegurarNumeracion(ot);
-  aplicarStockFacturaSiProcede(ot);
-  guardar();
-  renderPrefactura();
-  renderHistorial();
-  alert("FACTURA EMITIDA: "+referenciaOT(ot));
-  showTab("historial");
 }
 
 function nombreArchivoOT(ot, sufijo){
@@ -2609,47 +2335,14 @@ function renderTaller(){
   taller.innerHTML=enTaller.map(ot=>crearTarjetaTallerOT(ot)).join("");
 }
 
-function crearTarjetaPrefactura(ot){
-  const totalActual=calcularTotalesLineas(ot.lineas||[]).total;
-  const veh=[ot.marca,ot.modelo].filter(Boolean).join(" ") || "Vehículo sin modelo";
-  const origen=ot.origenPresupuestoId ? ots.find(x=>x.id===ot.origenPresupuestoId) : null;
-  const bloqueOrigen=origen ? `<div style="margin-top:7px;color:#ffd580;font-weight:bold;">Origen: ${htmlSeguro(referenciaOT(origen))}</div>` : "";
-  return `<div class="item ot-card-r120" style="border-left-color:${colorEstado(ot.estado)}">
-    <div class="ot-top-r120">
-      <div style="min-width:0;flex:1;">
-        <div class="ot-ref-line-r122"><span class="ot-ref-r120">${htmlSeguro(referenciaOT(ot))}</span></div>
-        <div class="ot-operario-r124">${etiquetaOperarioOT(ot)}</div>
-        <div class="ot-mat-r120">${htmlSeguro(ot.matricula||"SIN MATRÍCULA")}</div>
-        <div class="ot-cli-r120">${htmlSeguro(ot.cliente||"SIN CLIENTE")}</div>
-        <div class="ot-veh-r120">${htmlSeguro(veh)}</div>
-      </div>
-      <div class="ot-total-r120">${totalActual>0 ? totalActual.toFixed(2)+" €" : ""}</div>
-    </div>
-    <div class="ot-meta-r120">
-      ${ot.telefono ? `<span class="ot-chip-r120">📞 ${htmlSeguro(ot.telefono)}</span>` : ""}
-      <span class="ot-chip-r120">📅 ${htmlSeguro(formatearFecha(fechaDocumento(ot)))}</span>
-      ${ot.km ? `<span class="ot-chip-r120">KM ${htmlSeguro(ot.km)}</span>` : ""}
-    </div>
-    ${bloqueOrigen}
-    <div style="margin-top:9px;border-top:1px solid #3b4a63;padding-top:8px;">${crearBloqueLineasR120(ot)}</div>
-    <div class="acciones ot-acciones" style="margin-top:10px;">
-      <button type="button" onclick="editarOT(${ot.id})">EDITAR PF</button>
-      <button type="button" class="green" onclick="facturarPrefactura(${ot.id})">FACTURAR</button>
-      <button type="button" class="secondary" onclick="volverPrefacturaAOT(${ot.id})">VOLVER A OT</button>
-      <button type="button" class="secondary" onclick="imprimir(${ot.id})">IMPRIMIR</button>
-    </div>
-  </div>`;
-}
-
 function renderPrefactura(){
   const lista=document.getElementById("prefacturaLista");
   let datos=ots.filter(ot=>esPrefactura(ot))
     .sort((a,b)=>(fechaDocumento(b)?new Date(fechaDocumento(b)).getTime():b.id)-(fechaDocumento(a)?new Date(fechaDocumento(a)).getTime():a.id));
   datos=filtrarDocumentoR132(datos,"prefactura");
   if(datos.length===0){ lista.innerHTML="<p>No hay pre-facturas.</p>"; return; }
-  lista.innerHTML=datos.map(ot=>crearTarjetaPrefactura(ot)).join("");
+  lista.innerHTML=datos.map(ot=>crearTarjetaOT(ot)).join("");
 }
-
 
 // ============================================================
 // 8. ALMACÉN
@@ -3314,16 +3007,6 @@ function _completarGuardadoOT(ot){
 
   if(editandoId){
     const anterior=ots.find(x=>x.id===editandoId) || {};
-    if(esPresupuesto(anterior) && (esPrefactura(ot)||esFactura(ot))){
-      alert("FLUJO NO PERMITIDO: un presupuesto no puede pasar directo a pre-factura ni factura. Primero debe pasar a OT.");
-      guardandoOT=false;
-      return;
-    }
-    if(esOT(anterior) && esFactura(ot)){
-      alert("FLUJO NO PERMITIDO: una OT debe pasar primero a PRE-FACTURA antes de FACTURA.");
-      guardandoOT=false;
-      return;
-    }
     if(esFactura(anterior)){
       alert("FACTURA EMITIDA BLOQUEADA. Para corregir importes o conceptos crea una FREC. Solo la ficha fiscal del cliente puede actualizarse desde FACTURAS.");
       editandoId=null;
@@ -4151,15 +3834,9 @@ function confirmarFicha(){
       guardarFichaCliente(nombreEdicion,nif,dir,pob,movil,tfno,email,obs);
       const n=sincronizarFacturasCliente(nombreEdicion);
       guardar();
+      alert("FICHA ACTUALIZADA CORRECTAMENTE"+(n ? " — FACTURAS ACTUALIZADAS: "+n : ""));
       document.getElementById("modalCliente").style.display="none";
       renderHistorial();
-      if(_accionDespuesFichaCliente && _accionDespuesFichaCliente.tipo==="facturarPrefactura"){
-        const idAccion=_accionDespuesFichaCliente.id;
-        _accionDespuesFichaCliente=null;
-        facturarPrefactura(idAccion);
-      }else{
-        alert("FICHA ACTUALIZADA CORRECTAMENTE"+(n ? " — FACTURAS ACTUALIZADAS: "+n : ""));
-      }
     }
     return;
   }
@@ -4177,7 +3854,6 @@ function confirmarFicha(){
 function cancelarFicha(){
   document.getElementById("modalCliente").style.display="none";
   _otPendienteGuardar=null;
-  _accionDespuesFichaCliente=null;
 }
 
 // ============================================================
@@ -4452,16 +4128,16 @@ function imprimir(id){
   let tablaLineas="";
   let totalBase=0, totalIVA=0, total=0;
   if(ot.lineas && ot.lineas.length>0){
-    tablaLineas=`<table style="width:100%;border-collapse:collapse;margin:4px 0;font-size:10px;">
+    tablaLineas=`<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:12px;">
       <thead><tr style="border-bottom:2px solid #333;">
-        <th style="text-align:left;padding:2px;width:10%;">Ref.</th>
-        <th style="text-align:left;padding:2px;width:43%;">Concepto</th>
-        <th style="text-align:center;padding:2px;width:8%;">Uds.</th>
-        <th style="text-align:right;padding:2px;width:10%;">Precio</th>
-        <th style="text-align:right;padding:2px;width:9%;">Dto.</th>
-        <th style="text-align:right;padding:2px;width:10%;">Base</th>
-        <th style="text-align:center;padding:2px;width:6%;">IVA</th>
-        <th style="text-align:right;padding:2px;width:8%;">Total</th>
+        <th style="text-align:left;padding:4px;width:10%;">Ref.</th>
+        <th style="text-align:left;padding:4px;width:38%;">Concepto</th>
+        <th style="text-align:center;padding:4px;width:8%;">Uds.</th>
+        <th style="text-align:right;padding:4px;width:10%;">Precio</th>
+        <th style="text-align:right;padding:4px;width:9%;">Dto.</th>
+        <th style="text-align:right;padding:4px;width:10%;">Base</th>
+        <th style="text-align:center;padding:4px;width:6%;">IVA</th>
+        <th style="text-align:right;padding:4px;width:9%;">Total</th>
       </tr></thead><tbody>`;
     const ivaGrupos={};
     const grupos=lineasOrdenadasPorTipo(ot.lineas);
@@ -4484,14 +4160,14 @@ function imprimir(id){
       totalBase += subtotal;
       ivaGrupos[ivaPct]=(ivaGrupos[ivaPct]||0)+ivaImporte;
       tablaLineas+=`<tr>
-        <td style="text-align:left;padding:2px;font-weight:bold;vertical-align:top;">${htmlSeguro(l.referencia||l.codigo_mo||"—")}</td>
-        <td style="text-align:left;padding:2px;white-space:pre-wrap;vertical-align:top;">${htmlSeguro(l.descripcion||"")}</td>
-        <td style="text-align:center;padding:2px;vertical-align:top;">${cantidad}</td>
-        <td style="text-align:right;padding:2px;vertical-align:top;">${precio.toFixed(2)}</td>
-        <td style="text-align:right;padding:2px;vertical-align:top;">${descuento.toFixed(2)}</td>
-        <td style="text-align:right;padding:2px;vertical-align:top;">${subtotal.toFixed(2)}</td>
-        <td style="text-align:center;padding:2px;vertical-align:top;">${ivaPct}%</td>
-        <td style="text-align:right;padding:2px;vertical-align:top;">${totalLinea.toFixed(2)}</td>
+        <td style="text-align:left;padding:4px;font-weight:bold;vertical-align:top;">${htmlSeguro(l.referencia||l.codigo_mo||"—")}</td>
+        <td style="text-align:left;padding:4px;white-space:pre-wrap;vertical-align:top;">${htmlSeguro(l.descripcion||"")}</td>
+        <td style="text-align:center;padding:4px;vertical-align:top;">${cantidad}</td>
+        <td style="text-align:right;padding:4px;vertical-align:top;">${precio.toFixed(2)}</td>
+        <td style="text-align:right;padding:4px;vertical-align:top;">${descuento.toFixed(2)}</td>
+        <td style="text-align:right;padding:4px;vertical-align:top;">${subtotal.toFixed(2)}</td>
+        <td style="text-align:center;padding:4px;vertical-align:top;">${ivaPct}%</td>
+        <td style="text-align:right;padding:4px;vertical-align:top;">${totalLinea.toFixed(2)}</td>
       </tr>`;
     });
     totalIVA = Object.values(ivaGrupos).reduce((a,b)=>a+b,0);
@@ -4511,14 +4187,15 @@ function imprimir(id){
   }
 
   const bloqueCliente=facturaEmitida ? `
-    <div class="datos-cliente-compacto">
-      <div class="fila-completa"><b>Cliente:</b> ${htmlSeguro(ot.cliente||"—")} · <b>NIF:</b> ${htmlSeguro(nif||"—")} · <b>Tfno:</b> ${htmlSeguro(ot.telefono||"—")}</div>
-      <div class="fila-completa"><b>Dirección:</b> ${htmlSeguro(direccion||"—")}${poblacion ? " · "+htmlSeguro(poblacion) : ""}${emailCliente ? " · "+htmlSeguro(emailCliente) : ""}</div>
-    </div>
+    <p><b>Cliente:</b> ${ot.cliente}</p>
+    <p><b>NIF/NIE:</b> ${nif||"—"}</p>
+    <p><b>Dirección:</b> ${direccion||"—"}</p>
+    ${poblacion ? `<p><b>Población:</b> ${poblacion}</p>` : ""}
+    <p><b>Teléfono:</b> ${ot.telefono}</p>
+    ${emailCliente ? `<p><b>E-mail:</b> ${emailCliente}</p>` : ""}
   ` : `
-    <div class="datos-cliente-compacto">
-      <div class="fila-completa"><b>Cliente:</b> ${htmlSeguro(ot.cliente||"—")} · <b>Tfno:</b> ${htmlSeguro(ot.telefono||"—")}</div>
-    </div>
+    <p><b>Cliente:</b> ${ot.cliente}</p>
+    <p><b>Teléfono:</b> ${ot.telefono}</p>
   `;
 
   const bloqueHojaTaller=bloqueHojaTallerProfesional(ot);
@@ -4530,16 +4207,11 @@ function imprimir(id){
     @media print{
       body{background:white!important;color:black!important}
       body > *:not(#zonaImpresion){display:none!important}
-      #zonaImpresion{display:block!important;font-family:Arial;padding:10px;color:black}
-      #zonaImpresion h1{text-align:center;color:black;background:white;margin:0 0 4px!important;padding:0!important;font-size:18px!important}
-      #zonaImpresion h3{margin:5px 0 3px!important;font-size:12px!important}
-      #zonaImpresion p{margin:1px 0!important;line-height:1.05!important}
-      .cabecera-doc-compacta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 8px;border:1px solid #333;padding:4px;margin:2px 0 3px;font-size:10px;line-height:1.08}
-      .datos-cliente-compacto{border:1px solid #333;padding:4px;margin:2px 0 3px;font-size:10px;line-height:1.08}
-      .datos-cliente-compacto .fila-completa{white-space:normal;overflow-wrap:anywhere}
-      .box{border:1px solid #333;padding:5px;margin:3px 0;font-size:10px;line-height:1.1}
+      #zonaImpresion{display:block!important;font-family:Arial;padding:20px;color:black}
+      #zonaImpresion h1{text-align:center;color:black;background:white}
+      .box{border:1px solid #333;padding:10px;margin:10px 0}
       table{width:100%;border-collapse:collapse}
-      th,td{padding:2px;text-align:left;border-bottom:1px solid #ddd;line-height:1.08}
+      th,td{padding:6px;text-align:left;border-bottom:1px solid #ddd}
       th{background:#f5f5f5}
       .hoja-taller-r127{page-break-before:always;border-top:3px solid #111;margin-top:18px;padding-top:12px}
       .hoja-taller-r127 h2{text-align:center;margin:0 0 12px;font-size:18px;color:#000}
@@ -4584,17 +4256,16 @@ function imprimir(id){
 
 </style>
     <h1>${tituloPrint}</h1>
-    <div class="cabecera-doc-compacta">
-      <div><b>Nº:</b> ${htmlSeguro(referenciaOT(ot))}</div>
-      <div><b>${facturaEmitida ? "Fecha FAC" : (esPrefactura(ot) ? "Fecha PF" : "Fecha")}:</b> ${htmlSeguro(formatearFecha(fechaDocumento(ot)))}</div>
-      <div><b>Matrícula:</b> ${htmlSeguro(ot.matricula||"—")}</div>
-      <div><b>Vehículo:</b> ${htmlSeguro(((ot.marca||"")+" "+(ot.modelo||"")).trim()||"—")}</div>
-      <div><b>KM:</b> ${htmlSeguro(ot.km||"—")}</div>
-      <div><b>Estado:</b> ${htmlSeguro(textoEstado(ot.estado))}</div>
-    </div>
-    ${ot.esRectificativa ? `<div class="datos-cliente-compacto"><b>Rectifica:</b> ${htmlSeguro(ot.facturaRectificada||"—")}${ot.motivoRectificativa ? " · <b>Motivo:</b> "+htmlSeguro(ot.motivoRectificativa) : ""}</div>` : ""}
+    <p><b>Número:</b> ${referenciaOT(ot)}</p>
+    ${ot.esRectificativa ? `<p><b>Rectifica:</b> ${ot.facturaRectificada||"—"}</p>` : ""}
+    ${ot.esRectificativa && ot.motivoRectificativa ? `<p><b>Motivo rectificación:</b> ${ot.motivoRectificativa}</p>` : ""}
+    <p><b>${facturaEmitida ? "Fecha factura" : "Fecha"}:</b> ${formatearFecha(fechaDocumento(ot))}</p>
+    <p><b>Matrícula:</b> ${ot.matricula}</p>
     ${bloqueCliente}
-    ${esOT(ot) ? imprimirFichaVehiculoExtra(ot) : ""}
+    <p><b>Vehículo:</b> ${ot.marca} ${ot.modelo}</p>
+    ${imprimirFichaVehiculoExtra(ot)}
+    <p><b>KM:</b> ${ot.km}</p>
+    <p><b>Estado:</b> ${textoEstado(ot.estado)}</p>
     ${bloqueTrabajos}
     ${tablaLineas ? tablaLineas : ""}
     <h3>Observaciones</h3>
